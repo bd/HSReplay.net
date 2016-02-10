@@ -1,4 +1,4 @@
-from test.base import FunctionalTest, TestDataConsumerMixin
+from hsreplayarchive.test.base import FunctionalTest, TestDataConsumerMixin
 import requests
 
 
