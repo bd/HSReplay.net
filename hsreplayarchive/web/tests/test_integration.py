@@ -14,7 +14,7 @@ class ReplayUploadTests(FunctionalTest, TestDataConsumerMixin):
 			server_url = '%s%s' % (self.live_server_url, '/api/v1/replay/upload')
 			response = requests.post(server_url, data=original_xml_data)
 
-			url_to_xml = response.content
-
+			url_to_xml = response.headers['Location']
+			print(url_to_xml)
 			xml_back_from_server = requests.get(url_to_xml).content
-			self.assertEqual(xml_back_from_server, original_xml_data)
+			self.assertEqual(xml_back_from_server, original_xml_data.encode("utf-8"))

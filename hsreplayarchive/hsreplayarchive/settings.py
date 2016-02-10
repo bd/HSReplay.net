@@ -53,7 +53,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.security.SecurityMiddleware',
 )
 
-ROOT_URLCONF = 'hsreplayarchive.urls'
+ROOT_URLCONF = 'hsreplayarchive.hsreplayarchive.urls'
 
 TEMPLATES = [
     {
