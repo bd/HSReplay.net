@@ -1,14 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-{% load staticfiles %}
-<head>
-    <meta charset="UTF-8">
-    <link href="{% static 'joust/joust.css' %}" rel="stylesheet">
+{% extends "base.html" %}
+{% load static from staticfiles %}
 
-    <title>Joust Viewer</title>
-</head>
-<body>
-    <div id="container"></div>
-    <script src="{% static 'joust/bundle.js' %} "></script>
-</body>
-</html>
+{% block stylesheets %}
+    {{ block.super }}
+{% endblock stylesheets %}
+
+{% block content %}
+
+<link href="{% static 'joust/joust.css' %}" rel="stylesheet">
+
+<div id="container"></div>
+<script src="{% static 'joust/bundle.js' %} "></script>
+
+{% endblock content %}
