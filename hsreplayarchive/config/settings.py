@@ -38,6 +38,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'web',
+    'joust',
 )
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
