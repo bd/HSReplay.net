@@ -1,10 +1,14 @@
 from django.db import models
+from django.core.urlresolvers import reverse
 import uuid
 
 
 class HSReplayFile(models.Model):
 	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 	data = models.BinaryField()
+
+	def get_absolute_url(self):
+		return reverse('joust_replay_view', kwargs={'id':self.id})
 
 
 # class HSReplayFileUpload:

@@ -1,11 +1,12 @@
 from django.shortcuts import render
 from django.views.generic import View
 
+from web.models import HSReplayFile
 
 class JoustStartupView(View):
 
 	def get(self, request):
-		return render(request, 'joust/joust_startup.html')
+		return render(request, 'joust/replay_list.html', {'replays': HSReplayFile.objects.all() })
 
 
 class ReplayDetailView(View):

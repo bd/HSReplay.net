@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load static from staticfiles %}
+
+{% block stylesheets %}
+    {{ block.super }}
+{% endblock stylesheets %}
+
+{% block content %}
+
+    <ul>
+        {% for replay in replays %}
+            <li>
+                <a href="{{ replay.get_absolute_url }}">{{ replay.id }}</a>
+            </li>
+
+        {% endfor %}
+    </ul>
+
+{% endblock content %}
