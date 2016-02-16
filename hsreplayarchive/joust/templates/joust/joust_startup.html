@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load static from staticfiles %}
+
+{% block stylesheets %}
+    {{ block.super }}
+{% endblock stylesheets %}
+
+{% block content %}
+
+<link href="{% static 'joust/joust.css' %}" rel="stylesheet">
+
+<div id="container"></div>
+<script src="{% static 'joust/bundle.js' %} "></script>
+
+{% endblock content %}
