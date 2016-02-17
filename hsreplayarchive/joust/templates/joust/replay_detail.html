@@ -9,12 +9,10 @@
 
 <link href="{% static 'joust/joust.css' %}" rel="stylesheet">
 <script src="{% static 'joust/bundle.js' %} "></script>
-<div id="container"></div>
 
+<div id="container"></div>
 <script>
-    var replay_url = '{{ replay_data_url }}';
-    var static_assets_root = '{% static 'joust/images/' %}';
-    Joust.renderHSReplay('container', replay_url, {width: 500, height: 500, assetDirectory: '{% static 'joust/images/' %}'});
+    Joust.viewer('container').height(500).width(500).assets('{% static 'joust/assets/' %}').fromUrl('{{ replay_data_url }}');
 </script>
 
 
