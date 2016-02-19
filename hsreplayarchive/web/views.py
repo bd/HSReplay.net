@@ -17,6 +17,7 @@ def fetch_replay(request, id):
 	try:
 		replay = HSReplaySingleGameFileUpload.objects.get(id=id)
 		response.content = replay.data
+		response['Content-Type'] = 'application/vnd.hearthsim-hsreplay+xml'
 		response.status_code = 200
 	except Exception as e:
 		response.status_code = 500
