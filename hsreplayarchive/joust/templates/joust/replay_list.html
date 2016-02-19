@@ -3,17 +3,27 @@
 
 {% block stylesheets %}
     {{ block.super }}
+
 {% endblock stylesheets %}
 
 {% block content %}
 
-    <ul>
+    <table style="width:100%">
+        <tr>
+            <th>Replay</th>
+            <th>Match Date</th>
+            <th>First Player Name</th>
+            <th>Second Player Name</th>
+        </tr>
         {% for replay in replays %}
-            <li>
-                <a href="{{ replay.get_absolute_url }}">{{ replay.id }}</a>
-            </li>
+            <tr>
+                <td><a href="{{ replay.get_absolute_url }}">{{ replay.id }}</a></td>
+                <td>{{ replay.match_date }}</td>
+                <td>{{ replay.player_1_name }}</td>
+                <td>{{ replay.player_2_name }}</td>
+            </tr>
 
         {% endfor %}
-    </ul>
+    </table>
 
 {% endblock content %}
