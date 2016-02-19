@@ -1,11 +1,21 @@
 from django.db import models
 from django.core.urlresolvers import reverse
 import uuid
+from datetime import date
 
 
-class HSReplayFile(models.Model):
+class HSReplaySingleGameFileUpload(models.Model):
+	"""A user uploaded .hsreplay file containing only a single game.
+
+	player_1 here means the player who goes first.
+	player_2 here is the player with the coin.
+	"""
 	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 	data = models.BinaryField()
+	upload_date = models.DateField(default=date.today)
+	match_date = models.DateField(null=True)
+	player_1_name = models.CharField(max_length=255, null=True)
+	player_2_name = models.CharField(max_length=255, null=True)
 
 	def get_absolute_url(self):
 		return reverse('joust_replay_view', kwargs={'id':self.id})
