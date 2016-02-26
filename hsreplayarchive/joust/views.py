@@ -7,7 +7,8 @@ from web.models import HSReplaySingleGameFileUpload
 class JoustStartupView(View):
 
 	def get(self, request):
-		return render(request, 'joust/replay_list.html', {'replays': HSReplaySingleGameFileUpload.objects.all() })
+		context = {'replays': HSReplaySingleGameFileUpload.objects.order_by('-match_date').all() }
+		return render(request, 'joust/replay_list.html', context)
 
 
 class ReplayDetailView(View):
