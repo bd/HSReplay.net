@@ -137,5 +137,5 @@ USE_TZ = True
 
 
 LOGIN_REDIRECT_URL = reverse_lazy('joust_replay_list')
-LOGIN_URL = reverse_lazy('hsreplayarchive-auth:login')
-LOGOUT_URL = reverse_lazy('hsreplayarchive-auth:logout')
+LOGIN_URL = reverse_lazy('dj-auth:login')
+LOGOUT_URL = reverse_lazy('dj-auth:logout')

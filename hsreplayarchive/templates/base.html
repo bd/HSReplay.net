@@ -50,9 +50,9 @@
             </ul>
 
             {% if user.is_authenticated %}
-                <p class="navbar-text navbar-right"><a href="{% url 'hsreplayarchive-auth:logout' %}?next={{ request.path }}" class="navbar-link" style="margin-right: 5px;">Log Out</a></p>
+                <p class="navbar-text navbar-right"><a href="{% url 'dj-auth:logout' %}?next={{ request.path }}" class="navbar-link" style="margin-right: 5px;">Log Out</a></p>
             {% else %}
-                <p class="navbar-text navbar-right"><a href="{% url 'hsreplayarchive-auth:login' %}?next={{ request.path }}" class="navbar-link" style="margin-right: 5px;">Log In</a></p>
+                <p class="navbar-text navbar-right"><a href="{% url 'dj-auth:login' %}?next={{ request.path }}" class="navbar-link" style="margin-right: 5px;">Log In</a></p>
             {% endif %}
         </div> <!-- /.container-fluid -->
     </nav>

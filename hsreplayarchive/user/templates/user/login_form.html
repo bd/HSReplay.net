@@ -1,5 +1,5 @@
 <form
-    action="{% url 'hsreplayarchive-auth:login' %}"
+    action="{% url 'dj-auth:login' %}"
     method="post">
     {% csrf_token %}
     {{ form.as_p }}
