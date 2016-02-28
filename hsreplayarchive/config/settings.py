@@ -38,11 +38,19 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'user',
+    'django.contrib.sites',
     'storages',
     'web',
     'joust',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.twitch',
 )
+
+SOCIALACCOUNT_PROVIDERS = {
+            "twitch": {"SCOPE": ["user_read"]},
+}
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
@@ -79,6 +87,14 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
+
+AUTHENTICATION_BACKENDS = (
+    # Needed to login by username in Django admin, regardless of `allauth`
+    'django.contrib.auth.backends.ModelBackend',
+    # `allauth` specific authentication methods, such as login by e-mail
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
+
 # The following section based on: https://www.caktusgroup.com/blog/2014/11/10/Using-Amazon-S3-to-store-your-Django-sites-static-and-media-files/
 
 # Uncomment this block to instruct S3 that when it serves objects it can instruct browsers to cache them for a LONG time.
@@ -106,6 +122,8 @@ DEFAULT_FILE_STORAGE = 'config.storage.MediaStorage'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
@@ -135,7 +153,6 @@ USE_L10N = True
 
 USE_TZ = True
 
+SITE_ID = 1
 
 LOGIN_REDIRECT_URL = reverse_lazy('joust_replay_list')
-LOGIN_URL = reverse_lazy('dj-auth:login')
-LOGOUT_URL = reverse_lazy('dj-auth:logout')
