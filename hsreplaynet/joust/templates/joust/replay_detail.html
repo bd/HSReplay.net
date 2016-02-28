@@ -14,7 +14,28 @@
 <div id="container"></div>
 
 <script>
-    Joust.viewer('container').height(600).width(800).assets('{% static 'joust/assets/' %}').fromUrl('{{ replay_data_url }}');
+    $(document).ready(function() {
+
+        var cb = function (buildNumber, cb) {
+
+            console.log(buildNumber);
+
+            var bn = buildNumber;
+
+            if(typeof buildNumber === 'undefined') {
+                bn = 'latest';
+            }
+
+            $.ajax('https://api.hearthstonejson.com/v1/' + bn + '/enUS/cards.json', {
+                type: 'GET',
+                dataType: 'json',
+                success: cb
+            });
+
+        }
+
+        Joust.viewer('container').height(800).width(1000).metadata(cb).assets('{% static 'joust/assets/' %}').fromUrl('{{ replay_data_url }}');
+    });
 </script>
 
 
