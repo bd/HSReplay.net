@@ -46,10 +46,12 @@ INSTALLED_APPS = (
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.twitch',
+    'oauth.battlenet',
 )
 
 SOCIALACCOUNT_PROVIDERS = {
-            "twitch": {"SCOPE": ["user_read"]},
+    "twitch": {"SCOPE": ["user_read"]},
+    "battlenet": {"SCOPE": ["wow.profile"]}
 }
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
@@ -156,3 +158,8 @@ USE_TZ = True
 SITE_ID = 1
 
 LOGIN_REDIRECT_URL = reverse_lazy('joust_replay_list')
+
+BATTLE_NET_KEY = '82s3qyea2xt47pt76rq2d94mpr4n2qbz'
+BATTLE_NET_SECRET = 'ZYJZcEm4Ceds7CNzyAeywzUgXAzyH8Wf'
+TESTING_BATTLE_NET_KEY = 'jk94yjkz6nhkkvtjjuvkan3jmsbfxqj9'
+TESTING_BATTLE_NET_SECRET = '2BX9S9Hb52ePHRTkHF927phDFy6uqXVs'
