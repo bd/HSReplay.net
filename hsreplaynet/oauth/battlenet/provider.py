@@ -14,13 +14,6 @@ class BattleNetProvider(OAuth2Provider):
     account_class = BattleNetAccount
 
     def extract_uid(self, data):
-        """ The data format will look like:
-        {
-            "id": 58054182,
-            "battletag": "Nicodemus#1538"
-        }
-
-        """
         return str(data['id'])
 
     def extract_common_fields(self, data):
