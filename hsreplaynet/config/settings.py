@@ -114,7 +114,6 @@ AWS_S3_CALLING_FORMAT = 'boto.s3.connection.OrdinaryCallingFormat'
 AWS_S3_CUSTOM_DOMAIN = AWS_STORAGE_BUCKET_NAME
 AWS_S3_SECURE_URLS = False
 
-
 STATICFILES_LOCATION = 'static'
 STATICFILES_STORAGE = 'config.storage.StaticStorage'
 STATIC_URL = "http://%s/%s/" % (AWS_STORAGE_BUCKET_NAME, STATICFILES_LOCATION)
@@ -134,7 +133,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'hsreplayarchive',
+        'NAME': 'hsreplaynet',
         'USER': 'root',
         'PASSWORD': '',
         'HOST': 'localhost',
