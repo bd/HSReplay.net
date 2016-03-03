@@ -12,3 +12,4 @@ boto==2.39.0
 -e git+https://github.com/amw2104/HSReplayParser#egg=hsreplayparser
 -e git+https://github.com/HearthSim/python-hearthstone.git#egg=hearthstone
 django-allauth==0.24.1
+whitenoise==2.0.6

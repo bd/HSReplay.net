@@ -7,8 +7,8 @@
 
 {% block content %}
 
-<link href="/static/joust/joust.css" rel="stylesheet">
-<script src="/static/joust/bundle.js"></script>
+<link href="http://hsreplay.net/static/joust/joust.css" rel="stylesheet">
+<script src="http://hsreplay.net/static/joust/bundle.js"></script>
 
 <a href="{{ replay_data_url }}">Raw Replay File</a>
 <div id="container"></div>
@@ -34,7 +34,7 @@
 
         }
 
-        Joust.viewer('container').height(800).width(1000).metadata(cb).assets('{% static 'joust/assets/' %}').fromUrl('{{ replay_data_url }}');
+        Joust.viewer('container').height(800).width(1000).metadata(cb).assets('http://hsreplay.net/static/joust/assets/').fromUrl('{{ replay_data_url }}');
     });
 </script>
 
