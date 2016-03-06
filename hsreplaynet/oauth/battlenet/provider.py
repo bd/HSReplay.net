@@ -14,9 +14,9 @@ class BattleNetProvider(OAuth2Provider):
     account_class = BattleNetAccount
 
     def extract_uid(self, data):
-        return str(data['id'])
+        return str(data['battletag'])
 
     def extract_common_fields(self, data):
-        return dict(username=data.get('battletag'),)
+        return dict()
 
 providers.registry.register(BattleNetProvider)
