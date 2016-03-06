@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 {% load static from staticfiles %}
+{% load socialaccount %}
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -62,7 +63,10 @@
                         </ul>
                         </li>
                     {% else %}
-                        <li><a href="{% url 'account_login' %}" class="navbar-link" >Log In / Sign Up</a></li>
+                        <li><a href="{% provider_login_url "battlenet" %}" class="navbar-link" >
+                            <img src="{% static 'web/images/bnet.png' %}"/>
+                            <span>Log in with Battle.net</span>
+                        </a></li>
                     {% endif %}
 
                 </ul>
