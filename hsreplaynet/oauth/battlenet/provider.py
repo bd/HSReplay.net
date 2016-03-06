@@ -7,8 +7,10 @@ from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 class BattleNetSocialAccountAdapter(DefaultSocialAccountAdapter):
 
     def populate_user(self, request, sociallogin, data):
-        sociallogin.account.user.username = data["battletag"]
-        super().populate_user(request, sociallogin, data)
+        user = super().populate_user(request, sociallogin, data)
+        if 'battletag' in data:
+            user.username = data["battletag"]
+        return user
 
 
 class BattleNetAccount(ProviderAccount):

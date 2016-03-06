@@ -161,7 +161,9 @@ SITE_ID = 1
 
 LOGIN_REDIRECT_URL = reverse_lazy('joust_replay_list')
 ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https'
+
 SOCIALACCOUNT_ADAPTER = "oauth.battlenet.provider.BattleNetSocialAccountAdapter"
+
 BATTLE_NET_KEY = '82s3qyea2xt47pt76rq2d94mpr4n2qbz'
 BATTLE_NET_SECRET = 'ZYJZcEm4Ceds7CNzyAeywzUgXAzyH8Wf'
 TESTING_BATTLE_NET_KEY = 'jk94yjkz6nhkkvtjjuvkan3jmsbfxqj9'
