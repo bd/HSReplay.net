@@ -10,8 +10,21 @@
 <link href="http://hsreplay.net/static/joust/joust.css" rel="stylesheet">
 <script src="http://hsreplay.net/static/joust/bundle.js"></script>
 
-<a href="{{ replay_data_url }}">Raw Replay File</a>
-<div id="container"></div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-xs-12">
+            <a href="{{ replay_data_url }}">Raw Replay File</a>
+        </div>
+    </div>
+    <div id="tabletop" class="row">
+        <div class="col-xs-2"></div>
+        <div class="col-xs-8">
+            <div id="container"></div>
+        </div>
+        <div class="col-xs-2"></div>
+    </div>
+</div>
 
 <script>
     $(document).ready(function() {
@@ -34,7 +47,7 @@
 
         }
 
-        Joust.viewer('container').height(800).width(1000).metadata(cb).assets('http://hsreplay.net/static/joust/assets/').fromUrl('{{ replay_data_url }}');
+        Joust.viewer('container').height(600).metadata(cb).assets('http://hsreplay.net/static/joust/assets/').fromUrl('{{ replay_data_url }}');
     });
 </script>
 
