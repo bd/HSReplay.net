@@ -1,4 +1,4 @@
-
+/*
 table, th, td {
     border: 1px solid black;
     border-collapse: collapse;
@@ -7,7 +7,7 @@ table, th, td {
 th, td {
     padding: 5px;
 }
-
+*/
 
 #tabletop {
     background:url("images/STW_Table2.jpg") no-repeat center center;
