@@ -1,4 +1,4 @@
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.views.generic import View
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -9,7 +9,7 @@ from datetime import date
 
 
 def home(request):
-	return render_to_response('web/home.html')
+	return render(request, 'web/home.html')
 
 
 def fetch_replay(request, id):
