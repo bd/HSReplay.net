@@ -1,6 +1,14 @@
 from allauth.socialaccount import providers
 from allauth.socialaccount.providers.base import ProviderAccount
 from allauth.socialaccount.providers.oauth2.provider import OAuth2Provider
+from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
+
+
+class BattleNetSocialAccountAdapter(DefaultSocialAccountAdapter):
+
+    def populate_user(self, request, sociallogin, data):
+        sociallogin.account.user.username = data["battletag"]
+        super().populate_user(request, sociallogin, data)
 
 
 class BattleNetAccount(ProviderAccount):
@@ -17,6 +25,6 @@ class BattleNetProvider(OAuth2Provider):
         return str(data['id'])
 
     def extract_common_fields(self, data):
-        return dict(username=data.get('battletag'),)
+        return dict(battletag=data.get('battletag'),)
 
 providers.registry.register(BattleNetProvider)
