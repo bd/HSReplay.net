@@ -12,6 +12,10 @@ def home(request):
 	return render(request, 'web/home.html')
 
 
+def api_docs(request):
+	return render(request, 'web/api_docs.html')
+
+
 def fetch_replay(request, id):
 	response = HttpResponse()
 	try:

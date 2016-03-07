@@ -4,3 +4,11 @@
     height: 600px;
     background-size:100% auto;
 }
+
+
+.homepage {
+    background-image: url("images/Tavern_Brawl_Key_Art.jpg");
+    color: white;
+    background-size: cover;
+    height: 600px;
+}

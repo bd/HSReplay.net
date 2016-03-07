@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load static from staticfiles %}
+
+{% block stylesheets %}
+    {{ block.super }}
+{% endblock stylesheets %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-xs-12">
+        HSReplays can be uploaded by placing the replay data directly into the POST body. For example:
+        <pre>
+            POST /api/v1/replay/upload HTTP/1.1
+            Host: www.hsreplay.net
+
+            &lt;HSReplay version="1.0"&gt;
+                &lt;Game ts="2016-02-06T04:50:33" type="7"&gt;
+                    &lt;GameEntity id="1"&gt;
+                        &lt;Tag tag="10" value="85" /&gt;
+                        &lt;Tag tag="20" value="1" /&gt;
+                        &lt;!-- Additional HSReplay Data --&gt;
+                &lt;/Game&gt;
+            &lt;/HSReplay&gt;
+        </pre>
+        <p>If the replay was successfully uploaded, then the server will respond with code 201 and include a <code>Location:</code> header with the URI that should be used for retrieval.
+        All replay files are assigned a UUID on upload that is used as the last component in the path to the retrieval location.</p>
+        <pre>
+            HTTP/1.1 201 CREATED
+            Date: Mon, 8 February 2016 22:38:34 GMT
+            Location: http://www.hsreplay.net/api/v1/replay/27258f76-c180-4b4f-99e4-8ad949a17eb7
+
+        </pre>
+        <p>The replay can be retrieved again via a simple GET to the URI provided in the uploaded response.</p>
+        <pre>
+            GET /api/v1/replay/27258f76-c180-4b4f-99e4-8ad949a17eb7 HTTP/1.1
+            Host: www.hsreplay.net
+        </pre>
+        <p>If the server responds with a 200 then the replay XML will be included exactly as it was uploaded in the response body.</p>
+        <pre>
+            HTTP/1.1 200 OK
+            Date: Mon, 8 February 2016 23:17:52 GMT
+
+            &lt;HSReplay version="1.0"&gt;
+                &lt;Game ts="2016-02-06T04:50:33" type="7"&gt;
+                    &lt;GameEntity id="1"&gt;
+                        &lt;Tag tag="10" value="85" /&gt;
+                        &lt;Tag tag="20" value="1" /&gt;
+                        &lt;!-- Additional HSReplay Data --&gt;
+                &lt;/Game&gt;
+            &lt;/HSReplay&gt;
+        </pre>
+        </div>
+    </div>
+
+</div>
+
+{% endblock content %}
+
