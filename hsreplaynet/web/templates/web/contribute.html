@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load static from staticfiles %}
+
+{% block stylesheets %}
+    {{ block.super }}
+{% endblock stylesheets %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-xs-12">
+            <p>To upload your own replays either download an existing client or use our APIs directly.</p>
+            <ul class="nav nav-tabs">
+                {% if is_download_client %}
+                    <li class="active"><a href="{% url 'contribute' 'client' %}">Download A Client</a></li>
+                    <li><a href="{% url 'contribute' 'api' %}">APIs</a></li>
+                {% else %}
+                    <li><a href="{% url 'contribute' 'client' %}">Download A Client</a></li>
+                    <li class="active"><a href="{% url 'contribute' 'api' %}">APIs</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-12">
+            {% if is_download_client %}
+                {% include "web/download_client.html" %}
+            {% else %}
+                {% include "web/api_docs.html" %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+

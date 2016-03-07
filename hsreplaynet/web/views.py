@@ -12,8 +12,10 @@ def home(request):
 	return render(request, 'web/home.html')
 
 
-def api_docs(request):
-	return render(request, 'web/api_docs.html')
+def contribute(request, method='client'):
+	is_download_client = method != 'api'
+	context = {'is_download_client': is_download_client}
+	return render(request, 'web/contribute.html', context)
 
 
 def fetch_replay(request, id):
