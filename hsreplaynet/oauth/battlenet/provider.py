@@ -12,6 +12,12 @@ class BattleNetSocialAccountAdapter(DefaultSocialAccountAdapter):
             user.username = data["battletag"]
         return user
 
+    def save_user(self, request, sociallogin, form=None):
+        user = super().save_user(request, sociallogin, form)
+        user.username = sociallogin.account.extra_data['battletag']
+        user.save()
+        return user
+
 
 class BattleNetAccount(ProviderAccount):
     pass
