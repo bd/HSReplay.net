@@ -2,10 +2,94 @@
 
 <div class="row">
     <div class="col-xs-12">
-    HSReplays can be uploaded by placing the replay data directly into the POST body. For example:
+        <h3>1. Request an Agent API Key</h3>
+        <p>To implement your own agent that can upload replays via API, first request an agent API key. Save your key
+        somewhere safe. It will only be displayed to you once. If you loose it, you must request a new one. In order for
+        your application to communicate with the HSReplay.net API you will need to include this key as the
+        <code>x-hsreplay-api-key</code> header value.</p>
+        <form action="" method="post" role="form" class="form-horizontal">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="id_name" class="col-sm-2 control-label">Full Name (required):</label>
+                <div class="col-sm-6">
+                    {% if form.full_name.value %}
+                        <input id="id_name" class="form-control" maxlength="250" name="full_name" type="text" value="{{ form.full_name.value }}" />
+                    {% else %}
+                        <input id="id_name" class="form-control" maxlength="250" name="full_name" type="text" />
+                    {% endif %}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="id_email" class="col-sm-2 control-label">Email (required):</label>
+                <div class="col-sm-6">
+                    {% if form.email.value %}
+                        <input id="id_email" class="form-control" maxlength="250" name="email" type="text" value="{{ form.email.value }}" />
+                    {% else %}
+                        <input id="id_email" class="form-control" maxlength="250" name="email" type="text" />
+                    {% endif %}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="id_website" class="col-sm-2 control-label">Website:</label>
+                <div class="col-sm-6">
+                    {% if form.website.value %}
+                        <input id="id_website" class="form-control" maxlength="250" name="website" type="text" value="{{ form.website.value }}" />
+                    {% else %}
+                        <input id="id_website" class="form-control" maxlength="250" name="website" type="text" />
+                    {% endif %}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="id_api_key" class="col-sm-2 control-label">API Key:</label>
+                <div class="col-sm-6">
+                    {% if form.api_key.value %}
+                        <input readonly id="id_api_key" class="form-control" maxlength="250" name="api_key" type="text" value="{{ form.api_key.value }}" />
+                    {% else %}
+                        <input readonly id="id_api_key" class="form-control" maxlength="250" name="api_key" type="text" />
+                    {% endif %}
+                </div>
+            </div>
+            {% if not form.api_key.value %}
+            <button class="btn btn-primary btn-lg" type="submit">Request API Key</button>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xs-12">
+        <h3>2. Generate A Single Site Upload Token</h3>
+        <p>Once you have an API Key you can have your agent use it to generate a <code>Single Site Upload Token</code> for
+        each user of your application. Each unique user of your application must have their own token in order to identify the
+        replay files that belong to them. Your application can generate a token for a user by submitting the following
+        POST request:
+        </p>
+        <pre>
+        POST /api/v1/agents/generate_single_site_upload_token/ HTTP/1.1
+        Host: hsreplay.net
+
+        {
+            "agent_api_key": [KEY],
+        }
+    </pre>
+    <p>If successful, the server will respond with:</p>
+    <pre>
+        HTTP/1.1 201 CREATED
+        Date: Mon, 8 February 2016 22:38:34 GMT
+
+        {
+            "single_site_upload_token": [TOKEN]
+        }
+    </pre>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xs-12">
+        <h3>3. Upload Replay Files</h3>
     <pre>
         POST /api/v1/replay/upload HTTP/1.1
-        Host: www.hsreplay.net
+        Host: hsreplay.net
 
         &lt;HSReplay version="1.0"&gt;
             &lt;Game ts="2016-02-06T04:50:33" type="7"&gt;
@@ -21,13 +105,13 @@
     <pre>
         HTTP/1.1 201 CREATED
         Date: Mon, 8 February 2016 22:38:34 GMT
-        Location: http://www.hsreplay.net/api/v1/replay/27258f76-c180-4b4f-99e4-8ad949a17eb7
+        Location: http://hsreplay.net/api/v1/replay/27258f76-c180-4b4f-99e4-8ad949a17eb7
 
     </pre>
     <p>The replay can be retrieved again via a simple GET to the URI provided in the uploaded response.</p>
     <pre>
         GET /api/v1/replay/27258f76-c180-4b4f-99e4-8ad949a17eb7 HTTP/1.1
-        Host: www.hsreplay.net
+        Host: hsreplay.net
     </pre>
     <p>If the server responds with a 200 then the replay XML will be included exactly as it was uploaded in the response body.</p>
     <pre>

@@ -6,16 +6,33 @@ from django.utils.decorators import method_decorator
 from .models import HSReplaySingleGameFileUpload
 from hsreplayparser.parser import HSReplayParser
 from datetime import date
+from .forms import UploadAgentAPIKeyForm
 
 
 def home(request):
 	return render(request, 'web/home.html')
 
 
-def contribute(request, method='client'):
-	is_download_client = method != 'api'
-	context = {'is_download_client': is_download_client}
-	return render(request, 'web/contribute.html', context)
+class ContributeView(View):
+
+	def get(self, request, method='client'):
+		is_download_client = method != 'api'
+		context = {'is_download_client': is_download_client}
+		if not is_download_client:
+			context['form'] = UploadAgentAPIKeyForm()
+		return render(request, 'web/contribute.html', context)
+
+	def post(self, request, method='api'):
+		form = UploadAgentAPIKeyForm(request.POST)
+		context = {'is_download_client': False}
+
+		if form.is_valid():
+			api_key = form.save()
+			form = UploadAgentAPIKeyForm(instance = api_key)
+
+		context['form'] = form
+
+		return render(request, 'web/contribute.html', {'form': form, 'is_download_client': False})
 
 
 def fetch_replay(request, id):

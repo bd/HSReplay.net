@@ -2,6 +2,26 @@ from django.db import models
 from django.core.urlresolvers import reverse
 import uuid
 from datetime import date
+from django.utils import timezone
+
+
+class UploadAgentAPIKey(models.Model):
+	full_name = models.CharField(max_length=254)
+	email = models.EmailField()
+	website = models.URLField(blank=True)
+	api_key = models.UUIDField(blank=True)
+
+	def save(self, *args, **kwargs):
+		self.api_key = uuid.uuid4()
+		return super().save(*args, **kwargs)
+
+# class SingleSiteUploadToken(models.Model):
+# 	token = models.UUIDField(default=uuid.uuid4, editable=False)
+# 	requested_by_upload_agent = models.ForeignKey(ReplayUploadAgent)
+# 	requested_by_upload_agent_version = models.CharField(max_length=250)
+# 	user_machine_os = models.CharField(max_length=250, null=True, blank=True)
+# 	user_machine_hostname = models.CharField(max_length=250, null=True, blank=True)
+# 	created = models.DateTimeField(default=timezone.now)
 
 
 class HSReplaySingleGameFileUpload(models.Model):
