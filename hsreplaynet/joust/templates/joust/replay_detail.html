@@ -46,7 +46,18 @@
 
         }
 
-        Joust.viewer('container').height(600).metadata(cb).assets('http://hsreplay.net/static/joust/assets/').fromUrl('{{ replay_data_url }}');
+        if(Joust.hasOwnProperty('textures')) {
+            Joust.viewer('container')
+                    .height(600)
+                    .metadata(cb)
+                    .assets('http://hsreplay.net/static/joust/assets/')
+                    .textures('http://hsreplay.net/static/joust/textures/')
+                    .fromUrl('{{ replay_data_url }}');
+        } else {
+            Joust.viewer('container').height(600).metadata(cb).assets('http://hsreplay.net/static/joust/assets/').fromUrl('{{ replay_data_url }}');
+        }
+
+
     });
 </script>
 
