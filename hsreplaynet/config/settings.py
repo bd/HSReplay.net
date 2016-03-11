@@ -51,7 +51,7 @@ INSTALLED_APPS = (
 
 SOCIALACCOUNT_PROVIDERS = {
     "twitch": {"SCOPE": ["user_read"]},
-    "battlenet": {"SCOPE": ["wow.profile"]}
+    "battlenet": {"SCOPE": []}
 }
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
