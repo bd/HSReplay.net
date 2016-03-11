@@ -46,15 +46,12 @@
 
         }
 
-
         Joust.viewer('container')
-                .height(600)
-                .metadata(cb)
-                .assets('http://hsreplay.net/static/joust/assets/')
-                .textures('http://hsreplay.net/static/joust/textures/')
-                .fromUrl('{{ replay_data_url }}');
-
-
+            .height(600)
+            .metadata(cb)
+            .assets('http://hsreplay.net/static/joust/assets/')
+            .textures('http://d1v38q31t6h93p.cloudfront.net/static/joust/textures/')
+            .fromUrl('{{ replay_data_url }}');
 
     });
 </script>
