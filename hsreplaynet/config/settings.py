@@ -119,9 +119,8 @@ AWS_S3_SECURE_URLS = False
 #STATIC_URL = "http://%s/%s/" % (AWS_STORAGE_BUCKET_NAME, STATICFILES_LOCATION)
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
-STATIC_HOST = 'http://d1v38q31t6h93p.cloudfront.net' #if not DEBUG else ''
+STATIC_HOST = 'http://static.hsreplay.net' if not DEBUG else ''
 STATIC_URL = STATIC_HOST + '/static/'
-#STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
 MEDIAFILES_LOCATION = 'media'
