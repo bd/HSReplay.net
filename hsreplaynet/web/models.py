@@ -15,13 +15,13 @@ class UploadAgentAPIKey(models.Model):
 		self.api_key = uuid.uuid4()
 		return super().save(*args, **kwargs)
 
-# class SingleSiteUploadToken(models.Model):
-# 	token = models.UUIDField(default=uuid.uuid4, editable=False)
-# 	requested_by_upload_agent = models.ForeignKey(ReplayUploadAgent)
-# 	requested_by_upload_agent_version = models.CharField(max_length=250)
-# 	user_machine_os = models.CharField(max_length=250, null=True, blank=True)
-# 	user_machine_hostname = models.CharField(max_length=250, null=True, blank=True)
-# 	created = models.DateTimeField(default=timezone.now)
+
+class SingleSiteUploadToken(models.Model):
+	token = models.UUIDField(default=uuid.uuid4, editable=False)
+	requested_by_upload_agent = models.ForeignKey(UploadAgentAPIKey)
+	#user_machine_os = models.CharField(max_length=250, null=True, blank=True)
+	#user_machine_hostname = models.CharField(max_length=250, null=True, blank=True)
+	created = models.DateTimeField(default=timezone.now)
 
 
 class HSReplaySingleGameFileUpload(models.Model):
@@ -36,6 +36,7 @@ class HSReplaySingleGameFileUpload(models.Model):
 	match_date = models.DateField(null=True)
 	player_1_name = models.CharField(max_length=255, null=True)
 	player_2_name = models.CharField(max_length=255, null=True)
+	upload_token = models.ForeignKey(SingleSiteUploadToken, null=True)
 
 	def get_absolute_url(self):
 		return reverse('joust_replay_view', kwargs={'id':self.id})

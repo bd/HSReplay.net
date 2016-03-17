@@ -3,10 +3,26 @@ from django.views.generic import View
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from .models import HSReplaySingleGameFileUpload
 from hsreplayparser.parser import HSReplayParser
 from datetime import date
 from .forms import UploadAgentAPIKeyForm
+from .models import *
+import json
+
+
+API_KEY_HEADER = 'x-hsreplay-api-key'
+UPLOAD_TOKEN_HEADER = 'x-hsreplay-upload-token'
+
+
+def fetch_header(request, header):
+	if header in request.META:
+		return request.META[header]
+
+	django_header = 'HTTP_' + header.upper().replace('-', '_')
+	if django_header in request.META:
+		return request.META[django_header]
+
+	return ''
 
 
 def home(request):
@@ -47,6 +63,36 @@ def fetch_replay(request, id):
 	return response
 
 
+class GenerateSingleSiteUploadTokenView(View):
+
+	@method_decorator(csrf_exempt)
+	def dispatch(self, *args, **kwargs):
+		return super().dispatch(*args, **kwargs)
+
+	def post(self, request):
+		response = HttpResponse()
+		api_key_header = fetch_header(request, API_KEY_HEADER)
+
+		if not api_key_header:
+			# Reject for not having included an API token
+			response.status_code = 401
+			response.content = "Missing %s header" % API_KEY_HEADER
+			return response
+		else:
+
+			try:
+				api_key = UploadAgentAPIKey.objects.get(api_key=api_key_header)
+			except UploadAgentAPIKey.DoesNotExist:
+				response.status_code = 403
+				response.content = "%s is not a valid API Key." % api_key_header
+				return response
+
+			new_upload_token = SingleSiteUploadToken.objects.create(requested_by_upload_agent=api_key)
+			response.status_code = 201
+			response.content = json.dumps({"single_site_upload_token": str(new_upload_token.token)})
+			return response
+
+
 class ReplayUploadView(View):
 
 	@method_decorator(csrf_exempt)
@@ -55,6 +101,17 @@ class ReplayUploadView(View):
 
 	def post(self, request):
 		response = HttpResponse()
+
+		api_key_header = fetch_header(request, API_KEY_HEADER)
+		upload_token_header = fetch_header(request, UPLOAD_TOKEN_HEADER)
+
+		upload_token = None
+		if api_key_header and upload_token_header:
+			upload_agent = UploadAgentAPIKey.objects.get(api_key=api_key_header)
+			upload_token = SingleSiteUploadToken.objects.get(token=upload_token_header)
+			if upload_token.requested_by_upload_agent != upload_agent:
+				response.status_code = 403
+				response.content = "The upload token: %s was not issued to the API key: %s" % (upload_token_header, api_key_header)
 
 		data = request.body.decode("utf-8")
 		try:
@@ -68,6 +125,9 @@ class ReplayUploadView(View):
 			game = parser.replay.games[0]
 
 			upload = HSReplaySingleGameFileUpload.objects.create(data=request.body)
+
+			if upload_token:
+				upload.upload_token = upload_token
 
 			if game.first_player.name:
 				upload.player_1_name = game.first_player.name
@@ -84,6 +144,7 @@ class ReplayUploadView(View):
 
 			response['Location'] = '%s://%s/api/v1/replay/%s' % (request.scheme, request.get_host(), upload.id)
 			response.status_code = 201
+			response.content = json.dumps({"replay_uuid": str(upload.id)})
 		except Exception as e:
 			response.status_code = 500
 
