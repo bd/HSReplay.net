@@ -45,14 +45,14 @@ class BattleNetOAuth2Adapter(OAuth2Adapter):
         extra_data = resp.json()
 
         sociallogin = self.get_provider().sociallogin_from_response(request, extra_data)
-
-        if 'token_attachment_requested' in request.session:
-            api_key = request.session['api_key']
-            upload_token = request.session['upload_token']
-            token = SingleSiteUploadToken.objects.get(token=upload_token)
-            token.user = sociallogin.user
-            token.save()
-            #return render(request, 'web/token_attached.html', {'token': str(token.token)})
+        #
+        # if 'token_attachment_requested' in request.session:
+        #     api_key = request.session['api_key']
+        #     upload_token = request.session['upload_token']
+        #     token = SingleSiteUploadToken.objects.get(token=upload_token)
+        #     token.user = sociallogin.user
+        #     token.save()
+        #     #return render(request, 'web/token_attached.html', {'token': str(token.token)})
 
         return sociallogin
 
