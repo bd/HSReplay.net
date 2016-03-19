@@ -24,6 +24,7 @@ class SingleSiteUploadToken(models.Model):
 	#user_machine_hostname = models.CharField(max_length=250, null=True, blank=True)
 	created = models.DateTimeField(default=timezone.now)
 	user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True)
+	replays_are_public = models.BooleanField(default=False)
 
 	def __str__(self):
 		return str(self.token)
@@ -42,6 +43,7 @@ class HSReplaySingleGameFileUpload(models.Model):
 	player_1_name = models.CharField(max_length=255, null=True)
 	player_2_name = models.CharField(max_length=255, null=True)
 	upload_token = models.ForeignKey(SingleSiteUploadToken, null=True)
+	is_public = models.BooleanField(default=False)
 
 	def get_absolute_url(self):
 		return reverse('joust_replay_view', kwargs={'id':self.id})

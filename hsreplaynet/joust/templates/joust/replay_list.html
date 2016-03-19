@@ -16,6 +16,7 @@
                     <th>First Player Name</th>
                     <th>Second Player Name</th>
                     <th>Upload Token</th>
+                    <th>Is Public</th>
                 </tr>
                 {% for replay in replays %}
                     <tr>
@@ -24,6 +25,7 @@
                         <td>{{ replay.player_1_name }}</td>
                         <td>{{ replay.player_2_name }}</td>
                         <td>{{ replay.upload_token }}</td>
+                        <td>{{ replay.is_public }}</td>
                     </tr>
 
                 {% endfor %}

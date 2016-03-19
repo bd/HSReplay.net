@@ -43,6 +43,7 @@ class BattleNetOAuth2Adapter(OAuth2Adapter):
     def complete_login(self, request, app, token, **kwargs):
         resp = requests.get(self.profile_url, params={ 'access_token': token.token })
         extra_data = resp.json()
+
         sociallogin = self.get_provider().sociallogin_from_response(request, extra_data)
 
         if 'token_attachment_requested' in request.session:
@@ -51,7 +52,7 @@ class BattleNetOAuth2Adapter(OAuth2Adapter):
             token = SingleSiteUploadToken.objects.get(token=upload_token)
             token.user = sociallogin.user
             token.save()
-            return render(request, 'web/token_attached.html', {'token': str(token.token)})
+            #return render(request, 'web/token_attached.html', {'token': str(token.token)})
 
         return sociallogin
 
