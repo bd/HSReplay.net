@@ -6,6 +6,7 @@ from django.core.urlresolvers import reverse
 class TestSingleSiteTokenRequest(TestCase):
 
 	def setUp(self):
+		super().setUp()
 		self.upload_agent = UploadAgentAPIKey.objects.create(
 			full_name = "Test Upload Agent",
 			email = "test@agent.com",

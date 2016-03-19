@@ -7,4 +7,6 @@ urlpatterns = [
     url(r'^v1/docs/contribute/(?P<method>[\w]+)/$', ContributeView.as_view(), name='contribute'),
     url(r'^v1/agents/generate_single_site_upload_token/$',
         GenerateSingleSiteUploadTokenView.as_view(), name='generate_single_site_upload_token'),
+    url(r'^v1/agents/(?P<api_key>[\w-]+)/attach_upload_token/(?P<single_site_upload_token>[\w-]+)/$',
+        AttachSiteUploadTokenView.as_view(), name='attach_site_upload_token'),
 ]

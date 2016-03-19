@@ -3,6 +3,7 @@ from django.core.urlresolvers import reverse
 import uuid
 from datetime import date
 from django.utils import timezone
+from django.conf import settings
 
 
 class UploadAgentAPIKey(models.Model):
@@ -22,6 +23,10 @@ class SingleSiteUploadToken(models.Model):
 	#user_machine_os = models.CharField(max_length=250, null=True, blank=True)
 	#user_machine_hostname = models.CharField(max_length=250, null=True, blank=True)
 	created = models.DateTimeField(default=timezone.now)
+	user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True)
+
+	def __str__(self):
+		return str(self.token)
 
 
 class HSReplaySingleGameFileUpload(models.Model):

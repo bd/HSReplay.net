@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.views.generic import View
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from hsreplayparser.parser import HSReplayParser
@@ -8,7 +8,6 @@ from datetime import date
 from .forms import UploadAgentAPIKeyForm
 from .models import *
 import json
-
 
 API_KEY_HEADER = 'x-hsreplay-api-key'
 UPLOAD_TOKEN_HEADER = 'x-hsreplay-upload-token'
@@ -91,6 +90,38 @@ class GenerateSingleSiteUploadTokenView(View):
 			response.status_code = 201
 			response.content = json.dumps({"single_site_upload_token": str(new_upload_token.token)})
 			return response
+
+
+class AttachSiteUploadTokenView(View):
+
+	def get(self, request, api_key, single_site_upload_token):
+		response = HttpResponse()
+		upload_agent = None
+		token = None
+
+		try:
+			upload_agent = UploadAgentAPIKey.objects.get(api_key=api_key)
+		except UploadAgentAPIKey.DoesNotExist:
+			response.status_code = 403
+			response.content = "%s is not a valid API Key." % api_key
+			return response
+
+		try:
+			token = SingleSiteUploadToken.objects.get(requested_by_upload_agent=upload_agent, token=single_site_upload_token)
+		except SingleSiteUploadToken.DoesNotExist:
+			response.status_code = 403
+			response.content = "%s is not a valid upload token or was not assigned to this api kiey." % single_site_upload_token
+			return response
+
+		if request.user.is_authenticated():
+			token.user = request.user
+			token.save()
+			return render(request, 'web/token_attached.html', {'token': str(token.token)})
+		else:
+			request.session['api_key'] = api_key
+			request.session['upload_token'] = single_site_upload_token
+			request.session['token_attachment_requested'] = True
+			return HttpResponseRedirect(reverse("battlenet_login"))
 
 
 class ReplayUploadView(View):
