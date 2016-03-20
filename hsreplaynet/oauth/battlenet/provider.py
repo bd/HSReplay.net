@@ -2,6 +2,7 @@ from allauth.socialaccount import providers
 from allauth.socialaccount.providers.base import ProviderAccount
 from allauth.socialaccount.providers.oauth2.provider import OAuth2Provider
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
+from web.models import SingleSiteUploadToken
 
 
 class BattleNetSocialAccountAdapter(DefaultSocialAccountAdapter):
@@ -16,6 +17,15 @@ class BattleNetSocialAccountAdapter(DefaultSocialAccountAdapter):
         user = super().save_user(request, sociallogin, form)
         user.username = sociallogin.account.extra_data['battletag']
         user.save()
+
+        # Complete attachment of a token if one was requested prior to signup.
+        if 'token_attachment_requested' in request.session:
+            api_key = request.session['api_key']
+            upload_token = request.session['upload_token']
+            token = SingleSiteUploadToken.objects.get(token=upload_token)
+            token.user = user
+            token.save()
+
         return user
 
 

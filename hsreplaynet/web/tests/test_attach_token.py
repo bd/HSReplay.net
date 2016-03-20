@@ -2,14 +2,6 @@ from django.test import TestCase
 from web.models import *
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
-from django.test.client import RequestFactory
-from django.contrib.messages.middleware import MessageMiddleware
-from django.contrib.sessions.middleware import SessionMiddleware
-from django.contrib.auth.models import AnonymousUser
-from allauth.socialaccount.models import SocialApp, SocialAccount, SocialLogin
-from allauth.socialaccount.helpers import complete_social_login
-from allauth.account import app_settings as account_settings
-from django.test.utils import override_settings
 
 
 class TestAttachUploadTokenToUser(TestCase):
@@ -38,19 +30,3 @@ class TestAttachUploadTokenToUser(TestCase):
 																	 'single_site_upload_token': str(self.token.token)})
 		response = self.client.get(attachment_url)
 		self.assertEqual(response.status_code, 302)
-
-	@override_settings(
-        SOCIALACCOUNT_AUTO_SIGNUP=True,
-        ACCOUNT_SIGNUP_FORM_CLASS=None,
-        ACCOUNT_EMAIL_VERIFICATION=account_settings.EmailVerificationMethod.NONE  # noqa
-    )
-	def test_token_attached_after_social_login(self):
-		factory = RequestFactory()
-		request = factory.get('/accounts/login/callback/')
-		request.user = AnonymousUser()
-		SessionMiddleware().process_request(request)
-		MessageMiddleware().process_request(request)
-
-		account = SocialAccount(provider='battlenet', uid='123')
-		sociallogin = SocialLogin(user=self.user, account=account)
-		complete_social_login(request, sociallogin)
