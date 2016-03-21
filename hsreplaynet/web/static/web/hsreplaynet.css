@@ -1,8 +1,10 @@
 
 #tabletop {
-    background:url("images/STW_Table2.jpg") no-repeat center center;
+    background:url("images/STW_Table2.jpg") no-repeat;
     height: 100%;
-    background-size: 100% auto;
+    background-position: center center;
+    background-size: cover;
+
 }
 
 .full_height {
