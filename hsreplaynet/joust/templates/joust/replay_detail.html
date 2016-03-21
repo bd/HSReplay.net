@@ -32,24 +32,49 @@
 
         var cb = function (buildNumber, cb) {
 
-            console.log(buildNumber);
-
             var bn = buildNumber;
+            var store = null;
 
             if(typeof buildNumber === 'undefined') {
                 bn = 'latest';
+            } else {
+
+
+                store = 'joust-' + bn;
+
+                if (typeof(Storage) !== "undefined") {
+                    if (typeof localStorage[store] === "string") {
+                        var result = JSON.parse(localStorage[store]);
+                        if (typeof result === "object") {
+                            console.debug("Loaded card data from local storage (" + result.length + " cards)");
+                            cb(result);
+                            return;
+                        }
+                    }
+                    if (typeof localStorage[store] !== "undefined") {
+                        console.warn("Removing invalid card data in local storage");
+                        localStorage.removeItem(store);
+                    }
+                }
             }
 
             $.ajax('https://api.hearthstonejson.com/v1/' + bn + '/enUS/cards.json', {
                 type: 'GET',
-                dataType: 'json',
-                success: cb
+                dataType: 'text',
+                success: function(result) {
+
+                    if (store != null && typeof(Storage) !== "undefined") {
+                        localStorage.setItem(store, result);
+                        console.debug("Card data saved to local storage");
+                    }
+
+                    cb(JSON.parse(result));
+                }
             });
 
         }
 
         Joust.viewer('joust-container')
-
             .metadata(cb)
             .assets('http://static.hsreplay.net/static/joust/assets/')
             .textures('http://static.hsreplay.net/static/joust/textures/')
