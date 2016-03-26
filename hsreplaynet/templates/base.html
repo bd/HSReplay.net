@@ -51,8 +51,11 @@
 
             <div id="hsreplay-navbar-collapse" class="collapse navbar-collapse">
                 <ul class="nav navbar-nav">
-                    <li><a href="{% url 'joust_replay_list' %}">Watch</a></li>
+                    <li><a href="{% url 'joust_replay_list' %}">Discover Replays</a></li>
                     <li><a href="{% url 'contribute' 'client' %}">Contribute</a></li>
+                    {% if user.is_authenticated %}
+                        <li><a href="{% url 'private_replay_collection' %}">My Replay Collection</a></li>
+                    {% endif %}
 
                 </ul>
                 <ul class="nav navbar-nav navbar-right">

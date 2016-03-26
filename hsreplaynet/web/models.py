@@ -23,7 +23,7 @@ class SingleSiteUploadToken(models.Model):
 	#user_machine_os = models.CharField(max_length=250, null=True, blank=True)
 	#user_machine_hostname = models.CharField(max_length=250, null=True, blank=True)
 	created = models.DateTimeField(default=timezone.now)
-	user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True)
+	user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name='tokens')
 	replays_are_public = models.BooleanField(default=False)
 
 	def __str__(self):

@@ -7,8 +7,27 @@ from web.models import HSReplaySingleGameFileUpload
 class JoustStartupView(View):
 
 	def get(self, request):
-		context = {'replays': HSReplaySingleGameFileUpload.objects.order_by('-match_date').all() }
-		return render(request, 'joust/replay_list.html', context)
+		if request.user.is_authenticated() and request.user.is_staff():
+			replays = HSReplaySingleGameFileUpload.objects.order_by('-match_date').all()
+		else:
+			replays = HSReplaySingleGameFileUpload.objects.order_by('-match_date').filter(is_public=True).all()
+
+		context = {'replays': replays }
+		return render(request, 'joust/public_replay_list.html', context)
+
+
+class JoustPrivateCollectionView(View):
+
+	def get(self, request):
+		replays = []
+
+		for token in request.user.tokens:
+			replays.append(HSReplaySingleGameFileUpload.objects.filter(upload_token=token).all())
+
+		sorted_replays = sorted(replays, key=lambda r: r.match_date )
+
+		context = {'replays': sorted_replays, 'count': len(sorted_replays) }
+		return render(request, 'joust/private_replay_collection.html', context)
 
 
 class ReplayDetailView(View):

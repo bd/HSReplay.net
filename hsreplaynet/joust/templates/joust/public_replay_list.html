@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load static from staticfiles %}
+
+{% block stylesheets %}
+    {{ block.super }}
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-xs-12">
+            <table class="table table-hover table-condensed table-responsive" >
+                <tr>
+                    <th>Replay</th>
+                    <th>Match Date</th>
+                    <th>First Player Name</th>
+                    <th>Second Player Name</th>
+                    <th>Upload Token</th>
+                    <th>Is Public</th>
+                </tr>
+                {% for replay in replays %}
+                    <tr>
+                        <td><a href="{{ replay.get_absolute_url }}">{{ replay.id }}</a></td>
+                        <td>{{ replay.match_date }}</td>
+                        <td>{{ replay.player_1_name }}</td>
+                        <td>{{ replay.player_2_name }}</td>
+                        <td>{{ replay.upload_token }}</td>
+                        <td>{{ replay.is_public }}</td>
+                    </tr>
+
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock content %}
