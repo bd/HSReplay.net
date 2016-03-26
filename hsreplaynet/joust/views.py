@@ -7,7 +7,7 @@ from web.models import HSReplaySingleGameFileUpload
 class JoustStartupView(View):
 
 	def get(self, request):
-		if request.user.is_authenticated() and request.user.is_staff():
+		if request.user.is_authenticated() and request.user.is_staff:
 			replays = HSReplaySingleGameFileUpload.objects.order_by('-match_date').all()
 		else:
 			replays = HSReplaySingleGameFileUpload.objects.order_by('-match_date').filter(is_public=True).all()
