@@ -21,7 +21,7 @@ class JoustPrivateCollectionView(View):
 	def get(self, request):
 		replays = []
 
-		for token in request.user.tokens:
+		for token in request.user.tokens.all():
 			replays.append(HSReplaySingleGameFileUpload.objects.filter(upload_token=token).all())
 
 		sorted_replays = sorted(replays, key=lambda r: r.match_date )
