@@ -99,12 +99,16 @@
         replay for a user you must set their upload token as the <code>x-hsreplay-upload-token</code> header value. The
         raw replay XML data should be placed in the body of the POST request.</p>
         <br/>
+        <p>NOTE: When submitting API requests to upload replays you must specifically send the
+        request to the <code>https://upload.hsreplay.net</code> host domain (using HTTPS). This sub-domain sits in front
+        of the highly scalable infrastructure that hsreplay.net uses to handle the volume of concurrent HSReplay uploads.</p>
+        <br/>
         <p>The raw replay XML data itself must conform to the <a href="https://github.com/HearthSim/HSReplay">HSReplay Specification</a>.
         The specification Github repository provides an HSReplay python implementation which can be run separately or embedded
             within your application.</p>
         <pre>
-            POST /api/v1/replay/upload/ HTTP/1.1
-            Host: hsreplay.net
+            POST /api/v1/replay/upload/ HTTPS/1.1
+            Host: upload.hsreplay.net
             x-hsreplay-api-key: [API_KEY]
             x-hsreplay-upload-token: [TOKEN]
 
