@@ -141,10 +141,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'hsreplaynet',
-        'USER': 'root',
-        'PASSWORD': '',
-        'HOST': 'localhost',
-        'PORT': '',
+        'USER': os.environ.get('HSREPLAYNET_DB_USER', 'root'),
+        'PASSWORD': os.environ.get('HSREPLAYNET_DB_PASSWORD', ''),
+        'HOST': os.environ.get('HSREPLAYNET_DB_HOST', 'localhost'),
+        'PORT': os.environ.get('HSREPLAYNET_DB_PORT', ''),
     }
 }
 
