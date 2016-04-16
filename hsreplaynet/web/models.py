@@ -37,7 +37,7 @@ class HSReplaySingleGameFileUpload(models.Model):
 	player_2_name = models.CharField(max_length=255, null=True)
 	upload_token = models.ForeignKey(SingleSiteUploadToken, null=True)
 	is_public = models.BooleanField(default=False)
-	md5_hexdigest = models.CharField(max_length=32, null=True)
+	md5_hexdigest = models.CharField(max_length=32)
 
 	class Meta:
 		unique_together = ("upload_token", "md5_hexdigest")
