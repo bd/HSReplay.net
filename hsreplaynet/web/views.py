@@ -55,7 +55,7 @@ class ContributeView(View):
 def fetch_replay(request, id):
 	response = HttpResponse()
 	logger.info("Replay data requested for UUID: %s" % id)
-	logger.info("Current environment variables are: %s" % str(os.environ()))
+	logger.info("Current environment variables are: %s" % str(os.environ))
 	try:
 		replay = HSReplaySingleGameFileUpload.objects.get(id=id)
 
