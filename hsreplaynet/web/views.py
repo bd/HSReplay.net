@@ -63,18 +63,18 @@ def fetch_replay(request, id):
 			else:
 				response.content = s3_replay_obj['Body'].read()
 
-		except botocore.exceptions.ClientError as e:
+		except Exception as e:
 			# Suppress temporarily and serve data from DB
 			# This is a shim to support replays uploaded before S3 storage was implemented.
 			response.content = replay.data
 
 
-		response.content = replay.data
 		response['Content-Type'] = 'application/vnd.hearthsim-hsreplay+xml'
 		response.status_code = 200
 
 	except Exception as e:
 		response.status_code = 500
+
 	return response
 
 
