@@ -6,10 +6,13 @@ from django.utils.decorators import method_decorator
 from hsreplayparser.parser import HSReplayParser
 from .forms import UploadAgentAPIKeyForm
 from .models import *
-import json
-import boto3, botocore
+import json, os
+import boto3
 from config.settings import S3_REPLAY_STORAGE_BUCKET, API_KEY_HEADER, UPLOAD_TOKEN_HEADER
 from zlib import decompress
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def fetch_header(request, header):
@@ -51,19 +54,26 @@ class ContributeView(View):
 
 def fetch_replay(request, id):
 	response = HttpResponse()
+	logger.info("Replay data requested for UUID: %s" % id)
+	logger.info("Current environment variables are: %s" % str(os.environ()))
 	try:
 		replay = HSReplaySingleGameFileUpload.objects.get(id=id)
 
 		try:
+
 			s3 = boto3.resource('s3')
 			s3_replay_obj = s3.Object(S3_REPLAY_STORAGE_BUCKET, replay.get_s3_key()).get()
+			logger.info("Successfully retrieved object from S3")
 
 			if 'ContentEncoding' in s3_replay_obj and s3_replay_obj['ContentEncoding'] == 'gzip':
+				logger.info("Replay object has been gzipped - unzipping...")
 				response.content = decompress(s3_replay_obj['Body'].read())
 			else:
+				logger.info("Replay object is not gzipped")
 				response.content = s3_replay_obj['Body'].read()
 
 		except Exception as e:
+			logger.exception("Boto Connection To S3 Failed")
 			# Suppress temporarily and serve data from DB
 			# This is a shim to support replays uploaded before S3 storage was implemented.
 			response.content = replay.data
@@ -73,8 +83,10 @@ def fetch_replay(request, id):
 		response.status_code = 200
 
 	except Exception as e:
+		logger.exception("An unexpected error occurred fetching the replay")
 		response.status_code = 500
 
+	logger.info("Fetching replay view is complete.")
 	return response
 
 

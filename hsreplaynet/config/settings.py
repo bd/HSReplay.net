@@ -116,6 +116,87 @@ DATABASES = {
     }
 }
 
+LOG_ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, '../log'))
+
+if not os.path.exists(LOG_ROOT_DIR):
+    os.mkdir(LOG_ROOT_DIR)
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format' : "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
+            'datefmt' : "%d/%b/%Y %H:%M:%S"
+        },
+    },
+    'handlers': {
+        'joust': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(LOG_ROOT_DIR, 'joust.log'),
+            'maxBytes': 5242880,
+            'backupCount': 5,
+            'formatter': 'verbose'
+        },
+        'web': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(LOG_ROOT_DIR, 'web.log'),
+            'maxBytes': 5242880,
+            'backupCount': 5,
+            'formatter': 'verbose'
+        },
+        'django_file': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(LOG_ROOT_DIR, 'django.log'),
+            'maxBytes': 5242880,
+            'backupCount': 5,
+            'formatter': 'verbose'
+        },
+        'error_file': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(LOG_ROOT_DIR, 'error.log'),
+            'maxBytes': 5242880,
+            'backupCount': 5,
+            'formatter': 'verbose'
+        },
+        'battlenet': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(LOG_ROOT_DIR, 'battlenet.log'),
+            'maxBytes': 5242880,
+            'backupCount': 5,
+            'formatter': 'verbose'
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers':['django_file', 'error_file'],
+            'propagate': True,
+            'level':'INFO',
+        },
+        'joust': {
+            'handlers': ['joust', 'error_file'],
+            'propagate': False,
+            'level': 'DEBUG',
+        },
+        'web': {
+            'handlers': ['web', 'error_file'],
+            'propagate': False,
+            'level': 'DEBUG',
+        },
+        'oauth.battlenet': {
+            'handlers': ['battlenet', 'error_file'],
+            'propagate': False,
+            'level': 'DEBUG',
+        },
+    }
+}
+
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
