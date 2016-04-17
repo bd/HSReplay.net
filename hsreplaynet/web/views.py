@@ -4,13 +4,12 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from hsreplayparser.parser import HSReplayParser
-from datetime import date
 from .forms import UploadAgentAPIKeyForm
 from .models import *
 import json
-
-API_KEY_HEADER = 'x-hsreplay-api-key'
-UPLOAD_TOKEN_HEADER = 'x-hsreplay-upload-token'
+import boto3, botocore
+from config.settings import S3_REPLAY_STORAGE_BUCKET, API_KEY_HEADER, UPLOAD_TOKEN_HEADER
+from zlib import decompress
 
 
 def fetch_header(request, header):
@@ -54,6 +53,22 @@ def fetch_replay(request, id):
 	response = HttpResponse()
 	try:
 		replay = HSReplaySingleGameFileUpload.objects.get(id=id)
+		s3 = boto3.resource('s3')
+
+		try:
+			s3_replay_obj = s3.Object(S3_REPLAY_STORAGE_BUCKET, replay.get_s3_key()).get()
+
+			if 'ContentEncoding' in s3_replay_obj and s3_replay_obj['ContentEncoding'] == 'gzip':
+				response.content = decompress(s3_replay_obj['Body'].read())
+			else:
+				response.content = s3_replay_obj['Body'].read()
+
+		except botocore.exceptions.ClientError as e:
+			# Suppress temporarily and serve data from DB
+			# This is a shim to support replays uploaded before S3 storage was implemented.
+			response.content = replay.data
+
+
 		response.content = replay.data
 		response['Content-Type'] = 'application/vnd.hearthsim-hsreplay+xml'
 		response.status_code = 200

@@ -139,3 +139,8 @@ SOCIALACCOUNT_ADAPTER = "oauth.battlenet.provider.BattleNetSocialAccountAdapter"
 
 BATTLE_NET_KEY = os.environ.get('BATTLE_NET_KEY', '')
 BATTLE_NET_SECRET = os.environ.get('BATTLE_NET_SECRET', '')
+
+S3_REPLAY_STORAGE_BUCKET = os.environ.get('S3_REPLAY_STORAGE_BUCKET', 'test.replaystorage.hsreplay.net')
+
+API_KEY_HEADER = 'x-hsreplay-api-key'
+UPLOAD_TOKEN_HEADER = 'x-hsreplay-upload-token'
