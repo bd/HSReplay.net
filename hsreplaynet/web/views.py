@@ -53,9 +53,9 @@ def fetch_replay(request, id):
 	response = HttpResponse()
 	try:
 		replay = HSReplaySingleGameFileUpload.objects.get(id=id)
-		s3 = boto3.resource('s3')
 
 		try:
+			s3 = boto3.resource('s3')
 			s3_replay_obj = s3.Object(S3_REPLAY_STORAGE_BUCKET, replay.get_s3_key()).get()
 
 			if 'ContentEncoding' in s3_replay_obj and s3_replay_obj['ContentEncoding'] == 'gzip':
@@ -72,6 +72,7 @@ def fetch_replay(request, id):
 		response.content = replay.data
 		response['Content-Type'] = 'application/vnd.hearthsim-hsreplay+xml'
 		response.status_code = 200
+
 	except Exception as e:
 		response.status_code = 500
 	return response
