@@ -109,7 +109,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'hsreplaynet',
         'USER': os.environ.get('HSREPLAYNET_DB_USER', 'django_user'),
         'PASSWORD': os.environ.get('HSREPLAYNET_DB_PASSWORD', ''),
