@@ -65,4 +65,4 @@ def _update_database(source_folder):
 
 
 def _restart_web_server():
-    sudo('restart gunicorn-hsreplay.net', user='www-data')
+    sudo('supervisorctl restart hsreplay.net', user='www-data')
