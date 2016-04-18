@@ -8,7 +8,7 @@ from .forms import UploadAgentAPIKeyForm
 from .models import *
 import json, os
 import boto3
-from config.settings import S3_REPLAY_STORAGE_BUCKET, API_KEY_HEADER, UPLOAD_TOKEN_HEADER
+from django.conf import settings
 from zlib import decompress
 import logging
 
@@ -62,7 +62,7 @@ def fetch_replay(request, id):
 		try:
 
 			s3 = boto3.resource('s3')
-			s3_replay_obj = s3.Object(S3_REPLAY_STORAGE_BUCKET, replay.get_s3_key()).get()
+			s3_replay_obj = s3.Object(settings.S3_REPLAY_STORAGE_BUCKET, replay.get_s3_key()).get()
 			logger.info("Successfully retrieved object from S3")
 
 			if 'ContentEncoding' in s3_replay_obj and s3_replay_obj['ContentEncoding'] == 'gzip':
@@ -98,12 +98,12 @@ class GenerateSingleSiteUploadTokenView(View):
 
 	def post(self, request):
 		response = HttpResponse()
-		api_key_header = fetch_header(request, API_KEY_HEADER)
+		api_key_header = fetch_header(request, settings.API_KEY_HEADER)
 
 		if not api_key_header:
 			# Reject for not having included an API token
 			response.status_code = 401
-			response.content = "Missing %s header" % API_KEY_HEADER
+			response.content = "Missing %s header" % settings.API_KEY_HEADER
 			return response
 		else:
 
@@ -160,7 +160,7 @@ class UploadTokenDetailsView(View):
 
 	def get(self, request, single_site_upload_token):
 		response = HttpResponse()
-		api_key_header = fetch_header(request, API_KEY_HEADER)
+		api_key_header = fetch_header(request, settings.API_KEY_HEADER)
 		upload_agent = None
 		token = None
 
@@ -189,7 +189,7 @@ class UploadTokenDetailsView(View):
 
 	def put(self, request, single_site_upload_token):
 		response = HttpResponse()
-		api_key_header = fetch_header(request, API_KEY_HEADER)
+		api_key_header = fetch_header(request, settings.API_KEY_HEADER)
 		upload_agent = None
 		token = None
 
@@ -231,8 +231,8 @@ class ReplayUploadView(View):
 	def post(self, request):
 		response = HttpResponse()
 
-		api_key_header = fetch_header(request, API_KEY_HEADER)
-		upload_token_header = fetch_header(request, UPLOAD_TOKEN_HEADER)
+		api_key_header = fetch_header(request, settings.API_KEY_HEADER)
+		upload_token_header = fetch_header(request, settings.UPLOAD_TOKEN_HEADER)
 
 		upload_token = None
 		if api_key_header and upload_token_header:
