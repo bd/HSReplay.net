@@ -111,7 +111,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'hsreplaynet',
-        'USER': os.environ.get('HSREPLAYNET_DB_USER', 'django_user'),
+        'USER': os.environ.get('HSREPLAYNET_DB_USER', 'hsreplay'),
         'PASSWORD': os.environ.get('HSREPLAYNET_DB_PASSWORD', ''),
         'HOST': os.environ.get('HSREPLAYNET_DB_HOST', 'localhost'),
         'PORT': os.environ.get('HSREPLAYNET_DB_PORT', ''),
