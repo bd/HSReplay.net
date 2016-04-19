@@ -93,7 +93,7 @@ AUTHENTICATION_BACKENDS = (
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
-STATIC_HOST = 'http://static.hsreplay.net' if not DEBUG else ''
+STATIC_HOST = "//static.hsreplay.net" if not DEBUG else ""
 STATIC_URL = STATIC_HOST + '/static/'
 
 if not DEBUG:
