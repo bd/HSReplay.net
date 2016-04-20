@@ -11,6 +11,7 @@ import boto3
 from django.conf import settings
 from zlib import decompress
 import logging
+from web.utils import fetch_s3_object
 
 logger = logging.getLogger(__name__)
 
@@ -55,29 +56,36 @@ class ContributeView(View):
 def fetch_replay(request, id):
 	response = HttpResponse()
 	logger.info("Replay data requested for UUID: %s" % id)
-	logger.info("Current environment variables are: %s" % str(os.environ))
+
 	try:
 		replay = HSReplaySingleGameFileUpload.objects.get(id=id)
 
+		s3_replay_obj = None
 		try:
+			logger.info("Attempting to fetch replay using key: %s from bucket: %s" % (replay.get_s3_key(), settings.S3_REPLAY_STORAGE_BUCKET))
+			s3_replay_obj = fetch_s3_object(settings.S3_REPLAY_STORAGE_BUCKET, replay.get_s3_key())
 
-			s3 = boto3.resource('s3')
-			s3_replay_obj = s3.Object(settings.S3_REPLAY_STORAGE_BUCKET, replay.get_s3_key()).get()
+			if not s3_replay_obj:
+				logger.info("S3 Object not found. Attempting to fetch using key: %s" % str(replay.id))
+				# Fallback to fetch replays before we started using date prefixing
+				s3_replay_obj = fetch_s3_object(settings.S3_REPLAY_STORAGE_BUCKET, str(replay.id))
+				if not s3_replay_obj:
+					logger.info("S3 Object still not found.")
+
+		except Exception as e:
+			logger.exception("Boto Connection To S3 Failed")
+
+		if s3_replay_obj:
 			logger.info("Successfully retrieved object from S3")
-
 			if 'ContentEncoding' in s3_replay_obj and s3_replay_obj['ContentEncoding'] == 'gzip':
-				logger.info("Replay object has been gzipped - unzipping...")
+				logger.info("Replay object has been gzipped.")
 				response.content = decompress(s3_replay_obj['Body'].read())
 			else:
 				logger.info("Replay object is not gzipped")
 				response.content = s3_replay_obj['Body'].read()
-
-		except Exception as e:
-			logger.exception("Boto Connection To S3 Failed")
-			# Suppress temporarily and serve data from DB
-			# This is a shim to support replays uploaded before S3 storage was implemented.
+		else:
+			logger.info("Replay data served from DB")
 			response.content = replay.data
-
 
 		response['Content-Type'] = 'application/vnd.hearthsim-hsreplay+xml'
 		response.status_code = 200

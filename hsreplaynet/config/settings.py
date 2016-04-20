@@ -4,6 +4,7 @@ Django settings for hsreplay.net project.
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+from datetime import datetime
 from django.core.urlresolvers import reverse_lazy
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -56,6 +57,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'django.middleware.gzip.GZipMiddleware',
 )
 
 ROOT_URLCONF = 'config.urls'
@@ -115,6 +117,7 @@ DATABASES = {
         'PORT': os.environ.get('HSREPLAYNET_DB_PORT', ''),
     }
 }
+
 
 LOG_ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, '../log'))
 

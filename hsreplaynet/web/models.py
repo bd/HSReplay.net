@@ -46,4 +46,4 @@ class HSReplaySingleGameFileUpload(models.Model):
 		return reverse('joust_replay_view', kwargs={'id':self.id})
 
 	def get_s3_key(self):
-		return self.match_date.strftime('%Y/%m/%d/') + str(id)
+		return self.match_date.strftime('%Y/%m/%d/') + str(self.id).replace("-", "")
