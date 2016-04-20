@@ -109,11 +109,11 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'ENGINE': 'django.db.backends.mysql',
         'NAME': 'hsreplaynet',
-        'USER': os.environ.get('HSREPLAYNET_DB_USER', 'hsreplay'),
-        'PASSWORD': os.environ.get('HSREPLAYNET_DB_PASSWORD', ''),
-        'HOST': os.environ.get('HSREPLAYNET_DB_HOST', 'localhost'),
+        'USER': os.environ.get('HSREPLAYNET_DB_USER', 'django'),
+        'PASSWORD': os.environ.get('HSREPLAYNET_DB_PASSWORD', '7yxYGBtAGh8DFwut'),
+        'HOST': os.environ.get('HSREPLAYNET_DB_HOST', '52.34.188.94'),
         'PORT': os.environ.get('HSREPLAYNET_DB_PORT', ''),
     }
 }
