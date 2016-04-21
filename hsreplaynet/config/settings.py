@@ -40,7 +40,7 @@ INSTALLED_APPS = [
 
 if not IS_RUNNING_AS_LAMBDA:
 
-    INSTALLED_APPS.append([
+    INSTALLED_APPS.extend([
         'allauth',
         'allauth.account',
         'allauth.socialaccount',
@@ -126,7 +126,7 @@ DATABASES = {
 }
 
 if not IS_RUNNING_AS_LAMBDA:
-    # TODO: We need to update logging to also work while running as lambda
+    # When we are running on Lambda the logging is configured by the runtime to write to CloudWatch so this is not needed.
     LOG_ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, '../log'))
 
     if not os.path.exists(LOG_ROOT_DIR):
