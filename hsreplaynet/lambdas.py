@@ -6,6 +6,7 @@ import pymysql
 pymysql.install_as_MySQLdb()
 import os, django
 
+os.environ.setdefault('IS_RUNNING_AS_LAMBDA', 'True')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 

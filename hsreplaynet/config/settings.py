@@ -8,7 +8,7 @@ from datetime import datetime
 from django.core.urlresolvers import reverse_lazy
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
+IS_RUNNING_AS_LAMBDA = bool(os.environ.get('IS_RUNNING_AS_LAMBDA', 'False'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
@@ -18,13 +18,15 @@ SECRET_KEY = 'be8^qa&f2fut7_1%q@x2%nkw5u=-r6-rwj8c^+)5m-6e^!zags'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+if IS_RUNNING_AS_LAMBDA:
+    DEBUG = False
 
 ALLOWED_HOSTS = []
 
 
 # Application definition
 
-INSTALLED_APPS = (
+INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -34,17 +36,22 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'web',
     'joust',
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.twitch',
-    'oauth.battlenet',
-)
+]
 
-SOCIALACCOUNT_PROVIDERS = {
-    "twitch": {"SCOPE": ["user_read"]},
-    "battlenet": {"SCOPE": []}
-}
+if not IS_RUNNING_AS_LAMBDA:
+
+    INSTALLED_APPS.append([
+        'allauth',
+        'allauth.account',
+        'allauth.socialaccount',
+        'allauth.socialaccount.providers.twitch',
+        'oauth.battlenet',
+    ])
+
+    SOCIALACCOUNT_PROVIDERS = {
+        "twitch": {"SCOPE": ["user_read"]},
+        "battlenet": {"SCOPE": []}
+    }
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
@@ -118,86 +125,87 @@ DATABASES = {
     }
 }
 
+if not IS_RUNNING_AS_LAMBDA:
+    # TODO: We need to update logging to also work while running as lambda
+    LOG_ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, '../log'))
 
-LOG_ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, '../log'))
+    if not os.path.exists(LOG_ROOT_DIR):
+        os.mkdir(LOG_ROOT_DIR)
 
-if not os.path.exists(LOG_ROOT_DIR):
-    os.mkdir(LOG_ROOT_DIR)
-
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format' : "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
-            'datefmt' : "%d/%b/%Y %H:%M:%S"
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'verbose': {
+                'format' : "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
+                'datefmt' : "%d/%b/%Y %H:%M:%S"
+            },
         },
-    },
-    'handlers': {
-        'joust': {
-            'level': 'DEBUG',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(LOG_ROOT_DIR, 'joust.log'),
-            'maxBytes': 5242880,
-            'backupCount': 5,
-            'formatter': 'verbose'
+        'handlers': {
+            'joust': {
+                'level': 'DEBUG',
+                'class': 'logging.handlers.RotatingFileHandler',
+                'filename': os.path.join(LOG_ROOT_DIR, 'joust.log'),
+                'maxBytes': 5242880,
+                'backupCount': 5,
+                'formatter': 'verbose'
+            },
+            'web': {
+                'level': 'DEBUG',
+                'class': 'logging.handlers.RotatingFileHandler',
+                'filename': os.path.join(LOG_ROOT_DIR, 'web.log'),
+                'maxBytes': 5242880,
+                'backupCount': 5,
+                'formatter': 'verbose'
+            },
+            'django_file': {
+                'level': 'DEBUG',
+                'class': 'logging.handlers.RotatingFileHandler',
+                'filename': os.path.join(LOG_ROOT_DIR, 'django.log'),
+                'maxBytes': 5242880,
+                'backupCount': 5,
+                'formatter': 'verbose'
+            },
+            'error_file': {
+                'level': 'ERROR',
+                'class': 'logging.handlers.RotatingFileHandler',
+                'filename': os.path.join(LOG_ROOT_DIR, 'error.log'),
+                'maxBytes': 5242880,
+                'backupCount': 5,
+                'formatter': 'verbose'
+            },
+            'battlenet': {
+                'level': 'DEBUG',
+                'class': 'logging.handlers.RotatingFileHandler',
+                'filename': os.path.join(LOG_ROOT_DIR, 'battlenet.log'),
+                'maxBytes': 5242880,
+                'backupCount': 5,
+                'formatter': 'verbose'
+            },
         },
-        'web': {
-            'level': 'DEBUG',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(LOG_ROOT_DIR, 'web.log'),
-            'maxBytes': 5242880,
-            'backupCount': 5,
-            'formatter': 'verbose'
-        },
-        'django_file': {
-            'level': 'DEBUG',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(LOG_ROOT_DIR, 'django.log'),
-            'maxBytes': 5242880,
-            'backupCount': 5,
-            'formatter': 'verbose'
-        },
-        'error_file': {
-            'level': 'ERROR',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(LOG_ROOT_DIR, 'error.log'),
-            'maxBytes': 5242880,
-            'backupCount': 5,
-            'formatter': 'verbose'
-        },
-        'battlenet': {
-            'level': 'DEBUG',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(LOG_ROOT_DIR, 'battlenet.log'),
-            'maxBytes': 5242880,
-            'backupCount': 5,
-            'formatter': 'verbose'
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers':['django_file', 'error_file'],
-            'propagate': True,
-            'level':'INFO',
-        },
-        'joust': {
-            'handlers': ['joust', 'error_file'],
-            'propagate': False,
-            'level': 'DEBUG',
-        },
-        'web': {
-            'handlers': ['web', 'error_file'],
-            'propagate': False,
-            'level': 'DEBUG',
-        },
-        'oauth.battlenet': {
-            'handlers': ['battlenet', 'error_file'],
-            'propagate': False,
-            'level': 'DEBUG',
-        },
+        'loggers': {
+            'django': {
+                'handlers':['django_file', 'error_file'],
+                'propagate': True,
+                'level':'INFO',
+            },
+            'joust': {
+                'handlers': ['joust', 'error_file'],
+                'propagate': False,
+                'level': 'DEBUG',
+            },
+            'web': {
+                'handlers': ['web', 'error_file'],
+                'propagate': False,
+                'level': 'DEBUG',
+            },
+            'oauth.battlenet': {
+                'handlers': ['battlenet', 'error_file'],
+                'propagate': False,
+                'level': 'DEBUG',
+            },
+        }
     }
-}
 
 
 
