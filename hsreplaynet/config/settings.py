@@ -24,34 +24,42 @@ if IS_RUNNING_AS_LAMBDA:
 ALLOWED_HOSTS = []
 
 
-# Application definition
-
-INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'django.contrib.sites',
-    'web',
-    'joust',
-]
-
 if not IS_RUNNING_AS_LAMBDA:
-
-    INSTALLED_APPS.extend([
+    INSTALLED_APPS = (
+        'django.contrib.admin',
+        'django.contrib.auth',
+        'django.contrib.contenttypes',
+        'django.contrib.sessions',
+        'django.contrib.messages',
+        'django.contrib.staticfiles',
+        'django.contrib.sites',
+        'web',
+        'joust',
         'allauth',
         'allauth.account',
         'allauth.socialaccount',
         'allauth.socialaccount.providers.twitch',
         'oauth.battlenet',
-    ])
+    )
 
     SOCIALACCOUNT_PROVIDERS = {
         "twitch": {"SCOPE": ["user_read"]},
         "battlenet": {"SCOPE": []}
     }
+
+else:
+    INSTALLED_APPS = (
+        'django.contrib.admin',
+        'django.contrib.auth',
+        'django.contrib.contenttypes',
+        'django.contrib.sessions',
+        'django.contrib.messages',
+        'django.contrib.staticfiles',
+        'django.contrib.sites',
+        'web',
+        'joust',
+    )
+
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
