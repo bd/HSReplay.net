@@ -8,7 +8,7 @@ from datetime import datetime
 from django.core.urlresolvers import reverse_lazy
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-IS_RUNNING_AS_LAMBDA = bool(os.environ.get('IS_RUNNING_AS_LAMBDA', 'False'))
+IS_RUNNING_AS_LAMBDA = bool(os.environ.get('IS_RUNNING_AS_LAMBDA', ''))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
