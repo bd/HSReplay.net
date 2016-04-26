@@ -28,6 +28,18 @@ class SingleSiteUploadToken(models.Model):
 		return str(self.token)
 
 
+# class SingleGameReplayUpload(models.Model):
+# 	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+# 	upload_token = models.ForeignKey(SingleSiteUploadToken)
+# 	upload_timestamp = models.DateTimeField()
+# 	from_raw_log = models.BooleanField()
+# 	match_start_timestamp = models.DateTimeField()
+# 	hearthstone_build = models.CharField(max_length=50)
+# 	raw_log = models.URLField()
+# 	replay_xml = models.URLField()
+# 	md5_hexdigest = models.CharField(max_length=32)
+# 	is_public = models.BooleanField(default=False)
+
 class HSReplaySingleGameFileUpload(models.Model):
 	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 	data = models.BinaryField()

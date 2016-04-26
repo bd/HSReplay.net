@@ -4,7 +4,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from hsreplayparser.parser import HSReplayParser
-from .forms import UploadAgentAPIKeyForm
+from .forms import UploadAgentAPIKeyForm, RawLogUploadForm
 from .models import *
 import json, os
 import boto3
@@ -12,6 +12,10 @@ from django.conf import settings
 from zlib import decompress
 import logging
 from web.utils import fetch_s3_object
+from hsreplay.dumper import parse_log, create_document, game_to_xml, __version__ as hsreplay_version
+from hsreplay.utils import pretty_xml
+from datetime import datetime
+from io import StringIO
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +33,34 @@ def fetch_header(request, header):
 
 def home(request):
 	return render(request, 'web/home.html')
+
+
+class UploadRawReplayView(View):
+
+	def get(self, request):
+		return render(request, 'web/upload_raw_log.html', {'form': RawLogUploadForm()})
+
+	def post(self, request):
+		form = RawLogUploadForm(request.POST)
+		context = {}
+
+		if form.is_valid():
+
+			raw_log = form.cleaned_data['log']
+
+			parser = parse_log(StringIO(raw_log), processor='GameState', date=datetime.now())
+
+			doc = create_document(version=hsreplay_version, build=None)
+			game = game_to_xml(parser.games[0], game_meta=None, player_meta=None, decks=None)
+			doc.append(game)
+
+			replay_xml = pretty_xml(doc)
+			form = RawLogUploadForm({'log':raw_log, 'replay':replay_xml})
+
+		# If we get here there are form errors to present.
+		context['form'] = form
+
+		return render(request, 'web/upload_raw_log.html', context)
 
 
 class ContributeView(View):
