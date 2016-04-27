@@ -65,4 +65,4 @@ def _update_database(source_folder):
 
 
 def _restart_web_server():
-    sudo('supervisorctl restart hsreplay_uwsgi')
+    sudo('supervisorctl restart hsreplay.net')

@@ -136,7 +136,7 @@ DATABASES = {
 
 if not IS_RUNNING_AS_LAMBDA:
     # When we are running on Lambda the logging is configured by the runtime to write to CloudWatch so this is not needed.
-    LOG_ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, '../log'))
+    LOG_ROOT_DIR = os.environ.get('DJANGO_LOG_ROOT_DIR', os.path.abspath(os.path.join(BASE_DIR, '../log')))
 
     if not os.path.exists(LOG_ROOT_DIR):
         os.mkdir(LOG_ROOT_DIR)
