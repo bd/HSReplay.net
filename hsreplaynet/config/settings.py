@@ -128,6 +128,7 @@ DATABASES = {
         'NAME': 'hsreplaynet',
         'USER': os.environ.get('HSREPLAYNET_DB_USER', 'django'),
         'PASSWORD': os.environ.get('HSREPLAYNET_DB_PASSWORD', '7yxYGBtAGh8DFwut'),
+        # 52.34.188.94 is a QA db instance
         'HOST': os.environ.get('HSREPLAYNET_DB_HOST', '52.34.188.94'),
         'PORT': os.environ.get('HSREPLAYNET_DB_PORT', ''),
     }
