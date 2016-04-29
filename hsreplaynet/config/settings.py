@@ -122,17 +122,28 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'hsreplaynet',
-        'USER': os.environ.get('HSREPLAYNET_DB_USER', 'django'),
-        'PASSWORD': os.environ.get('HSREPLAYNET_DB_PASSWORD', '7yxYGBtAGh8DFwut'),
-        # 52.34.188.94 is a QA db instance
-        'HOST': os.environ.get('HSREPLAYNET_DB_HOST', '52.34.188.94'),
-        'PORT': os.environ.get('HSREPLAYNET_DB_PORT', ''),
+if DEBUG:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'hsreplaynet',
+            'USER': 'root',
+            'PASSWORD': '',
+            'HOST': 'localhost',
+            'PORT': '',
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'hsreplaynet',
+            'USER': os.environ.get('HSREPLAYNET_DB_USER', 'django'),
+            'PASSWORD': os.environ.get('HSREPLAYNET_DB_PASSWORD', ''),
+            'HOST': os.environ.get('HSREPLAYNET_DB_HOST', 'localhost'),
+            'PORT': os.environ.get('HSREPLAYNET_DB_PORT', ''),
+        }
+    }
 
 if not IS_RUNNING_AS_LAMBDA:
     # When we are running on Lambda the logging is configured by the runtime to write to CloudWatch so this is not needed.
