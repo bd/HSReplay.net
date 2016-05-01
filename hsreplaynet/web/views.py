@@ -7,7 +7,6 @@ from hsreplayparser.parser import HSReplayParser
 from .forms import UploadAgentAPIKeyForm, RawLogUploadForm
 from .models import *
 import json, os
-import boto3
 from django.conf import settings
 from zlib import decompress
 import logging
