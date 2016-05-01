@@ -11,7 +11,8 @@ https://github.com/HearthSim/python-hearthstone/zipball/master
 -e git+https://github.com/HearthSim/HSReplay#egg=hsreplay&subdirectory=python
 django-allauth==0.24.1
 whitenoise==2.0.6
-boto3==1.3.0
 mysqlclient==1.3.7
 enum34==1.1.2
 PyMySQL==0.7.2
+django-storages==1.4.1
+boto==2.40.0

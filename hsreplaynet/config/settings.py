@@ -105,6 +105,20 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',
 )
 
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
+S3_RAW_LOG_STORAGE_BUCKET = os.environ.get('S3_RAW_LOG_STORAGE_BUCKET', 'test.raw.replaystorage.hsreplay.net')
+S3_REPLAY_STORAGE_BUCKET = os.environ.get('S3_REPLAY_STORAGE_BUCKET', 'test.replaystorage.hsreplay.net')
+AWS_STORAGE_BUCKET_NAME = S3_RAW_LOG_STORAGE_BUCKET
+
+AWS_S3_CUSTOM_DOMAIN = '%s.s3.amazonaws.com' % AWS_STORAGE_BUCKET_NAME
+AWS_S3_USE_SSL = False
+
+AWS_IS_GZIPPED = True
+GZIP_CONTENT_TYPES = (
+    'text/plain',
+    'application/xml',
+)
+
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
@@ -251,9 +265,6 @@ SOCIALACCOUNT_ADAPTER = "oauth.battlenet.provider.BattleNetSocialAccountAdapter"
 
 BATTLE_NET_KEY = os.environ.get('BATTLE_NET_KEY', '')
 BATTLE_NET_SECRET = os.environ.get('BATTLE_NET_SECRET', '')
-
-S3_RAW_LOG_STORAGE_BUCKET = os.environ.get('S3_RAW_LOG_STORAGE_BUCKET', 'test.raw.replaystorage.hsreplay.net')
-S3_REPLAY_STORAGE_BUCKET = os.environ.get('S3_REPLAY_STORAGE_BUCKET', 'test.replaystorage.hsreplay.net')
 
 API_KEY_HEADER = 'x-hsreplay-api-key'
 UPLOAD_TOKEN_HEADER = 'x-hsreplay-upload-token'
