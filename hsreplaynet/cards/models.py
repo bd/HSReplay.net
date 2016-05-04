@@ -92,6 +92,15 @@ class CardManager(models.Manager):
 		else:
 			return None
 
+	def get_valid_deck_list_card_set(self):
+		if not hasattr(self, '_valid_deck_list_card_set'):
+			inner_qs = Type.objects.filter(name__in=['Spell', 'Minion', 'Weapon']).values_list('id')
+			card_list = set(c[0] for c in Card.objects.filter(collectible=True).filter(type__in=inner_qs).values_list('id'))
+			self._valid_deck_list_card_set = card_list
+
+		return self._valid_deck_list_card_set
+
+
 
 	def get_or_create_from_json(self, json):
 		""" Returns a tuple with the object followed by a boolean to indicate whether the object was created."""
