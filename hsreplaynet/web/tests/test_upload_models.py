@@ -6,13 +6,23 @@ from django.core.files.storage import FileSystemStorage
 from unittest.mock import patch, MagicMock
 from django.core.exceptions import ValidationError
 from cards.models import Card
+from test.base import TestDataConsumerMixin
+import logging
+import pytz
+from hearthstone.enums import GameType
+from hsreplay.utils import pretty_xml
+
+logger = logging.getLogger(__name__)
 
 
-class ReplayUploadTests(TestCase):
+# We patch S3Storage because we don't want to be interacting with S3 in unit tests
+# You can temporarily comment out the @patch line to run the test in "integration mode" against S3. It should pass.
+@patch('storages.backends.s3boto.S3BotoStorage', FileSystemStorage)
+class ReplayUploadTests(TestCase, TestDataConsumerMixin):
 
 	def setUp(self):
 		super().setUp()
-		self.log_data = "Log_Data".encode("utf-8")
+		self.log_data = self.read_raw_log_for_random_innkeeper_match()
 		self.thirty_card_deck = ['OG_249', 'CS2_147', 'EX1_620', 'FP1_019', 'AT_029', 'CS2_065', 'AT_070', 'OG_121', 'OG_290', 'GVG_038',
 								'AT_133', 'EX1_023', 'FP1_014', 'OG_337', 'CS2_189', 'AT_066', 'AT_034', 'EX1_250', 'OG_330', 'AT_130',
 								'GVG_081', 'OG_045', 'EX1_371', 'GVG_002', 'NEW1_026', 'EX1_405', 'OG_221', 'EX1_250', 'OG_330', 'AT_130']
@@ -25,18 +35,16 @@ class ReplayUploadTests(TestCase):
 		)
 		self.token = models.SingleSiteUploadToken.objects.create(requested_by_upload_agent = self.upload_agent)
 
-		self.upload_date = now()
+		# Set the timezone to something other than UTC to make sure it's being handled correctly
+		self.upload_date = now().astimezone(pytz.timezone('Europe/Moscow'))
 
 		self.upload = models.SingleGameRawLogUpload(upload_timestamp = self.upload_date,
 												   match_start_timestamp = self.upload_date,
 												   upload_token = self.token)
 
-	# We patch S3Storage because we don't want to be interacting with S3 in unit tests
-	# You can temporarily comment out the @patch line to run the test in "integration mode" against S3. It should pass.
-	@patch('storages.backends.s3boto.S3BotoStorage', FileSystemStorage)
 	def test_save_read_delete(self):
 
-		self.upload.log.save('Power.log', ContentFile(self.log_data))
+		self.upload.log.save('Power.log', ContentFile(self.log_data), save=False)
 		self.upload.save()
 
 		# Now we retrieve an instance to confirm that we can retrieve the data from S3
@@ -47,7 +55,7 @@ class ReplayUploadTests(TestCase):
 
 	def test_validators(self):
 		# This full_clean() should not throw an exception
-		self.upload.log.save('Power.log', ContentFile(self.log_data))
+		self.upload.log.save('Power.log', ContentFile(self.log_data), save=False)
 		self.upload.player_1_deck_list = ",".join(self.thirty_card_deck)
 		self.upload.full_clean()
 
@@ -66,4 +74,23 @@ class ReplayUploadTests(TestCase):
 			deck_with_too_few_cards = self.thirty_card_deck.copy()[0:22]
 			self.upload.player_1_deck_list = ",".join(deck_with_too_few_cards)
 			self.upload.full_clean()
+
+	def test_generate_replay_element_tree(self):
+		self.upload.log.save('Power.log', ContentFile(self.log_data), save=False)
+		self.upload.player_1_deck_list = ",".join(self.thirty_card_deck)
+		self.upload.player_1_rank = 18
+		self.upload.match_type = int(GameType.GT_RANKED)
+
+		replay = self.upload._generate_replay_element_tree()
+		game_element = replay.find("Game")
+		self.assertEqual(game_element.get("type"), str(self.upload.match_type))
+
+		players = game_element.findall("Player")
+		player_one = players[0]
+		self.assertEqual(player_one.get("rank"), str(self.upload.player_1_rank))
+
+
+		replay_xml = pretty_xml(replay)
+
+
 

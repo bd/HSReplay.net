@@ -73,3 +73,9 @@ class TestDataConsumerMixin:
 	def replay_file_path(self, replay_name):
 		return os.path.join(REPLAY_DATA_LOCATION, replay_name)
 
+	def read_raw_log_file(self, log_name):
+		log_str = open(os.path.join(LOG_DATA_LOCATION, log_name)).read()
+		return log_str.encode("utf-8")
+
+	def read_raw_log_for_random_innkeeper_match(self):
+		return self.read_raw_log_file("Power.log")

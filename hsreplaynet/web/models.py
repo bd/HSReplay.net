@@ -1,9 +1,8 @@
 from django.db import models
 from django.core.urlresolvers import reverse
-import uuid
+import uuid, logging, re
 from datetime import date
 from django.utils import timezone
-import logging
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.files.storage import default_storage
@@ -39,12 +38,11 @@ class SingleSiteUploadToken(models.Model):
 
 
 def _generate_raw_log_key(instance, filename):
-	return '%s%s/Power.log' % (instance.match_start_timestamp.strftime('%Y/%m/%d/'), str(instance.id))
+	return '%slogs/%s.log' % (instance.match_start_timestamp.strftime('%Y/%m/%d/'), str(instance.id))
 
 
 def _generate_replay_upload_key(instance, filename):
-	uuid = None #Either the ID of the raw log record or
-	return '%s%s/hsreplay.xml' % (instance.match_start_timestamp.strftime('%Y/%m/%d/'), str(instance.id))
+	return '%sreplays/%s.xml' % (instance.match_start_timestamp.strftime('%Y/%m/%d/'), str(instance.id))
 
 
 def _validate_valid_match_type(value):
@@ -64,6 +62,7 @@ def _validate_player_legend_rank(value):
 		if value < 1:
 			raise ValidationError("%s is not a valid legend rank." % value)
 
+
 def _validate_player_deck_list(value):
 	if value:
 		cards = value.split(',')
@@ -74,6 +73,14 @@ def _validate_player_deck_list(value):
 		for cardId in cards:
 			if not cardId in Card.objects.get_valid_deck_list_card_set():
 				raise ValidationError("%s is not a valid cardID")
+
+CREATE_GAME_RAW_LOG_TOKEN = re.compile(r"GameState.DebugPrintPower.*?CREATE_GAME")
+def _validate_raw_log(value):
+	value.open()
+	log_data = value.read().decode("utf8")
+	create_game_tokens = CREATE_GAME_RAW_LOG_TOKEN.findall(log_data)
+	if len(create_game_tokens) != 1:
+		raise ValidationError("Raw log data must only be for a single game.")
 
 
 class SingleGameRawLogUpload(models.Model):
@@ -87,7 +94,8 @@ class SingleGameRawLogUpload(models.Model):
 	match_start_timestamp = models.DateTimeField() # Required, but we use upload_timestamp as a fallback if missing.
 
 	# This will get transparently gzipped and stored in S3
-	log = models.FileField(upload_to=_generate_raw_log_key)
+	# The data must be utf-8 encoded bytes
+	log = models.FileField(upload_to=_generate_raw_log_key, validators=[_validate_raw_log])
 
 	# All the remaining fields represent optional meta data the client can provide when uploading a replay.
 	hearthstone_build = models.CharField(max_length=50, null=True, blank=True)
@@ -118,48 +126,102 @@ class SingleGameRawLogUpload(models.Model):
 		return super(SingleGameRawLogUpload, self).delete(using)
 
 	def clean(self):
-		if self.player_1_rank and self.player_1_legend_rank:
-			raise ValidationError("Player 1 has both rank and legend_rank set. Only one or the other is valid.")
+		if self.player_1_legend_rank and (self.player_1_rank != 0):
+			raise ValidationError("Player 1 has legend rank set to %s, but rank is %s not 0." % (self.player_1_legend_rank, self.player_1_rank))
 
-		if self.player_2_rank and self.player_2_legend_rank:
-			raise ValidationError("Player 2 has both rank and legend_rank set. Only one or the other is valid.")
+		if self.player_2_legend_rank and (self.player_2_rank != 0):
+			raise ValidationError("Player 2 has legend rank set to %s, but rank is %s not 0." % (self.player_2_legend_rank, self.player_2_rank))
 
 		return super(SingleGameRawLogUpload, self).clean()
 
-	def generate_replay(self):
+	def _generate_replay_element_tree(self):
+		# Don't attempt to generate a replay if validation doesn't pass.
+		self.full_clean()
 
-		parser = parse_log(StringIO(self.log.read()), processor='GameState', date=self.match_start_timestamp)
+		self.log.open() # Make sure that the file is open to the beginning of it.
+		raw_log_str = self.log.read().decode("utf-8")
+		parser = parse_log(StringIO(raw_log_str), processor='GameState', date=self.match_start_timestamp)
+
+		if not len(parser.games):
+			# We were not able to generate a replay
+			raise ValidationError("Could not parse a replay from the raw log data")
+
 		doc = create_document(version=hsreplay_version, build=self.hearthstone_build)
 		game = game_to_xml(parser.games[0],
 						   game_meta=self._generate_game_meta_data(),
-						   player_meta=self._generate_game_meta_data(),
+						   player_meta=self._generate_player_meta_data(),
 						   decks=self._generate_deck_lists())
+
 		doc.append(game)
 
-		replay_xml = pretty_xml(doc)
-		return replay_xml
+		return doc
 
 	def _generate_game_meta_data(self):
-		return {"type":"7",
-				"id":"16777509",
-				"x-address":"80.239.211.201:3724",
-				"x-clientid":"652227",
-				"x-spectateKey":"NoLImk",
-				"reconnecting":"False"}
+		meta_data = {}
+
+		if self.match_type:
+			meta_data["type"] = str(self.match_type)
+
+		if self.game_server_game_id:
+			meta_data["id"] = str(self.game_server_game_id)
+
+		if self.game_server_client_id:
+			meta_data["x-clientid"] = str(self.game_server_client_id)
+
+		if self.game_server_address:
+			if self.game_server_port:
+				meta_data["x-address"] = "%s:%s" % (self.game_server_address, self.game_server_port)
+			else:
+				meta_data["x-address"] = str(self.game_server_address)
+
+		if self.game_server_spectate_key:
+			meta_data["x-spectateKey"] = str(self.game_server_spectate_key)
+
+		if self.game_server_reconnecting:
+			meta_data["reconnecting"] = str(self.game_server_reconnecting)
+
+		return meta_data
 
 	def _generate_player_meta_data(self):
-		return [{}, {}]
+		player_one_meta_data = {}
+		if self.player_1_rank:
+			player_one_meta_data["rank"] = str(self.player_1_rank)
+
+		if self.player_1_legend_rank:
+			player_one_meta_data["legendRank"] = str(self.player_1_legend_rank)
+
+		player_two_meta_data = {}
+		if self.player_2_rank:
+			player_two_meta_data["rank"] = str(self.player_2_rank)
+
+		if self.player_2_legend_rank:
+			player_two_meta_data["legendRank"] = str(self.player_2_legend_rank)
+
+		return [player_one_meta_data, player_two_meta_data]
 
 	def _generate_deck_lists(self):
-		return [[], []]
+		player_one_deck = None
+		if self.player_1_deck_list:
+			player_one_deck = self.player_1_deck_list.split(",")
+
+		player_two_deck = None
+		if self.player_2_deck_list:
+			player_two_deck = self.player_2_deck_list.split(",")
+
+		return [player_one_deck, player_two_deck]
 
 
 # class SingleGameReplayUpload(models.Model):
 # 	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 # 	# This will get transparently gzipped and stored in S3
 # 	replay = models.FileField(upload_to=_generate_raw_log_key)
+# 	# raw_log can be null because we might support direct replay uploads without the raw log files.
 # 	raw_log = models.ForeignKey(SingleGameRawLogUpload, null=True)
 # 	md5_hexdigest = models.CharField(max_length=32)
+#
+# 	def save(self, *args, **kwargs):
+# 		return super(SingleGameReplayUpload, self).save(*args, **kwargs)
+
 
 
 class HSReplaySingleGameFileUpload(models.Model):
