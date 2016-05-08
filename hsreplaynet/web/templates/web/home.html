@@ -1,26 +1,67 @@
 {% extends "base.html" %}
 {% load static from staticfiles %}
-
-{% block stylesheets %}
-    {{ block.super }}
-{% endblock stylesheets %}
-
 {% block content %}
+<div id="main">
+	<header>
+		<img src="{% static 'web/images/logo.png' %}" id="logo" alt="HSReplay"/>
+		<h1>HSReplay</h1>
+		<h3>Watch and share Hearthstone replays</h3>
+		<a href="{% provider_login_url 'battlenet' %}" id="signup-btn">Sign up</a>
+	</header>
+	<article id="front-features">
+		<div id="front-intro">
+			<h2>Save and share your Hearthstone games</h2>
+			<p>
+				Study and improve your own gameplay.<br/>
+				Share your craziest moments.
+			</p>
+			<img src="{% static 'web/images/joust-screenshot.jpg' %}" id="feat-joust-screenshot" alt="Joust: View your HSReplays"/>
+		</div>
 
-<div class="container-fluid">
+		<div id="front-feat1">
+			<img src="{% static 'web/images/front-feat-history.jpg' %}" class="front-feat-screenshot" alt="Match history"/>
+			<h4>All your matches in one place</h4>
+			<p>Filter your match history per game type, season, deck and more...</p>
+		</div>
 
-    <div class="jumbotron homepage">
-        <h1>Welcome to HSReplay.net</h1>
-        <p>HSReplay.net allows players to watch and share Hearthstone Replays.</p>
-        <p>
-          <a class="btn btn-primary btn-lg" href="https://github.com/Epix37/Hearthstone-Deck-Tracker/releases/latest" role="button">
-              Download the Hearthstone Deck Tracker!
-          </a>
-        </p>
-    </div>
+		<div id="front-feat2">
+			<img src="{% static 'web/images/front-feat-stats.jpg' %}" class="front-feat-screenshot" alt="Monthly stats"/>
+			<h4>Track your performance every season</h4>
+			<p>Follow your rank progression through the month and save your longest win streaks!</p>
+		</div>
 
-
+		<div id="how-it-works">
+			<h3>How it works</h3>
+			<div id="how-it-works-step1">
+				<h5>Step 1</h5>
+				<h6>Download <a href="https://github.com/HearthSim/Hearthstone-Deck-Tracker/releases/latest">Hearthstone Deck Tracker</a>.</h6>
+				<img src="{% static 'web/images/hdt-preview.jpg' %}"/>
+				<p>
+					HDT automatically saves and uploads your matches as you play them.
+				</p>
+			</div>
+			<div id="how-it-works-step2">
+				<h5>Step 2</h5>
+				<h6>Play Hearthstone</h6>
+				<img src="{% static 'web/images/joust-share-preview.jpg' %}"/>
+				<p>
+					Your match history is private.<br/>
+					You can share individual games with your friends
+					and show off your craziest plays!
+				</p>
+			</div>
+		</div>
+	</article>
+	<footer>
+		<p>
+			Copyright &copy; 2015 - <a href="https://hearthsim.info">HearthSim</a>
+		</p>
+		<p>
+			<a href="/about/privacy/">Privacy Policy</a> - <a href="/about/tos/">Terms of Service</a>
+		</p>
+		<p>
+			This website is not affiliated with Blizzard Entertainment.
+		</p>
+	</footer>
 </div>
-
 {% endblock content %}
-

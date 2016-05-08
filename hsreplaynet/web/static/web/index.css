@@ -1,0 +1,108 @@
+html, body {
+	margin: 0;
+	padding: 0;
+}
+
+#main header {
+	background: #1d3657;
+	color: white;
+	padding: 3em 0;
+	text-align: center;
+	text-shadow: 2px 2px black;
+}
+
+#logo {
+	width: 121px;
+	height: 152px;
+}
+
+#signup-btn {
+	background-color: white;
+	box-shadow: black 3px 3px;
+	color: #c9485b;
+	display: inline-block;
+	font-weight: bold;
+	margin-top: 3em;
+	padding: 7px 30px;
+	text-decoration: none;
+	text-shadow: none;
+	text-transform: uppercase;
+}
+
+#front-features {
+	max-width: 640px;
+	margin: 0 auto;
+}
+
+#feat-joust-screenshot {
+	height: 280px;
+	width: 500px;
+}
+
+#front-features p {
+	color: #555;
+}
+
+#front-intro {
+	text-align: center;
+}
+
+.front-feat-screenshot {
+	height: 120px;
+	width: 190px;
+}
+
+#front-feat1 {
+	margin-top: 3em;
+}
+
+#front-feat1 .front-feat-screenshot {
+	float: left;
+	padding-right: 1em;
+}
+
+#front-feat2 {
+	clear: left;
+	margin-top: 4em;
+}
+
+#front-feat2 .front-feat-screenshot {
+	float: right;
+}
+
+#how-it-works {
+	clear: both;
+	margin-top: 4em;
+	text-align: center;
+}
+
+#how-it-works p {
+	font-size: small;
+}
+
+#how-it-works img {
+	height: 80px;
+	width: 120px;
+}
+
+#how-it-works-step1 {
+	float: left;
+	width: 50%;
+}
+
+#how-it-works-step2 {
+	float: right;
+	width: 50%;
+}
+
+footer {
+	clear: both;
+	color: #aaa;
+	font-size: x-small;
+	padding-top: 3em;
+	text-align: center;
+}
+
+footer a {
+	color: #aaa;
+}
