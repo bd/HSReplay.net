@@ -9,7 +9,7 @@ from cards.models import Card
 from test.base import TestDataConsumerMixin
 import logging
 import pytz
-from hearthstone.enums import GameType
+from hearthstone.enums import BnetGameType
 from hsreplay.utils import pretty_xml
 
 logger = logging.getLogger(__name__)
@@ -79,7 +79,7 @@ class ReplayUploadTests(TestCase, TestDataConsumerMixin):
 		self.upload.log.save('Power.log', ContentFile(self.log_data), save=False)
 		self.upload.player_1_deck_list = ",".join(self.thirty_card_deck)
 		self.upload.player_1_rank = 18
-		self.upload.match_type = int(GameType.GT_RANKED)
+		self.upload.match_type = int(BnetGameType.BGT_RANKED_STANDARD)
 
 		replay = self.upload._generate_replay_element_tree()
 		game_element = replay.find("Game")
