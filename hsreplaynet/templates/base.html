@@ -36,7 +36,7 @@
 	{% block header %}
 		<nav>
 			<a href="/"><img src="{% static 'web/images/logo.png' %}" id="navbar-logo" alt="HSReplay"/><h1>HSReplay</h1></a>
-			<ul class="nav navbar-nav">
+			<ul>
 			{% if user.is_authenticated %}
 				<li><a href="{% url 'private_replay_collection' %}">My Replays</a></li>
 			{% endif %}

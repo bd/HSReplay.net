@@ -11,8 +11,10 @@ body, html{
 	min-height: 500px;
 }
 
-nav ul {
-	list-style-type: none;
+#navbar-logo {
+	padding: 8px;
+	height: 50px;
+	width: 40px;
 }
 
 header nav {
@@ -21,10 +23,21 @@ header nav {
 	height: 50px;
 }
 
-#navbar-logo {
-	padding: 8px;
-	height: 50px;
-	width: 40px;
+header nav ul {
+	list-style-type: none;
+	margin: 0;
+}
+
+header nav ul li a {
+	padding: 1em;
+}
+
+header nav ul.left {
+	float: left;
+}
+
+header nav ul.right {
+	float: right;
 }
 
 header nav a {
@@ -41,9 +54,4 @@ header nav h1 {
 	vertical-align: middle;
 	font-size: 1.5em;
 	text-shadow: 1px 1px black;
-}
-
-header nav ul.right {
-	float: right;
-	padding: 1em;
 }
