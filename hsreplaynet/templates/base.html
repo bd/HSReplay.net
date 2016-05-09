@@ -31,9 +31,7 @@
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
   </head>
-
   <body>
-
     <nav class="navbar navbar-default" role="navigation">
         <div class="container-fluid">
             <div class="navbar-header">
@@ -79,12 +77,22 @@
 
         </div> <!-- /.container-fluid -->
 </nav>
-
-
-    <div id="content">
-        {% block content %}
-
-        {% endblock content %}
-    </div>
-  </body>
+	<div id="content">
+	{% block content %}
+	{% endblock content %}
+	</div>
+	<footer>
+		{% block footer %}
+		<p>
+			Copyright &copy; 2015 - <a href="https://hearthsim.info">HearthSim</a>
+		</p>
+		<p>
+			<a href="/about/privacy/">Privacy Policy</a> - <a href="/about/tos/">Terms of Service</a>
+		</p>
+		<p>
+			This website is not affiliated with Blizzard Entertainment.
+		</p>
+	{% endblock %}
+	</footer>
+</body>
 </html>
