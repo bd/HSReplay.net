@@ -1,9 +1,10 @@
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from selenium import webdriver
 import os
-from datetime import datetime
+from datetime import datetime, date, time
 import json
 from hearthstone.enums import *
+import pytz
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 SCREEN_DUMP_LOCATION = os.path.join(APP_DIR,'screendumps')
@@ -80,6 +81,22 @@ class TestDataConsumerMixin:
 	def get_raw_log_fixture_for_random_innkeeper_match(self):
 		fixture = {}
 		fixture['raw_log'] = self.read_raw_log_file("Power.log")
+		utc = pytz.timezone('UTC')
+		fixture['upload_date'] = datetime.combine(date.today(),
+												  time(hour=2,
+													   minute=59,
+													   second=14,
+													   microsecond=608862,
+													   tzinfo=utc))
+
+		fixture['match_start_timestamp'] = fixture['upload_date']
+		fixture['match_end_timestamp'] = datetime.combine(date.today(),
+														  time(hour=3,
+															   minute=0,
+															   second=50,
+															   microsecond=725690,
+															   tzinfo=utc))
+
 		fixture['player_one_name'] = "Nicodemus"
 		fixture['player_one_final_state'] = PlayState.LOST
 		fixture['player_one_battlenet_id'] = "37760170"

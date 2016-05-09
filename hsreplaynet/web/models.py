@@ -45,7 +45,7 @@ def _generate_raw_log_key(instance, filename):
 
 
 def _generate_replay_upload_key(instance, filename):
-	return '%sreplays/%s.xml' % (instance.match_start_timestamp.strftime('%Y/%m/%d/'), str(instance.id))
+	return '%sreplays/%s.xml' % (instance.global_game.match_start_timestamp.strftime('%Y/%m/%d/'), str(instance.id))
 
 
 def _validate_valid_game_type(value):
@@ -397,11 +397,11 @@ class GameReplayUploadManager(models.Manager):
 									 num_entities=self._get_num_entities(packet_tree),
 									 num_turns=self._get_num_turns(packet_tree),
 									 player_one_battlenet_id=player_one_battlenet_id,
-									 player_one_starting_hero_class=self._get_starting_hero_for_player(0,packet_tree).tags.get(GameTag.CLASS, 0),
+									 player_one_starting_hero_class=self._get_starting_hero_class_for_player(0, packet_tree),
 									 player_one_starting_hero_id=self._get_starting_hero_for_player(0,packet_tree).card_id,
 									 player_one_final_state = self._get_final_state_for_player(0, packet_tree),
 									 player_two_battlenet_id=player_two_battlenet_id,
-									 player_two_starting_hero_class=self._get_starting_hero_for_player(1,packet_tree).tags.get(GameTag.CLASS, 0),
+									 player_two_starting_hero_class=self._get_starting_hero_class_for_player(0, packet_tree),
 									 player_two_starting_hero_id=self._get_starting_hero_for_player(1,packet_tree).card_id,
 									 player_two_final_state=self._get_final_state_for_player(1, packet_tree),
 									 scenario_id=raw_log.scenario_id)
@@ -416,9 +416,9 @@ class GameReplayUploadManager(models.Manager):
 			hsreplay_version = hsreplay_version,
 			is_spectated_game = raw_log.is_spectated_game,
 			player_one_name = self._get_name_for_player(0, packet_tree),
-			player_one_starting_deck_list = self._get_starting_deck_list_for_player(0, packet_tree),
+			player_one_starting_deck_list = self._get_starting_deck_list_for_player(0, packet_tree, raw_log),
 			player_two_name = self._get_name_for_player(1, packet_tree),
-			player_two_starting_deck_list = self._get_starting_deck_list_for_player(1, packet_tree),
+			player_two_starting_deck_list = self._get_starting_deck_list_for_player(1, packet_tree, raw_log),
 			raw_log = raw_log,
 			upload_timestamp = raw_log.upload_timestamp,
 			upload_token = raw_log.upload_token)
@@ -428,15 +428,33 @@ class GameReplayUploadManager(models.Manager):
 
 		return replay_upload
 
-	def _get_starting_deck_list_for_player(self, num, packet_tree):
-		starting_deck_card_ids = [e.card_id for e in packet_tree.games[0].players[num].initial_deck]
-		return Deck.objects.create_from_id_list(starting_deck_card_ids)
+	def _get_starting_deck_list_for_player(self, num, packet_tree, raw_log):
+		#If the raw_log has a deck_list then the client has uploaded a complete 30 card list which takes precedence.
+		starting_deck_card_ids = None
+		if num == 0:
+			if raw_log.player_1_deck_list:
+				starting_deck_card_ids = raw_log.player_1_deck_list.split(',')
+			else:
+				starting_deck_card_ids = [e.card_id for e in packet_tree.games[0].players[num].initial_deck if e.card_id]
+			return Deck.objects.create_from_id_list(starting_deck_card_ids)
+
+		if num == 1:
+			if raw_log.player_2_deck_list:
+				starting_deck_card_ids = raw_log.player_2_deck_list.split(',')
+			else:
+				starting_deck_card_ids = [e.card_id for e in packet_tree.games[0].players[num].initial_deck if e.card_id]
+			return Deck.objects.create_from_id_list(starting_deck_card_ids)
 
 	def _get_name_for_player(self, num, packet_tree):
 		return packet_tree.games[0].players[num].name
 
 	def _get_final_state_for_player(self, num, packet_tree):
 		return packet_tree.games[0].players[num].tags.get(GameTag.PLAYSTATE)
+
+	def _get_starting_hero_class_for_player(self, num, packet_tree):
+		hero_card_id = self._get_starting_hero_for_player(num, packet_tree).card_id
+		card = Card.objects.get(id = hero_card_id)
+		return CardClass(card.player_class.id)
 
 	def _get_starting_hero_for_player(self, num, packet_tree):
 		return list(packet_tree.games[0].players[num].heroes)[0]
@@ -445,7 +463,7 @@ class GameReplayUploadManager(models.Manager):
 		return packet_tree.games[0].tags.get(GameTag.TURN)
 
 	def _get_num_entities(self, packet_tree):
-		return max(packet_tree.games[0].entities.keys())
+		return max(e.id for e in packet_tree.games[0].entities)
 
 	def _find_match_end_timestamp(self, packet_tree):
 		if len(packet_tree.games) > 1:

@@ -1,7 +1,7 @@
 from django.db import models
 from random import randint
 from datetime import datetime
-
+from hearthstone import enums
 
 class Faction(models.Model):
 	id = models.AutoField(primary_key=True)
@@ -127,11 +127,13 @@ class CardManager(models.Manager):
 		)
 
 		if 'faction' in json:
-			result = Faction.objects.get_or_create(name=json['faction'])
+			enum_id = int(enums.Faction[json['faction'].upper()])
+			result = Faction.objects.get_or_create(name=json['faction'], defaults={'id': enum_id })
 			card.faction = result[0]
 
 		if 'rarity' in json:
-			result = Rarity.objects.get_or_create(name=json['rarity'])
+			enum_id = int(enums.Rarity[json['rarity'].upper()])
+			result = Rarity.objects.get_or_create(name=json['rarity'], defaults={'id': enum_id })
 			card.rarity = result[0]
 
 		if 'collection' in json:
@@ -139,15 +141,18 @@ class CardManager(models.Manager):
 			card.collection = result[0]
 
 		if 'race' in json:
-			result = Race.objects.get_or_create(name = json['race'])
+			enum_id = int(enums.Race[json['race'].upper()])
+			result = Race.objects.get_or_create(name = json['race'], defaults={'id': enum_id })
 			card.race = result[0]
 
 		if 'type' in json:
-			result = Type.objects.get_or_create(name=json['type'])
+			enum_id = int(enums.CardType[json['type'].upper().replace(' ', '_')])
+			result = Type.objects.get_or_create(name=json['type'], defaults={'id': enum_id })
 			card.type = result[0]
 
 		if 'playerClass' in json:
-			result = PlayerClass.objects.get_or_create(name=json['playerClass'])
+			enum_id = int(enums.CardClass[json['playerClass'].upper()])
+			result = PlayerClass.objects.get_or_create(name=json['playerClass'], defaults={'id': enum_id })
 			card.player_class = result[0]
 
 		if 'img' in json:
