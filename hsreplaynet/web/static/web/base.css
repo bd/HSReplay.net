@@ -11,6 +11,10 @@ body, html{
 	min-height: 500px;
 }
 
+nav ul {
+	list-style-type: none;
+}
+
 header nav {
 	background-color: #1d3657;
 	border-bottom: 1px solid #1d3657;
