@@ -25,6 +25,7 @@ header nav {
 
 header nav a {
 	color: #ccc;
+	float: left;
 }
 header nav a:hover, header nav a:focus {
 	color: white;
