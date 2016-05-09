@@ -3,6 +3,7 @@ from selenium import webdriver
 import os
 from datetime import datetime
 import json
+from hearthstone.enums import *
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 SCREEN_DUMP_LOCATION = os.path.join(APP_DIR,'screendumps')
@@ -66,7 +67,6 @@ class FunctionalTest(StaticLiveServerTestCase):
 			timestamp = timestamp
 		)
 
-
 class TestDataConsumerMixin:
 	"""A mixin class for accessing test data."""
 
@@ -77,5 +77,23 @@ class TestDataConsumerMixin:
 		log_str = open(os.path.join(LOG_DATA_LOCATION, log_name)).read()
 		return log_str.encode("utf-8")
 
-	def read_raw_log_for_random_innkeeper_match(self):
-		return self.read_raw_log_file("Power.log")
+	def get_raw_log_fixture_for_random_innkeeper_match(self):
+		fixture = {}
+		fixture['raw_log'] = self.read_raw_log_file("Power.log")
+		fixture['player_one_name'] = "Nicodemus"
+		fixture['player_one_final_state'] = PlayState.LOST
+		fixture['player_one_battlenet_id'] = "37760170"
+		fixture['player_one_starting_hero_id'] = "HERO_01"
+		fixture['player_one_starting_hero_class'] = CardClass.WARRIOR
+
+		fixture['player_two_name'] = "The Innkeeper"
+		fixture['player_two_final_state'] = PlayState.WON
+		fixture['player_two_battlenet_id'] = "0"
+		fixture['bnet_region_id'] = '144115193835963207'
+		fixture['player_two_starting_hero_id'] = "HERO_06"
+		fixture['player_two_starting_hero_class'] = CardClass.DRUID
+
+		fixture['num_turns'] = 6
+		fixture['num_entities'] = 70
+
+		return fixture

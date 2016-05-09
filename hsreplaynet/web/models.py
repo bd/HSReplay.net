@@ -9,9 +9,11 @@ from django.core.files.storage import default_storage
 from hsreplay.dumper import parse_log, create_document, game_to_xml
 from hsreplay import __version__ as hsreplay_version
 from hsreplay.utils import pretty_xml
-from hearthstone.enums import BnetGameType
+from hearthstone.enums import *
 from io import StringIO
 from cards.models import Card, Deck
+from datetime import datetime, timedelta
+from django.core.files.base import ContentFile
 
 logger = logging.getLogger(__name__)
 
@@ -109,6 +111,7 @@ class SingleGameRawLogUpload(models.Model):
 	game_type = models.IntegerField(null=True, blank=True, validators=[_validate_valid_game_type])
 	is_spectated_game = models.BooleanField(default=False)
 	friendly_player_id = models.IntegerField(null=True, blank=True, validators=[_validate_friendly_player_id])
+	scenario_id = models.IntegerField(null=True, blank=True)
 
 	# This also may not be needed as it is encoded in BnetGameType
 	is_ranked = models.NullBooleanField(null=True, blank=True)
@@ -147,11 +150,11 @@ class SingleGameRawLogUpload(models.Model):
 
 		return super(SingleGameRawLogUpload, self).clean()
 
-	def _generate_replay_element_tree(self):
+	def _generate_replay_packet_tree(self):
 		# Don't attempt to generate a replay if validation doesn't pass.
 		self.full_clean()
 
-		self.log.open() # Make sure that the file is open to the beginning of it.
+		self.log.open()  # Make sure that the file is open to the beginning of it.
 		raw_log_str = self.log.read().decode("utf-8")
 		parser = parse_log(StringIO(raw_log_str), processor='GameState', date=self.match_start_timestamp)
 
@@ -159,7 +162,11 @@ class SingleGameRawLogUpload(models.Model):
 			# We were not able to generate a replay
 			raise ValidationError("Could not parse a replay from the raw log data")
 
+		return parser
+
+	def _generate_replay_element_tree_from_packets(self, parser):
 		doc = create_document(version=hsreplay_version, build=self.hearthstone_build)
+
 		game = game_to_xml(parser.games[0],
 						   game_meta=self._generate_game_meta_data(),
 						   player_meta=self._generate_player_meta_data(),
@@ -168,6 +175,10 @@ class SingleGameRawLogUpload(models.Model):
 		doc.append(game)
 
 		return doc
+
+	def _generate_replay_element_tree(self):
+		parser = self._generate_replay_packet_tree()
+		return self._generate_replay_element_tree_from_packets(parser)
 
 	def _generate_game_meta_data(self):
 		meta_data = {}
@@ -239,6 +250,7 @@ class GlobalGame(models.Model):
 	"""
 	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
+	# Note: The Innkeeper does not share the same accountHi value as real Battle.net Accounts
 	bnet_region_id = models.CharField(max_length=50,
 								   verbose_name="Battle.net Region ID",
 								   help_text="This is the accountHi value from either Player entity.")
@@ -294,6 +306,10 @@ class GlobalGame(models.Model):
 	player_one_starting_hero_class = models.IntegerField(verbose_name="Player 1 Starting Hero Class",
 														 help_text="A value from hearthstone.enums.CardClass.")
 
+	# It is possible for both players to loose a match (but not both for both players to loose).
+	player_one_final_state = models.IntegerField(verbose_name="Player 1 Final State",
+												help_text="A value from hearthstone.enums.PlayState.")
+
 	### The next 3 fields all identical to the previous 3, but for Player 2 ###
 	player_two_battlenet_id = models.CharField(max_length=50,
 											   verbose_name="Player 2 Battle.net ID",
@@ -306,6 +322,9 @@ class GlobalGame(models.Model):
 	player_two_starting_hero_class = models.IntegerField(verbose_name="Player 1 Starting Hero Class",
 														 help_text="A value from hearthstone.enums.CardClass.")
 
+	player_two_final_state = models.IntegerField(verbose_name="Player 2 Final State",
+												 help_text="A value from hearthstone.enums.PlayState.")
+
 	# The following basic stats are globally visible to all
 	num_turns = models.IntegerField()
 	num_entities = models.IntegerField()
@@ -314,7 +333,142 @@ class GlobalGame(models.Model):
 class GameReplayUploadManager(models.Manager):
 
 	def create_from_raw_log_upload(self, raw_log):
-		pass
+		# Matching Regions, Matching Player Battle.net IDs, Match Start Timestamp within minutes.
+		packet_tree = raw_log._generate_replay_packet_tree()
+		replay_tree = raw_log._generate_replay_element_tree_from_packets(packet_tree)
+
+		bnet_region_id = None
+		player_one_battlenet_id = None
+		player_two_battlenet_id = None
+
+		for player in replay_tree.iter("Player"):
+			if player.get('playerID') == '1':
+				player_one_battlenet_id = player.get('accountLo')
+
+			if player.get('playerID') == '2':
+				player_two_battlenet_id = player.get('accountLo')
+
+			# The Innkeeper and Adventure bosses might have a different accountHi value so we must find a human player.
+			if player.get('accountLo') != '0':
+				bnet_region_id = player.get('accountHi')
+
+		if not bnet_region_id:
+			raise ValidationError("Could not locate a battle.net region ID which is required.")
+
+		if not player_one_battlenet_id:
+			raise ValidationError("Could not locate Player 1's Battle.net ID which is required.")
+
+		if not player_two_battlenet_id:
+			raise ValidationError("Could not locate Player 2's Battle.net ID which is required.")
+
+		# This while loop section is to keep tightening the bounds of the time window until we identify a single match
+		time_drift_buffer = 60
+		global_game_candidates = self._query_for_global_game_candidates_within_starting_window(bnet_region_id,
+																							   player_one_battlenet_id,
+																							   player_two_battlenet_id,
+																							   raw_log.match_start_timestamp,
+																							   time_drift_buffer)
+		while len(global_game_candidates) > 1 and time_drift_buffer > 10:
+			time_drift_buffer = time_drift_buffer - 10
+
+			global_game_candidates = self._query_for_global_game_candidates_within_starting_window(bnet_region_id,
+																								   player_one_battlenet_id,
+																								   player_two_battlenet_id,
+																								   raw_log.match_start_timestamp,
+																								   time_drift_buffer)
+
+		global_game = None
+		if len(global_game_candidates) == 1:
+			global_game = global_game_candidates[0]
+
+			# If a global_game already exists then there is a possibility that this is a duplicate upload, so check for it.
+			duplicate = GameReplayUpload.objects.filter(upload_token=raw_log.upload_token, global_game=global_game).first()
+			if duplicate:
+				raise ValidationError("This replay has already been uploaded by this user and has UUID: %s" % str(duplicate.id))
+		else:
+			global_game = GlobalGame.objects.create(bnet_region_id=bnet_region_id,
+									 brawl_season=None,
+									 game_id=replay_tree.find("Game").get("id"),
+									 game_type=replay_tree.find("Game").get("type"),
+									 hearthstone_build=replay_tree.get("build"),
+									 ladder_season=self._current_season_number(raw_log.match_start_timestamp),
+									 match_end_timestamp=self._find_match_end_timestamp(packet_tree),
+									 match_start_timestamp=raw_log.match_start_timestamp,
+									 num_entities=self._get_num_entities(packet_tree),
+									 num_turns=self._get_num_turns(packet_tree),
+									 player_one_battlenet_id=player_one_battlenet_id,
+									 player_one_starting_hero_class=self._get_starting_hero_for_player(0,packet_tree).tags.get(GameTag.CLASS, 0),
+									 player_one_starting_hero_id=self._get_starting_hero_for_player(0,packet_tree).card_id,
+									 player_one_final_state = self._get_final_state_for_player(0, packet_tree),
+									 player_two_battlenet_id=player_two_battlenet_id,
+									 player_two_starting_hero_class=self._get_starting_hero_for_player(1,packet_tree).tags.get(GameTag.CLASS, 0),
+									 player_two_starting_hero_id=self._get_starting_hero_for_player(1,packet_tree).card_id,
+									 player_two_final_state=self._get_final_state_for_player(1, packet_tree),
+									 scenario_id=raw_log.scenario_id)
+
+		replay_upload = GameReplayUpload(
+			friendly_player_id = raw_log.friendly_player_id,
+			game_server_address = raw_log.game_server_address,
+			game_server_client_id = raw_log.game_server_client_id,
+			game_server_port = raw_log.game_server_port,
+			game_server_spectate_key = raw_log.game_server_spectate_key,
+			global_game = global_game,
+			hsreplay_version = hsreplay_version,
+			is_spectated_game = raw_log.is_spectated_game,
+			player_one_name = self._get_name_for_player(0, packet_tree),
+			player_one_starting_deck_list = self._get_starting_deck_list_for_player(0, packet_tree),
+			player_two_name = self._get_name_for_player(1, packet_tree),
+			player_two_starting_deck_list = self._get_starting_deck_list_for_player(1, packet_tree),
+			raw_log = raw_log,
+			upload_timestamp = raw_log.upload_timestamp,
+			upload_token = raw_log.upload_token)
+
+		replay_upload.replay_xml.save('hsreplay.xml', ContentFile(pretty_xml(replay_tree)), save=False)
+		replay_upload.save()
+
+		return replay_upload
+
+	def _get_starting_deck_list_for_player(self, num, packet_tree):
+		starting_deck_card_ids = [e.card_id for e in packet_tree.games[0].players[num].initial_deck]
+		return Deck.objects.create_from_id_list(starting_deck_card_ids)
+
+	def _get_name_for_player(self, num, packet_tree):
+		return packet_tree.games[0].players[num].name
+
+	def _get_final_state_for_player(self, num, packet_tree):
+		return packet_tree.games[0].players[num].tags.get(GameTag.PLAYSTATE)
+
+	def _get_starting_hero_for_player(self, num, packet_tree):
+		return list(packet_tree.games[0].players[num].heroes)[0]
+
+	def _get_num_turns(self, packet_tree):
+		return packet_tree.games[0].tags.get(GameTag.TURN)
+
+	def _get_num_entities(self, packet_tree):
+		return max(packet_tree.games[0].entities.keys())
+
+	def _find_match_end_timestamp(self, packet_tree):
+		if len(packet_tree.games) > 1:
+			raise Exception("This method of determining match end timestamp is only valid for single game replays.")
+
+		return packet_tree._current_date
+
+	def _current_season_number(self, match_start_timestamp):
+		# Using Jan'2016 as a psuedo-epoch start since we know that is season 22
+		epoch_start = datetime(2016, 1, 1)
+		epoch_start_season = 22
+
+		delta_months = (match_start_timestamp.year - epoch_start.year) * 12 + (match_start_timestamp.month - epoch_start.month)
+		return epoch_start_season + delta_months
+
+	def _query_for_global_game_candidates_within_starting_window(self, bnet_region_id, player_one_battlenet_id, player_two_battlenet_id, match_start_timestamp, time_drift_seconds):
+		match_start_lower_bound = match_start_timestamp - timedelta(seconds=time_drift_seconds)
+		match_start_upper_bound = match_start_timestamp + timedelta(seconds=time_drift_seconds)
+		match_start_range = (match_start_lower_bound, match_start_upper_bound)
+
+		return GlobalGame.objects.filter(bnet_region_id = bnet_region_id,
+										 player_one_battlenet_id = player_one_battlenet_id,
+										 player_two_battlenet_id = player_two_battlenet_id).filter(match_start_timestamp__range=match_start_range).all()
 
 
 class GameReplayUpload(models.Model):
@@ -363,16 +517,9 @@ class GameReplayUpload(models.Model):
 										verbose_name="Player 1 Name",
 										help_text="Either the first part of a BattleTag or a name for Real ID Friends.")
 
-	# It is possible for both players to loose a match (but not both for both players to loose).
-	player_one_final_state = models.IntegerField(verbose_name="Player 1 Final State",
-												help_text="A value from hearthstone.enums.PlayState.")
-
 	player_two_name = models.CharField(max_length=255,
 										verbose_name="Player 2 Name",
 										help_text="Either the first part of a BattleTag or a name for Real ID Friends.")
-
-	player_two_final_state = models.IntegerField(verbose_name="Player 2 Final State",
-												help_text="A value from hearthstone.enums.PlayState.")
 
 
 	# This information is all optional and is from the Net.log ConnectAPI
@@ -385,14 +532,14 @@ class GameReplayUpload(models.Model):
 	hsreplay_version = models.CharField(max_length=20,
 										help_text="The value of hsreplay.__version__ when the replay was generated.")
 
-	friendly_starting_deck_list_id = models.ForeignKey(Deck,
-									 related_name="+",
-									 help_text="The set of cards revealed from the player's initial deck list")
+	player_one_starting_deck_list = models.ForeignKey(Deck,
+									 					related_name="+",
+									 					help_text="The set of cards revealed from the player's initial deck list")
 
 	# FK to deck_list as extracted from the replay XML, which might not include all 30 cards.
-	opponent_starting_deck_list_id = models.ForeignKey(Deck,
-									 related_name="+",
-									 help_text="The set of cards revealed from the player's initial deck list")
+	player_two_starting_deck_list = models.ForeignKey(Deck,
+														 related_name="+",
+														 help_text="The set of cards revealed from the player's initial deck list")
 
 	# The fields below capture the preferences of the user who uploaded it.
 	is_deleted = models.BooleanField(default=False) # User indicated in UI to delete replay upload (don't include in query sets)

@@ -207,7 +207,6 @@ class DeckManager(models.Manager):
 
 	def create_from_id_list(self, card_id_list):
 		deck = Deck.objects.create()
-		deck.season = self.current_season_number()
 
 		for card_id in card_id_list:
 			include, created = deck.include_set.get_or_create(deck = deck, card_id = card_id, defaults={'count': 1 })
@@ -220,15 +219,6 @@ class DeckManager(models.Manager):
 		deck.save()
 
 		return deck
-
-	def current_season_number(self):
-		# Using Jan'2016 as a psuedo-epoch start since we know that is season 22
-		epoch_start = datetime(2016,1,1)
-		epoch_start_season = 22
-
-		today = datetime.today()
-		delta_months = (today.year - epoch_start.year) * 12 + (today.month - epoch_start.month)
-		return epoch_start_season + delta_months
 
 
 class Deck(models.Model):
