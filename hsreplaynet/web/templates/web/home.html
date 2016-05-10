@@ -7,11 +7,25 @@
 
 {% block content %}
 <div id="main">
-	<header>
+	<header id="promo">
 		<img src="{% static 'web/images/logo.png' %}" id="logo" alt="HSReplay"/>
 		<h1>HSReplay</h1>
-		<h3>Watch and share Hearthstone replays</h3>
-		<a href="{% provider_login_url 'battlenet' %}" id="signup-btn">Sign up</a>
+		<h2>Watch and share your Hearthstone replays</h2>
+        {% if user.is_authenticated %}
+			<p>
+				<a href="{% url 'private_replay_collection' %}" class="promo-button">My Replays</a>
+				<a href="{% url 'account_logout' %}" class="promo-button-outline">
+					<img src="{% static 'web/images/bnet.png' %}"/>
+					<span>{{ user.username }}</span>
+				</a>
+			</p>
+			<p>
+				<a href="https://hsdecktracker.net/" target="_blank" class="promo-link">Download Hearthstone Deck Tracker</a>
+			</p>
+        {% else %}
+		    <p><a href="{% provider_login_url 'battlenet' %}" class="promo-button hero-button">Sign in</a></p>
+			<p class="promo-help">You don't need a new account &mdash; we'll simply use <img src="{% static 'web/images/bnet.png' %}"/> Battle.net.</p>
+        {% endif %}
 	</header>
 	<article id="front-features">
 		<div id="front-intro">

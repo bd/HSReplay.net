@@ -1,9 +1,26 @@
+html {
+  box-sizing: border-box;
+}
+
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+body {
+	background-color: #fbf7f6;
+}
+
 .full_height {
 	height: 100%;
 }
 
 body, html{
 	height: 100%;
+	font-family: 'Raleway', sans-serif;
+}
+
+nav, header {
+	font-family: 'Noto Sans', sans-serif;
 }
 
 #content {

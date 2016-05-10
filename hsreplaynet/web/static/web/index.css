@@ -3,30 +3,87 @@ html, body {
 	padding: 0;
 }
 
-#main header {
+#promo {
 	background: #1d3657;
 	color: white;
-	padding: 3em 0;
+	padding: 60px 0 40px 0;
 	text-align: center;
-	text-shadow: 2px 2px black;
+	margin-bottom: 40px;
+}
+
+#promo h1 {
+	font-size: 3em;
+	font-weight: bold;
+}
+
+#promo h2 {
+	font-size: 2em;
+	margin: 20px 0 40px 0;
+}
+
+#promo p {
+	margin: 15px 0;
+	padding: 0;
+}
+
+.promo-button, .promo-button:visited, .promo-button-outline, .promo-button-outline:visited {
+	display: inline-block;
+	font-weight: bold;
+	padding: 7px 30px;
+	line-height: 2em;
+	font-size: 1.2em;
+	text-decoration: none;
+	border: solid 1px white;
+}
+
+.promo-button-outline, .promo-button-outline:visited {
+	color: white;
+}
+
+.promo-button, .promo-button:visited {
+	color: #c9485b;
+	text-transform: uppercase;
+	background-color: white;
+}
+
+.promo-button img, .promo-button-outline img {
+	vertical-align: text-bottom;
+}
+
+.promo-button:hover, .promo-button:active {
+	color: white;
+	text-decoration: none;
+	background-color: #c9485b;
+	border-color: #c9485b;
+}
+
+.promo-button-outline:hover, .promo-button-outline:active {
+	color: #c9485b;;
+	border-color: #c9485b;
+	text-decoration: none;
+}
+
+.promo-button.hero-button {
+	padding-left: 45px;
+	padding-right: 45px;
+}
+
+.promo-link, .promo-help {
+	font-size: 1.2em;
+}
+
+.promo-link, .promo-link:visited {
+	text-decoration: underline;
+	color: white;
+}
+
+.promo-link:hover, .promo-link:active {
+	color: #c9485b;
 }
 
 #logo {
 	width: 121px;
 	height: 152px;
-}
-
-#signup-btn {
-	background-color: white;
-	box-shadow: black 3px 3px;
-	color: #c9485b;
-	display: inline-block;
-	font-weight: bold;
-	margin-top: 3em;
-	padding: 7px 30px;
-	text-decoration: none;
-	text-shadow: none;
-	text-transform: uppercase;
 }
 
 #front-features {
