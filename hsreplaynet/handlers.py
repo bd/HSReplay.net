@@ -24,9 +24,6 @@ def token_authorizer(event, context):
 
 
 def raw_log_upload_handler(event, context):
-	# 1) Create raw log model
-	# 2) Create
-
 	pass
 
 
