@@ -30,8 +30,10 @@ def token_authorizer(event, context):
 
 
 def raw_log_upload_handler(event, context):
+	raw_log = event['body']
 	query_params = event['query_parameters']
 	logger.info("Query Params: %s" % str(query_params))
+	logger.info("*** Raw Log Data ***\n%s" % raw_log)
 	return str(query_params)
 
 
