@@ -4,6 +4,12 @@ This module and all its dependencies will be interpreted under Python 2.7 and mu
 mediation between the AWS Lambda interface and standard Django requests.
 
 """
+import logging
+
+logging.getLogger('boto').setLevel(logging.WARN)
+logger = logging.getLogger(__file__)
+logger.setLevel(logging.INFO)
+
 import pymysql
 pymysql.install_as_MySQLdb()
 import os, django
@@ -24,7 +30,9 @@ def token_authorizer(event, context):
 
 
 def raw_log_upload_handler(event, context):
-	pass
+	query_params = event['query_parameters']
+	logger.info("Query Params: %s" % str(query_params))
+	return str(query_params)
 
 
 def django_models_test(event, context):
