@@ -22,7 +22,7 @@ class ReplayUploadTests(TestCase, TestDataConsumerMixin):
 
 	def setUp(self):
 		super().setUp()
-		self.log_data = self.read_raw_log_for_random_innkeeper_match()
+		self.log_data = self.get_raw_log_fixture_for_random_innkeeper_match()
 		self.thirty_card_deck = ['OG_249', 'CS2_147', 'EX1_620', 'FP1_019', 'AT_029', 'CS2_065', 'AT_070', 'OG_121', 'OG_290', 'GVG_038',
 								'AT_133', 'EX1_023', 'FP1_014', 'OG_337', 'CS2_189', 'AT_066', 'AT_034', 'EX1_250', 'OG_330', 'AT_130',
 								'GVG_081', 'OG_045', 'EX1_371', 'GVG_002', 'NEW1_026', 'EX1_405', 'OG_221', 'EX1_250', 'OG_330', 'AT_130']
