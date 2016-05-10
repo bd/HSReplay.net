@@ -5,6 +5,7 @@ mediation between the AWS Lambda interface and standard Django requests.
 
 """
 import logging
+from base64 import b64decode
 
 logging.getLogger('boto').setLevel(logging.WARN)
 logger = logging.getLogger(__file__)
@@ -30,9 +31,13 @@ def token_authorizer(event, context):
 
 
 def raw_log_upload_handler(event, context):
-	raw_log = event['body']
 	query_params = event['query_parameters']
 	logger.info("Query Params: %s" % str(query_params))
+
+	b64encoded_log = event['body']
+	logger.info("Base 64 Encoded Log:%s" % b64encoded_log)
+
+	raw_log = b64decode(b64encoded_log)
 	logger.info("*** Raw Log Data ***\n%s" % raw_log)
 	return str(query_params)
 
