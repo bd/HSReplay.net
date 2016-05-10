@@ -16,9 +16,9 @@ html, body {
 	font-weight: bold;
 }
 
-#promo h2 {
+#promo .tagline {
 	font-size: 2em;
-	margin: 20px 0 40px 0;
+	margin: 15px 0 40px 0;
 }
 
 #promo p {
