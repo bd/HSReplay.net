@@ -96,35 +96,32 @@ html, body {
 	width: 500px;
 }
 
-#front-features p {
-	color: #555;
-}
-
 #front-intro {
 	text-align: center;
 }
 
-.front-feat-screenshot {
-	height: 120px;
-	width: 190px;
+.front-feature {
+	clear: both;
 }
 
-#front-feat1 {
-	margin-top: 3em;
+.front-feature h2 {
+	font-size: 1.5em;
 }
 
-#front-feat1 .front-feat-screenshot {
+.front-feature > figcaption p {
+	color: #555;
+}
+
+
+.front-feature > img{
 	float: left;
 	padding-right: 1em;
 }
 
-#front-feat2 {
-	clear: left;
-	margin-top: 4em;
-}
-
-#front-feat2 .front-feat-screenshot {
+.front-feature.flip > img {
 	float: right;
+	padding-right: 0;
+	padding-left: 1em;
 }
 
 #how-it-works {

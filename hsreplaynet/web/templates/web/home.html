@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block content %}
-<div id="main">
+<figure id="main">
 	<header id="promo">
 		<img src="{% static 'web/images/logo.png' %}" id="logo" alt="HSReplay"/>
 		<h1>HSReplay</h1>
@@ -37,17 +37,21 @@
 			<img src="{% static 'web/images/joust-screenshot.jpg' %}" id="feat-joust-screenshot" alt="Joust: View your HSReplays"/>
 		</div>
 
-		<div id="front-feat1">
-			<img src="{% static 'web/images/front-feat-history.jpg' %}" class="front-feat-screenshot" alt="Match history"/>
-			<h4>All your matches in one place</h4>
-			<p>Filter your match history per game type, season, deck and more...</p>
-		</div>
+		<figure class="front-feature">
+			<img src="{% static 'web/images/front-feat-history.jpg' %}" alt="Match history" height="120" width="190" />
+			<figcaption>
+				<h2>All your matches in one place</h2>
+				<p>Filter your match history per game type, season, deck and more&hellip;</p>
+			</figcaption>
+		</figure>
 
-		<div id="front-feat2">
-			<img src="{% static 'web/images/front-feat-stats.jpg' %}" class="front-feat-screenshot" alt="Monthly stats"/>
-			<h4>Track your performance every season</h4>
-			<p>Follow your rank progression through the month and save your longest win streaks!</p>
-		</div>
+		<figure class="front-feature flip">
+			<img src="{% static 'web/images/front-feat-stats.jpg' %}" alt="Monthly statistics" height="120" width="190" />
+			<figcaption>
+				<h2>Track your performance every season</h2>
+				<p>Follow your rank progression through the month and save your longest win streaks!</p>
+			</figcaption>
+		</figure>
 
 		<div id="how-it-works">
 			<h3>How it works</h3>
