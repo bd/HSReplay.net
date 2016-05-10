@@ -158,7 +158,7 @@ else:
             'ENGINE': 'django.db.backends.mysql',
             'NAME': 'hsreplaynet',
             'USER': os.environ.get('HSREPLAYNET_DB_USER', 'django'),
-            'PASSWORD': os.environ.get('HSREPLAYNET_DB_PASSWORD', ''),
+            'PASSWORD': os.environ.get('HSREPLAYNET_DB_PASSWORD', 'db_pass'),
             'HOST': os.environ.get('HSREPLAYNET_DB_HOST', 'localhost'),
             'PORT': os.environ.get('HSREPLAYNET_DB_PORT', ''),
         }
