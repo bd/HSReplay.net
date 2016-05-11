@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 # You can temporarily comment out the @patch line to run the test in "integration mode" against S3. It should pass.
 @patch('storages.backends.s3boto.S3BotoStorage', FileSystemStorage)
 class CreateReplayFromRawLogTests(TestCase, TestDataConsumerMixin):
-	fixtures = ['cards_filtered.json', ]
+	fixtures = ['filtered_cards.json', ]
 
 	def setUp(self):
 		super().setUp()
@@ -83,16 +83,12 @@ class CreateReplayFromRawLogTests(TestCase, TestDataConsumerMixin):
 
 		self.assertEqual(global_game.player_one_battlenet_id, self.log_data_fixture['player_one_battlenet_id'])
 		self.assertEqual(global_game.player_one_starting_hero_id, self.log_data_fixture['player_one_starting_hero_id'])
-		#TODO: This should pass as soon as the card set is reloaded so the DB IDs match the hearthstone.enum values
-		#The cards_filtered.json must also be regenerated to extract the data with the new IDs.
-		#Create datamigration to reset cards DB after confirming changes work.
-		#self.assertEqual(global_game.player_one_starting_hero_class, self.log_data_fixture['player_one_starting_hero_class'])
+		self.assertEqual(global_game.player_one_starting_hero_class, self.log_data_fixture['player_one_starting_hero_class'])
 		self.assertEqual(global_game.player_one_final_state, self.log_data_fixture['player_one_final_state'])
 
 		self.assertEqual(global_game.player_two_battlenet_id, self.log_data_fixture['player_two_battlenet_id'])
 		self.assertEqual(global_game.player_two_starting_hero_id, self.log_data_fixture['player_two_starting_hero_id'])
-		#TODO: This should pass as soon as the card set is reloaded so the DB IDs match the hearthstone.enum values
-		#self.assertEqual(global_game.player_two_starting_hero_class, self.log_data_fixture['player_two_starting_hero_class'])
+		self.assertEqual(global_game.player_two_starting_hero_class, self.log_data_fixture['player_two_starting_hero_class'])
 		self.assertEqual(global_game.player_two_final_state, self.log_data_fixture['player_two_final_state'])
 
 		self.assertEqual(global_game.num_turns, self.log_data_fixture['num_turns'])

@@ -90,6 +90,7 @@ def _validate_friendly_player_id(value):
 		if value != 1 or value != 2:
 			raise ValidationError("friendly_player_id must be either 1 or 2. %s is not valid." % value)
 
+
 class SingleGameRawLogUpload(models.Model):
 	"""Represents an upload of raw Hearthstone log data.
 
@@ -401,7 +402,7 @@ class GameReplayUploadManager(models.Manager):
 									 player_one_starting_hero_id=self._get_starting_hero_for_player(0,packet_tree).card_id,
 									 player_one_final_state = self._get_final_state_for_player(0, packet_tree),
 									 player_two_battlenet_id=player_two_battlenet_id,
-									 player_two_starting_hero_class=self._get_starting_hero_class_for_player(0, packet_tree),
+									 player_two_starting_hero_class=self._get_starting_hero_class_for_player(1, packet_tree),
 									 player_two_starting_hero_id=self._get_starting_hero_for_player(1,packet_tree).card_id,
 									 player_two_final_state=self._get_final_state_for_player(1, packet_tree),
 									 scenario_id=raw_log.scenario_id)
