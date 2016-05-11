@@ -84,11 +84,11 @@ class ReplayUploadTests(TestCase, TestDataConsumerMixin):
 		self.upload.log.save('Power.log', ContentFile(self.log_data), save=False)
 		self.upload.player_1_deck_list = ",".join(self.thirty_card_deck)
 		self.upload.player_1_rank = 18
-		self.upload.match_type = int(BnetGameType.BGT_RANKED_STANDARD)
+		self.upload.game_type = int(BnetGameType.BGT_RANKED_STANDARD)
 
 		replay = self.upload._generate_replay_element_tree()
 		game_element = replay.find("Game")
-		self.assertEqual(game_element.get("type"), str(self.upload.match_type))
+		self.assertEqual(game_element.get("type"), str(self.upload.game_type))
 
 		players = game_element.findall("Player")
 		player_one = players[0]
