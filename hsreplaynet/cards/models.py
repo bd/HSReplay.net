@@ -81,7 +81,7 @@ class CardManager(models.Manager):
 		for_player_class_id -- Restrict the set of candidate cards to this player class.
 		"""
 		cost = randint(1, 8) if not cost else cost
-		cards_of_cost = super(CardManager, self).filter(collectible=collectible).exclude(type_id = 4).filter(cost=cost).all()
+		cards_of_cost = super(CardManager, self).filter(collectible=collectible).exclude(type_id = enums.CardType.HERO).filter(cost=cost).all()
 
 		if for_player_class_id:
 			cards_of_cost = [c for c in cards_of_cost if c.player_class == None or c.player_class.id == for_player_class_id]
@@ -209,7 +209,12 @@ class DeckManager(models.Manager):
 
 	def random_deck_list_of_size(self, size):
 		player_class = randint(2, 10) # Values from hearthstone.enums.CardClass
-		return [Card.objects.random(for_player_class_id= player_class).id for i in range(size)]
+		result = []
+		for i in range(size):
+			candidate_card = Card.objects.random(for_player_class_id=player_class)
+			if candidate_card:
+				result.append(candidate_card.id)
+		return result
 
 	def create_from_id_list(self, card_id_list):
 		deck = Deck.objects.create()
