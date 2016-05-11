@@ -43,6 +43,7 @@ class HearthstoneApiLoader:
 						result.num_cards_already_in_db += 1
 
 		except Exception as e:
+			print(e)
 			print(json.dumps(card))
 			raise e
 

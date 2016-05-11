@@ -7,7 +7,7 @@ class Command(BaseCommand):
 	def handle(self, *args, **options):
 
 		Faction.objects.all().delete()
-		PlayerClass.objects.al().delete()
+		PlayerClass.objects.all().delete()
 		Type.objects.all().delete()
 		Race.objects.all().delete()
 		Collection.objects.all().delete()

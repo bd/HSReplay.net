@@ -141,7 +141,8 @@ class CardManager(models.Manager):
 			card.collection = result[0]
 
 		if 'race' in json:
-			enum_id = int(enums.Race[json['race'].upper()])
+			enum_name = 'MECHANICAL' if json['race'].upper() == 'MECH' else json['race'].upper()
+			enum_id = int(enums.Race[enum_name])
 			result = Race.objects.get_or_create(name = json['race'], defaults={'id': enum_id })
 			card.race = result[0]
 
