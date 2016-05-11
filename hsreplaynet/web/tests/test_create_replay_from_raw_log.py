@@ -46,6 +46,12 @@ class CreateReplayFromRawLogTests(TestCase, TestDataConsumerMixin):
 												   match_start_timestamp = self.upload_date,
 												   upload_token = self.token)
 
+	def tearDown(self):
+		for replay_upload in self.upload.replays.all():
+			replay_upload.replay_xml.delete()
+
+		self.upload.log.delete()
+
 	def test_create_replay_from_raw_log(self):
 
 		self.upload.log.save('Power.log', ContentFile(self.log_data), save=False)

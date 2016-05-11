@@ -44,6 +44,9 @@ class ReplayUploadTests(TestCase, TestDataConsumerMixin):
 												   match_start_timestamp = self.upload_date,
 												   upload_token = self.token)
 
+	def tearDown(self):
+		self.upload.log.delete()
+
 	def test_save_read_delete(self):
 
 		self.upload.log.save('Power.log', ContentFile(self.log_data), save=False)

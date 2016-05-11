@@ -520,7 +520,7 @@ class GameReplayUpload(models.Model):
 									help_text="References the single global game that this replay shows.")
 
 	# raw_log can be null because a user might upload the XML of a replay directly.
-	raw_log = models.ForeignKey(SingleGameRawLogUpload, null=True)
+	raw_log = models.ForeignKey(SingleGameRawLogUpload, related_name="replays", null=True)
 
 	# This is useful to know because replays that are spectating both players will have more data then those from a single player.
 	# For example, they will have access to the cards that are in each players hand.
