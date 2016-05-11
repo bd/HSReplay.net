@@ -87,7 +87,7 @@ def _validate_raw_log(value):
 
 def _validate_friendly_player_id(value):
 	if value:
-		if value != 1 or value != 2:
+		if value != 1 and value != 2:
 			raise ValidationError("friendly_player_id must be either 1 or 2. %s is not valid." % value)
 
 
@@ -108,16 +108,10 @@ class SingleGameRawLogUpload(models.Model):
 	# All the remaining fields represent optional meta data the client can provide when uploading a replay.
 	hearthstone_build = models.CharField(max_length=50, null=True, blank=True)
 
-	#match_type should be renamed to game_type and be a value from hearthstone.enums.BnetGameType
 	game_type = models.IntegerField(null=True, blank=True, validators=[_validate_valid_game_type])
 	is_spectated_game = models.BooleanField(default=False)
 	friendly_player_id = models.IntegerField(null=True, blank=True, validators=[_validate_friendly_player_id])
 	scenario_id = models.IntegerField(null=True, blank=True)
-
-	# This also may not be needed as it is encoded in BnetGameType
-	is_ranked = models.NullBooleanField(null=True, blank=True)
-	# We decided not to include FormatType enum so we will just not know the match format at first
-	#format = models.IntegerField(default=0) # Should be FormatType.UNKNOWN by Default, optional field that clients can provide
 
 	# Player Info
 	player_1_rank = models.IntegerField(null=True, blank=True, validators=[_validate_player_rank])
@@ -184,8 +178,8 @@ class SingleGameRawLogUpload(models.Model):
 	def _generate_game_meta_data(self):
 		meta_data = {}
 
-		if self.match_type:
-			meta_data["type"] = str(self.match_type)
+		if self.game_type:
+			meta_data["type"] = str(self.game_type)
 
 		if self.game_server_game_id:
 			meta_data["id"] = str(self.game_server_game_id)

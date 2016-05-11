@@ -39,6 +39,7 @@ if not IS_RUNNING_AS_LAMBDA:
         'web',
         'joust',
         'cards',
+        'lambdas',
         'allauth',
         'allauth.account',
         'allauth.socialaccount',
@@ -63,6 +64,7 @@ else:
         'web',
         'joust',
         'cards',
+        'lambdas',
     )
 
 

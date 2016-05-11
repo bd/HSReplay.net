@@ -6,7 +6,6 @@ mediation between the AWS Lambda interface and standard Django requests.
 """
 import logging
 from base64 import b64decode
-
 logging.getLogger('boto').setLevel(logging.WARN)
 logger = logging.getLogger(__file__)
 logger.setLevel(logging.INFO)
@@ -20,9 +19,9 @@ os.environ.setdefault('IS_RUNNING_AS_LAMBDA', 'True')
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
-# We import models and other parts of the project after django.setup() has been invoked.
-from web.models import HSReplaySingleGameFileUpload
+# We import models or anything that indirectly imports models after django.setup() has been invoked.
 from lambdas.authorizer import lambda_handler as _token_authorizer
+from lambdas.uploads import _raw_log_upload_handler
 
 
 def token_authorizer(event, context):
@@ -35,16 +34,19 @@ def raw_log_upload_handler(event, context):
 	logger.info("Query Params: %s" % str(query_params))
 
 	b64encoded_log = event['body']
-	logger.info("Base 64 Encoded Log:%s" % b64encoded_log)
-
 	raw_log = b64decode(b64encoded_log)
 	logger.info("*** Raw Log Data ***\n%s" % raw_log)
 	return str(query_params)
 
 
-def django_models_test(event, context):
-	return str(HSReplaySingleGameFileUpload.objects.count())
+def raw_log_upload_handler_v2(event, context):
+	"""Entry point for uploading raw log files."""
+	# If an exception is thrown we must translate it into a string that the API Gateway can translate into the
+	# appropriate HTTP Response code and message.
+	try:
+		result = _raw_log_upload_handler(event, context)
+		return result
+	except Exception as e:
+		pass
 
-
-if __name__ == '__main__':
-	print(django_models_test(None, None))
+	return "ERROR"
