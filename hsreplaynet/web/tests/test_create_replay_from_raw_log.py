@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 # You can temporarily comment out the @patch line to run the test in "integration mode" against S3. It should pass.
 @patch('storages.backends.s3boto.S3BotoStorage', FileSystemStorage)
 class CreateReplayFromRawLogTests(TestCase, TestDataConsumerMixin):
-	fixtures = ['filtered_cards.json', ]
+	fixtures = ['cards_filtered.json', ]
 
 	def setUp(self):
 		super().setUp()

@@ -208,7 +208,7 @@ class Card(models.Model):
 class DeckManager(models.Manager):
 
 	def random_deck_list_of_size(self, size):
-		player_class = randint(1, 9)
+		player_class = randint(2, 10) # Values from hearthstone.enums.CardClass
 		return [Card.objects.random(for_player_class_id= player_class).id for i in range(size)]
 
 	def create_from_id_list(self, card_id_list):
