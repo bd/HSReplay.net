@@ -1,8 +1,3 @@
-html, body {
-	margin: 0;
-	padding: 0;
-}
-
 #promo {
 	background: #1d3657;
 	color: white;
@@ -147,16 +142,4 @@ html, body {
 #how-it-works-step2 {
 	float: right;
 	width: 50%;
-}
-
-footer {
-	clear: both;
-	color: #aaa;
-	font-size: x-small;
-	padding-top: 3em;
-	text-align: center;
-}
-
-footer a {
-	color: #aaa;
 }
