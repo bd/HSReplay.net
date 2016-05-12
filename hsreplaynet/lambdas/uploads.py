@@ -14,17 +14,14 @@ def _raw_log_upload_handler(event, context):
 	params = json.loads(query_params_json)
 	logger.info("Query Params: %s" % str(params))
 
-	required_params = ('game_server_address', 'game_server_port', 'game_server_game_id')
-	for p in required_params:
-		if p not in params:
-			raise ValidationError("The query parameter '%s' is required but was not found." % p)
-
 	b64encoded_log = event['body']
 	raw_log = b64decode(b64encoded_log)
 	logger.info("*** Raw Log Data ***\n%s" % raw_log)
 
 	api_key = event['x-hsreplay-api-key']
+	logger.info("Upload submitted with API Key: %s" % api_key)
 	upload_token = event['x-hsreplay-upload-token']
+	logger.info("Upload submitted with Upload Token: %s" % upload_token)
 
 	raw_log_upload_record = SingleGameRawLogUpload()
 	# Model fileds populated in the following section
@@ -73,6 +70,9 @@ def _raw_log_upload_handler(event, context):
 		logger.exception(e)
 		raise e
 
+	logger.info("**** RAW LOG SUCCESSFULLY SAVED ****")
+	logger.info("Raw Log Record ID: %s" % raw_log_upload_record.id)
+
 	replay = None
 	try:
 		#Attempt parsing....
@@ -85,8 +85,10 @@ def _raw_log_upload_handler(event, context):
 	result = None
 	if replay:
 		#Parsing succeeded so return the UUID of the replay.
+		logger.info("Parsing Succeeded! Replay is %s turns, and has ID: %s" % (str(replay.global_game.num_turns), str(replay.id)))
 		result = str(replay.id)
 	else:
+		logger.error("Parsing Failed!")
 		# Parsing failed so notify the uploader that there will be a delay
 		result = "Upload succeeded, however there was a problem generating the replay. The replay will be available shortly."
 

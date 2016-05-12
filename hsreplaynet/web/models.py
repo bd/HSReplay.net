@@ -85,7 +85,7 @@ def _validate_raw_log(value):
 	log_data = value.read().decode("utf8")
 	create_game_tokens = CREATE_GAME_RAW_LOG_TOKEN.findall(log_data)
 	if len(create_game_tokens) != 1:
-		raise ValidationError("Raw log data must only be for a single game.")
+		raise ValidationError("Raw log data must contain a single GameState ... CREATE_GAME token.")
 
 def _validate_friendly_player_id(value):
 	if value:

@@ -1,6 +1,6 @@
 from base64 import b64encode
 from django.core.files.storage import FileSystemStorage
-from handlers import _raw_log_upload_handler, raw_log_upload_handler_v2
+from handlers import raw_log_upload_handler
 from unittest.mock import patch
 from test.base import TestDataConsumerMixin, CardDataBaseTest
 from web.models import *
@@ -22,21 +22,22 @@ class TestRawLogUploadHandler(CardDataBaseTest, TestDataConsumerMixin):
 		self.token = SingleSiteUploadToken.objects.create(requested_by_upload_agent=self.upload_agent)
 
 	def test_all_integrations(self):
+
 		for descriptor, raw_log, test_uuid in self.get_raw_log_integration_fixtures():
-			if not descriptor["skip"]:
+			if descriptor["skip"].lower() == 'false':
 
 				# Finish preparing the event object...
 				event = descriptor["event"]
-				event['body'] = b64encode(raw_log)
+				event['body'] = b64encode(raw_log.encode("utf-8"))
 				event['x-hsreplay-api-key'] = str(self.upload_agent.api_key)
 				event['x-hsreplay-upload-token'] = str(self.token.token)
 				context = descriptor["context"]
 
 				# Invoke main handler code
-				result = raw_log_upload_handler_v2(event, context)
+				result = raw_log_upload_handler(event, context)
 
 				# Begin verification process...
-				if descriptor["expected_response_is_replay_id"]:
+				if descriptor["expected_response_is_replay_id"].lower() == 'true':
 					# This test case expects a success, so now verify the correctness of the replay records generated
 					replay = GameReplayUpload.objects.get(id=result)
 					self.assertIsNotNone(replay)
