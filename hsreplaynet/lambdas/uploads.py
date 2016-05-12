@@ -10,12 +10,12 @@ logger.setLevel(logging.INFO)
 
 
 def _raw_log_upload_handler(event, context):
-	logger.info("Event: %s" % str(event))
+	#logger.info("Event: %s" % str(event))
 
 
 	b64encoded_log = event['body']
 	raw_log = b64decode(b64encoded_log)
-	logger.info("*** Raw Log Data ***\n%s" % raw_log)
+	#logger.info("*** Raw Log Data ***\n%s" % raw_log)
 
 	api_key = event['x-hsreplay-api-key']
 	logger.info("Upload submitted with API Key: %s" % api_key)
