@@ -2,6 +2,11 @@
 {% load static from staticfiles %}
 {% load socialaccount %}
 
+{% block stylesheets %}
+    {{ block.super }}
+	<link href="{% static 'web/home.css' %}" rel="stylesheet"/>
+{% endblock stylesheets %}
+
 {% block header %}
 {% endblock %}
 
