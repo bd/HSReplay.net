@@ -63,10 +63,12 @@
 	{% endblock %}
 	</header>
 
+	{% block fullcontent %}
 	<div id="content">
 	{% block content %}
 	{% endblock content %}
 	</div>
+	{% endblock fullcontent %}
 
 	<footer>
 		{% block footer %}

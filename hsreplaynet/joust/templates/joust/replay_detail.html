@@ -6,7 +6,7 @@
 	<link href="http://hsreplay.net/static/joust/joust.css" rel="stylesheet">
 {% endblock stylesheets %}
 
-{% block content %}
+{% block fullcontent %}
 <div id="tabletop" class="row">
     <div class="col-lg-offset-2 col-lg-8 col-xs-12 full_height">
         <div id="joust-container" class="full_height"></div>
@@ -73,4 +73,4 @@
             .fromUrl('{{ replay_data_url }}');
     });
 </script>
-{% endblock content %}
+{% endblock fullcontent %}
