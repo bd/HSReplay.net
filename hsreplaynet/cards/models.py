@@ -218,20 +218,31 @@ class DeckManager(models.Manager):
 				result.append(candidate_card.id)
 		return result
 
-	def create_from_id_list(self, card_id_list):
-		deck = Deck.objects.create()
+	def get_or_create_from_id_list(self, card_id_list):
+		digest = generate_digest_from_deck_list(card_id_list)
+		existing_deck = Deck.objects.filter(digest=digest).first()
+		if existing_deck:
+			return existing_deck
+		else:
+			deck = Deck.objects.create()
 
-		for card_id in card_id_list:
-			include, created = deck.include_set.get_or_create(deck = deck, card_id = card_id, defaults={'count': 1 })
-			if not created:
-				# This must be an additional copy of a card we've seen previously so we increment the count
-				include.count += 1
-				include.save()
+			for card_id in card_id_list:
+				include, created = deck.include_set.get_or_create(deck = deck, card_id = card_id, defaults={'count': 1 })
+				if not created:
+					# This must be an additional copy of a card we've seen previously so we increment the count
+					include.count += 1
+					include.save()
 
-		deck.player_class = PlayerClass.objects.suggest_player_class_for_deck(deck)
-		deck.save()
+			deck.save()
 
-		return deck
+			return deck
+
+
+def generate_digest_from_deck_list(card_id_list):
+	sorted_cards = sorted(card_id_list)
+	m = hashlib.md5()
+	m.update(",".join(sorted_cards).encode("utf-8"))
+	return m.hexdigest()
 
 class Deck(models.Model):
 	""" Represents an abstract collection of cards.
@@ -260,11 +271,7 @@ class Deck(models.Model):
 		return mana_sorted.__iter__()
 
 	def save(self, *args, **kwargs):
-		sorted_cards = sorted(self.card_id_list())
-		m = hashlib.md5()
-		m.update(",".join(sorted_cards))
-		self.digest = m.hexdigest()
-
+		self.digest = generate_digest_from_deck_list(self.card_id_list())
 		return super(Deck, self).save(*args, **kwargs)
 
 	def card_id_list(self):
