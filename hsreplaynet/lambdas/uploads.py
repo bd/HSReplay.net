@@ -11,6 +11,7 @@ logger.setLevel(logging.INFO)
 
 def _raw_log_upload_handler(event, context):
 	query_params_json = event['query_parameters']
+	logger.info("Query_Params_Json: %s" % str(query_params_json))
 	params = json.loads(query_params_json)
 	logger.info("Query Params: %s" % str(params))
 
