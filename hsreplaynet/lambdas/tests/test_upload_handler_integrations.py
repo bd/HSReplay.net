@@ -1,18 +1,15 @@
-from django.test import TestCase
-from test.base import TestDataConsumerMixin
-from web.models import *
-from handlers import _raw_log_upload_handler, raw_log_upload_handler_v2
 from base64 import b64encode
 from django.core.files.storage import FileSystemStorage
+from handlers import _raw_log_upload_handler, raw_log_upload_handler_v2
 from unittest.mock import patch
+from test.base import TestDataConsumerMixin, CardDataBaseTest
+from web.models import *
 
 
 # We patch S3Storage because we don't want to be interacting with S3 in unit tests
 # You can temporarily comment out the @patch line to run the test in "integration mode" against S3. It should pass.
 @patch('storages.backends.s3boto.S3BotoStorage', FileSystemStorage)
-class TestRawLogUploadHandler(TestCase, TestDataConsumerMixin):
-	fixtures = ['cards_filtered.json', ]
-
+class TestRawLogUploadHandler(CardDataBaseTest, TestDataConsumerMixin):
 	def setUp(self):
 		super().setUp()
 
@@ -25,7 +22,6 @@ class TestRawLogUploadHandler(TestCase, TestDataConsumerMixin):
 		self.token = SingleSiteUploadToken.objects.create(requested_by_upload_agent=self.upload_agent)
 
 	def test_all_integrations(self):
-
 		for descriptor, raw_log, test_uuid in self.get_raw_log_integration_fixtures():
 			if not descriptor["skip"]:
 

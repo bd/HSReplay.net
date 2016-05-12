@@ -1,19 +1,21 @@
-from django.db import models
-from django.core.urlresolvers import reverse
-import uuid, logging, re
-from datetime import date
-from django.utils import timezone
+import uuid
+import logging
+import re
+from datetime import date, datetime, timedelta
+from io import StringIO
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.files.storage import default_storage
-from hsreplay.dumper import parse_log, create_document, game_to_xml
-from hsreplay import __version__ as hsreplay_version
-from hsreplay.utils import pretty_xml
-from hearthstone.enums import *
-from io import StringIO
-from cards.models import Card, Deck
-from datetime import datetime, timedelta
 from django.core.files.base import ContentFile
+from django.core.urlresolvers import reverse
+from django.db import models
+from django.utils import timezone
+from hearthstone.enums import *
+from hsreplay import __version__ as hsreplay_version
+from hsreplay.dumper import parse_log, create_document, game_to_xml
+from hsreplay.utils import pretty_xml
+from cards.models import Card, Deck
+
 
 logger = logging.getLogger(__name__)
 
@@ -425,8 +427,8 @@ class GameReplayUploadManager(models.Manager):
 
 	def _get_starting_hero_class_for_player(self, num, packet_tree):
 		hero_card_id = self._get_starting_hero_for_player(num, packet_tree).card_id
-		card = Card.objects.get(id = hero_card_id)
-		return CardClass(card.player_class.id)
+		card = Card.objects.get(id=hero_card_id)
+		return CardClass(card.card_class)
 
 	def _get_starting_hero_for_player(self, num, packet_tree):
 		return list(packet_tree.games[0].players[num].heroes)[0]

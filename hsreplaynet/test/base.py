@@ -1,10 +1,13 @@
-from django.contrib.staticfiles.testing import StaticLiveServerTestCase
-from selenium import webdriver
 import os
-from datetime import datetime, date, time
 import json
-from hearthstone.enums import *
 import pytz
+from datetime import datetime, date, time
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from django.core.management import call_command
+from django.test import TestCase
+from selenium import webdriver
+from hearthstone.enums import *
+
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 SCREEN_DUMP_LOCATION = os.path.join(APP_DIR,'screendumps')
@@ -16,7 +19,6 @@ INTEGRATION_DATA_LOCATION = os.path.join(APP_DIR, 'integration_data')
 
 
 class FunctionalTest(StaticLiveServerTestCase):
-
 	def setUp(self):
 		self.browser = webdriver.Firefox()
 		self.browser.implicitly_wait(3)
@@ -123,3 +125,11 @@ class TestDataConsumerMixin:
 		fixture['num_entities'] = 70
 
 		return fixture
+
+
+class CardDataBaseTest(TestCase):
+	@classmethod
+	def setUpClass(cls):
+		# Call `manage.py load_cards`
+		call_command("load_cards")
+		super().setUpClass()

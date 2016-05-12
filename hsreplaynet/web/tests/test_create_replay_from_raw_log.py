@@ -1,17 +1,18 @@
-from django.test import TestCase
-from web.models import *
-from unittest import skip
-from django.utils.timezone import now
+import xml.etree.ElementTree as ET
+import logging
+from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.core.files.storage import FileSystemStorage
+from django.utils.timezone import now
+from django.test import TestCase
+from unittest import skip
 from unittest.mock import patch, MagicMock
-from django.core.exceptions import ValidationError
-from cards.models import Card
-from test.base import TestDataConsumerMixin
-import logging
 from hearthstone.enums import BnetGameType
+from cards.models import Card
 from hsreplay.utils import pretty_xml
-import xml.etree.ElementTree as ET
+from test.base import CardDataBaseTest, TestDataConsumerMixin
+from web.models import *
+
 
 logger = logging.getLogger(__name__)
 
@@ -19,9 +20,7 @@ logger = logging.getLogger(__name__)
 # We patch S3Storage because we don't want to be interacting with S3 in unit tests
 # You can temporarily comment out the @patch line to run the test in "integration mode" against S3. It should pass.
 @patch('storages.backends.s3boto.S3BotoStorage', FileSystemStorage)
-class CreateReplayFromRawLogTests(TestCase, TestDataConsumerMixin):
-	fixtures = ['cards_filtered.json', ]
-
+class CreateReplayFromRawLogTests(CardDataBaseTest, TestDataConsumerMixin):
 	def setUp(self):
 		super().setUp()
 		self.log_data_fixture = self.get_raw_log_fixture_for_random_innkeeper_match()

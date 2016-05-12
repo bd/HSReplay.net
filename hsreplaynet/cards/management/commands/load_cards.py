@@ -1,8 +1,9 @@
-from django.core.management.base import BaseCommand
-from cards.loader import HearthstoneApiLoader
-from cards.models import CardCollectionAuditLog
 from datetime import date
+from django.core.management.base import BaseCommand
 from django.utils.timezone import now
+from cards.loader import CardXMLLoader
+from cards.models import CardCollectionAuditLog
+
 
 class Command(BaseCommand):
 	def handle(self, *args, **options):
@@ -12,15 +13,13 @@ class Command(BaseCommand):
 		audit_log.save()
 
 		try:
-			loader = HearthstoneApiLoader()
+			loader = CardXMLLoader()
 			result = loader.load()
-			audit_log.num_new_cards_loaded = result.num_new_cards_created
+			audit_log.num_new_cards_loaded = result.created
 			audit_log.card_collection_succeeded = True
 			audit_log.card_collection_end = now()
 			audit_log.save()
-
 		except Exception as e:
-
 			audit_log.card_collection_succeeded = False
 			audit_log.exception_text = str(e)
 			audit_log.card_collection_end = now()

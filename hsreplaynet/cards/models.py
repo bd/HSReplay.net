@@ -1,260 +1,162 @@
+import random
 from django.db import models
-from random import randint
 from datetime import datetime
 from hearthstone import enums
 import hashlib
 
 
-class Faction(models.Model):
-	id = models.AutoField(primary_key=True)
-	name = models.CharField(max_length=50)
-
-	class Meta:
-		db_table = 'faction'
-
-
-class PlayerClassManager(models.Manager):
-
-	def random_player_class_name(self):
-		return self.model.objects.get(id = randint(1,9)).name
-
-	def suggest_player_class_for_deck(self, deck):
-		player_class_count = { p: list(map(lambda c: c.player_class, deck.cards.all())).count(p) for p in PlayerClass.objects.all()}
-		most_common_class = max(player_class_count.items(), key = lambda i: i[1])[0]
-		return most_common_class
-
-
-class PlayerClass(models.Model):
-	id = models.AutoField(primary_key=True)
-	objects = PlayerClassManager()
-	name = models.CharField(max_length=50)
-
-	class Meta:
-		db_table = 'player_class'
-
-class Type(models.Model):
-	id = models.AutoField(primary_key=True)
-	name = models.CharField(max_length=50)
-
-	class Meta:
-		db_table = 'type'
-
-
-class Race(models.Model):
-	id = models.AutoField(primary_key=True)
-	name = models.CharField(max_length=50)
-
-	class Meta:
-		db_table = 'race'
-
-
-class Collection(models.Model):
-	id = models.AutoField(primary_key=True)
-	name = models.CharField(max_length=50)
-
-	class Meta:
-		db_table = 'collection'
-
-
-class Rarity(models.Model):
-	id = models.AutoField(primary_key=True)
-	name = models.CharField(max_length=50)
-
-	class Meta:
-		db_table = 'rarity'
-
-
-class Mechanic(models.Model):
-	id = models.AutoField(primary_key=True)
-	name = models.CharField(max_length=50)
-
-	class Meta:
-		db_table = 'mechanic'
-
 
 class CardManager(models.Manager):
-
-	def random(self, cost = None, collectible=True, for_player_class_id=None):
-		"""Return a random Card.
+	def random(self, cost=None, collectible=True, card_class=None):
+		"""
+		Return a random Card.
 
 		Keyword arguments:
-		cost -- Restrict the set of candidate cards to cards of this mana cost. By default will be in the range 1 through 8 inclusive.
-		collectible -- Restrict the set of candidate cards to the set of collectible cards. (Default True)
-		for_player_class_id -- Restrict the set of candidate cards to this player class.
+		cost: Restrict the set of candidate cards to cards of this mana cost.
+		By default will be in the range 1 through 8 inclusive.
+		collectible: Restrict the set of candidate cards to the set of collectible cards. (Default True)
+		card_class: Restrict the set of candidate cards to this class.
 		"""
-		cost = randint(1, 8) if not cost else cost
-		cards_of_cost = super(CardManager, self).filter(collectible=collectible).exclude(type_id = enums.CardType.HERO).filter(cost=cost).all()
+		cost = random.randint(1, 8) if cost is None else cost
+		cards = super(CardManager, self).filter(collectible=collectible)
+		cards = cards.exclude(type=enums.CardType.HERO).filter(cost=cost)
 
-		if for_player_class_id:
-			cards_of_cost = [c for c in cards_of_cost if c.player_class == None or c.player_class.id == for_player_class_id]
+		if card_class is not None:
+			cards = [c for c in cards if c.card_class in (0, card_class)]
 
-		if len(cards_of_cost) > 0:
-			card_idx = randint(0, len(cards_of_cost) - 1)
-			return cards_of_cost[card_idx]
-		else:
-			return None
+		if cards:
+			return random.choice(cards)
 
-	def get_valid_deck_list_card_set(self):
-		if not hasattr(self, '_valid_deck_list_card_set'):
-			inner_qs = Type.objects.filter(name__in=['Spell', 'Minion', 'Weapon']).values_list('id')
-			card_list = set(c[0] for c in Card.objects.filter(collectible=True).filter(type__in=inner_qs).values_list('id'))
-			self._valid_deck_list_card_set = card_list
+	def get_or_create_from_cardxml(self, card):
+		"""
+		Returns a tuple with the object and a boolean to indicate
+		whether it was created.
+		"""
+		qs = Card.objects.filter(id=card.id)
+		if qs.exists():
+			return qs.first(), False
 
-		return self._valid_deck_list_card_set
+		obj = Card(id=card.id)
 
+		for k in dir(card):
+			if k.startswith("_"):
+				continue
+			# Transfer all existing CardXML attributes to our model
+			if hasattr(obj, k):
+				setattr(obj, k, getattr(card, k))
 
+		obj.save()
 
-	def get_or_create_from_json(self, json):
-		""" Returns a tuple with the object followed by a boolean to indicate whether the object was created."""
-		card_query = Card.objects.filter(id = json['cardId'])
-		if card_query.exists():
-			return (card_query.first(), False)
-
-		card = Card(
-			id = json['cardId'],
-			name = json['name'],
-			cost = json.get('cost', None),
-			attack = json.get('attack', None),
-			health = json.get('health', None),
-			durability = json.get('durability', None),
-			text = json.get('text', None),
-			flavor = json.get('flavor', None),
-			artist = json.get('artist', None),
-			inPlayText = json.get('inPlayText', None),
-			howToGet = json.get('howToGet', None),
-			howToGetGold = json.get('howToGetGold', None),
-			collectible = json.get('collectible', False),
-			elite = json.get('elite', False),
-
-		)
-
-		if 'faction' in json:
-			enum_id = int(enums.Faction[json['faction'].upper()])
-			result = Faction.objects.get_or_create(name=json['faction'], defaults={'id': enum_id })
-			card.faction = result[0]
-
-		if 'rarity' in json:
-			enum_id = int(enums.Rarity[json['rarity'].upper()])
-			result = Rarity.objects.get_or_create(name=json['rarity'], defaults={'id': enum_id })
-			card.rarity = result[0]
-
-		if 'collection' in json:
-			result = Collection.objects.get_or_create(name=json['collection'])
-			card.collection = result[0]
-
-		if 'race' in json:
-			enum_name = 'MECHANICAL' if json['race'].upper() == 'MECH' else json['race'].upper()
-			enum_id = int(enums.Race[enum_name])
-			result = Race.objects.get_or_create(name = json['race'], defaults={'id': enum_id })
-			card.race = result[0]
-
-		if 'type' in json:
-			enum_id = int(enums.CardType[json['type'].upper().replace(' ', '_')])
-			result = Type.objects.get_or_create(name=json['type'], defaults={'id': enum_id })
-			card.type = result[0]
-
-		if 'playerClass' in json:
-			enum_id = int(enums.CardClass[json['playerClass'].upper()])
-			result = PlayerClass.objects.get_or_create(name=json['playerClass'], defaults={'id': enum_id })
-			card.player_class = result[0]
-
-		if 'img' in json:
-			card.img = json['img']
-
-		if 'imgGold' in json:
-			card.imgGold = json['imgGold']
-
-		card.save()
-
-		if 'mechanics' in json:
-			for mechanic in json['mechanics']:
-				result = Mechanic.objects.get_or_create(name=mechanic['name'])
-				card.mechanics.add(result[0])
-
-		return (card, True)
+		return obj, True
 
 
 class Card(models.Model):
 	id = models.CharField(primary_key=True, max_length=50)
 	objects = CardManager()
+
 	name = models.CharField(max_length=50)
-	cost = models.IntegerField(null=True, blank=True)
-	attack = models.IntegerField(null=True, blank=True)
-	health = models.IntegerField(null=True, blank=True)
-	durability = models.IntegerField(null=True, blank=True)
-	faction = models.ForeignKey(Faction, null=True, blank=True, on_delete=models.SET_NULL)
-	text = models.TextField(null=True, blank=True)
-	flavor = models.TextField(null=True, blank=True)
-	artist = models.CharField(max_length=255, null=True, blank=True)
-	inPlayText = models.TextField(null=True, blank=True)
-	howToGet = models.TextField(null=True, blank=True)
-	howToGetGold = models.TextField(null=True, blank=True)
+	description = models.TextField(blank=True)
+	flavortext = models.TextField(blank=True)
+	how_to_earn = models.TextField(blank=True)
+	how_to_earn_golden = models.TextField(blank=True)
+	artist = models.CharField(max_length=255, blank=True)
+
+	card_class = models.IntegerField(default=0)
+	card_set = models.IntegerField(default=0)
+	faction = models.IntegerField(default=0)
+	race = models.IntegerField(default=0)
+	rarity = models.IntegerField(default=0)
+	type = models.IntegerField(default=0)
+
 	collectible = models.BooleanField(default=False)
+	battlecry = models.BooleanField(default=False)
+	divine_shield = models.BooleanField(default=False)
+	deathrattle = models.BooleanField(default=False)
 	elite = models.BooleanField(default=False)
-	mechanics = models.ManyToManyField(Mechanic, db_table='card_mechanic')
-	rarity = models.ForeignKey(Rarity, null=True, blank=True)
-	collection = models.ForeignKey(Collection, null=True, blank=True)
-	race = models.ForeignKey(Race, null=True, blank=True, on_delete=models.SET_NULL)
-	type = models.ForeignKey(Type)
-	player_class = models.ForeignKey(PlayerClass, null=True, blank=True, on_delete=models.SET_NULL)
-	img = models.URLField(null=True, blank=True)
-	imgGold = models.URLField(null=True, blank=True)
+	evil_glow = models.BooleanField(default=False)
+	inspire = models.BooleanField(default=False)
+	forgetful = models.BooleanField(default=False)
+	one_turn_effect = models.BooleanField(default=False)
+	poisonous = models.BooleanField(default=False)
+	ritual = models.BooleanField(default=False)
+	secret = models.BooleanField(default=False)
+	taunt = models.BooleanField(default=False)
+	topdeck = models.BooleanField(default=False)
+
+	atk = models.IntegerField(default=0)
+	health = models.IntegerField(default=0)
+	durability = models.IntegerField(default=0)
+	cost = models.IntegerField(default=0)
+	windfury = models.IntegerField(default=0)
+
+	spare_part = models.BooleanField(default=False)
+	overload = models.IntegerField(default=0)
+	spell_damage = models.IntegerField(default=0)
+
+	craftable = models.BooleanField(default=False)
+
+	image = models.URLField(null=True, blank=True)
+	image_gold = models.URLField(null=True, blank=True)
 
 	class Meta:
-		db_table = 'card'
+		db_table = "card"
 
 	def __str__(self):
 		return self.name
 
 
 class DeckManager(models.Manager):
-
 	def random_deck_list_of_size(self, size):
-		player_class = randint(2, 10) # Values from hearthstone.enums.CardClass
+		card_class = random.randint(2, 10)  # enums.CardClass
 		result = []
 		for i in range(size):
-			candidate_card = Card.objects.random(for_player_class_id=player_class)
+			candidate_card = Card.objects.random(card_class=card_class)
 			if candidate_card:
 				result.append(candidate_card.id)
 		return result
 
-	def get_or_create_from_id_list(self, card_id_list):
-		digest = generate_digest_from_deck_list(card_id_list)
+	def get_or_create_from_id_list(self, id_list):
+		digest = generate_digest_from_deck_list(id_list)
 		existing_deck = Deck.objects.filter(digest=digest).first()
 		if existing_deck:
 			return existing_deck
-		else:
-			deck = Deck.objects.create()
 
-			for card_id in card_id_list:
-				include, created = deck.include_set.get_or_create(deck = deck, card_id = card_id, defaults={'count': 1 })
-				if not created:
-					# This must be an additional copy of a card we've seen previously so we increment the count
-					include.count += 1
-					include.save()
+		deck = Deck.objects.create()
 
-			deck.save()
+		for card_id in id_list:
+			include, created = deck.include_set.get_or_create(
+				deck=deck,
+				card_id=card_id,
+				defaults={"count": 1}
+			)
 
-			return deck
+			if not created:
+				# This must be an additional copy of a card we've
+				# seen previously so we increment the count
+				include.count += 1
+				include.save()
+
+		deck.save()
+		return deck
 
 
-def generate_digest_from_deck_list(card_id_list):
-	sorted_cards = sorted(card_id_list)
+def generate_digest_from_deck_list(id_list):
+	sorted_cards = sorted(id_list)
 	m = hashlib.md5()
 	m.update(",".join(sorted_cards).encode("utf-8"))
 	return m.hexdigest()
 
+
 class Deck(models.Model):
-	""" Represents an abstract collection of cards.
-
-	The default sorting for cards when iterating over a deck is by mana cost and then alphabetical within cards of
-	equal cost.
-
 	"""
+	Represents an abstract collection of cards.
 
+	The default sorting for cards when iterating over a deck is by
+	mana cost and then alphabetical within cards of equal cost.
+	"""
 	id = models.AutoField(primary_key=True)
 	objects = DeckManager()
-	cards = models.ManyToManyField(Card, through='Include')
+	cards = models.ManyToManyField(Card, through="Include")
 	digest = models.CharField(max_length=32, unique=True)
 	created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
@@ -284,7 +186,9 @@ class Deck(models.Model):
 		return result
 
 	def size(self):
-		""" The number of cards in the deck. """
+		"""
+		The number of cards in the deck.
+		"""
 		return sum(i.count for i in self.include_set.all())
 
 	def cards_of(self, cost = None, attack = None, health = None):
