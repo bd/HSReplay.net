@@ -6,6 +6,16 @@ html {
   box-sizing: inherit;
 }
 
+::selection {
+	color: white;
+	background: #c9485b;
+}
+
+::-moz-selection {
+	color: white;
+	background: #c9485b;
+}
+
 body {
 	background-color: #fbf7f6;
 }
