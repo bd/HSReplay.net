@@ -7,9 +7,7 @@ nosexcover==1.0.10
 pylint==1.4.4
 selenium==2.48.0
 -e git+https://github.com/amw2104/HSReplayParser#egg=hsreplayparser
-https://github.com/HearthSim/python-hearthstone/zipball/master
-#git+https://github.com/HearthSim/python-hearthstone#egg=hearthstone
-#hearthstone
+hearthstone
 -e git+https://github.com/HearthSim/HSReplay#egg=hsreplay&subdirectory=python
 django-allauth==0.24.1
 whitenoise==2.0.6
