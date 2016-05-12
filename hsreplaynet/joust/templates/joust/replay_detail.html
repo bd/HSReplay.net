@@ -3,30 +3,22 @@
 
 {% block stylesheets %}
     {{ block.super }}
+	<link href="http://hsreplay.net/static/joust/joust.css" rel="stylesheet">
 {% endblock stylesheets %}
 
 {% block content %}
-
-<link href="http://hsreplay.net/static/joust/joust.css" rel="stylesheet">
-<script src="http://hsreplay.net/static/joust/bundle.js"></script>
-
-
-
 <div id="tabletop" class="row">
-
     <div class="col-lg-offset-2 col-lg-8 col-xs-12 full_height">
         <div id="joust-container" class="full_height"></div>
     </div>
-
 </div>
-
 <div class="row">
     <div class="col-xs-12">
-        <a href="{{ replay_data_url }}">Raw Replay File</a>
+        <a href="{{ replay_data_url }}">Download replay</a>
     </div>
 </div>
 
-
+<script src="http://hsreplay.net/static/joust/bundle.js"></script>
 <script>
     $(document).ready(function() {
 
@@ -72,17 +64,13 @@
                 }
             });
 
-        }
+        };
 
         Joust.viewer('joust-container')
             .metadata(cb)
             .assets("//static.hsreplay.net/static/joust/assets/")
             .textures("//static.hsreplay.net/static/joust/textures/")
             .fromUrl('{{ replay_data_url }}');
-
     });
 </script>
-
-
-
 {% endblock content %}
