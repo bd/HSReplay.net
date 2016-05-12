@@ -12,6 +12,7 @@ JSON_DATA_LOCATION = os.path.join(APP_DIR,'json')
 REPLAY_DATA_LOCATION = os.path.join(APP_DIR, 'replays')
 FIXTURE_DATA_LOCATION = os.path.join(APP_DIR, 'fixtures')
 LOG_DATA_LOCATION = os.path.join(APP_DIR, 'logs')
+INTEGRATION_DATA_LOCATION = os.path.join(APP_DIR, 'integration_data')
 
 
 class FunctionalTest(StaticLiveServerTestCase):
@@ -70,6 +71,14 @@ class FunctionalTest(StaticLiveServerTestCase):
 
 class TestDataConsumerMixin:
 	"""A mixin class for accessing test data."""
+
+	def get_raw_log_integration_fixtures(self):
+
+		for test_case_uuid_dir in os.listdir(INTEGRATION_DATA_LOCATION):
+			descriptor = json.load(open(os.path.join(INTEGRATION_DATA_LOCATION, test_case_uuid_dir, 'descriptor.json')))
+			raw_log = open(os.path.join(INTEGRATION_DATA_LOCATION, test_case_uuid_dir, 'power.log')).read()
+			yield (descriptor, raw_log, test_case_uuid_dir)
+
 
 	def replay_file_path(self, replay_name):
 		return os.path.join(REPLAY_DATA_LOCATION, replay_name)

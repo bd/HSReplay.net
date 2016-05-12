@@ -145,36 +145,6 @@ class SingleGameRawLogUpload(models.Model):
 
 		return super(SingleGameRawLogUpload, self).clean()
 
-	def _generate_replay_packet_tree(self):
-		# Don't attempt to generate a replay if validation doesn't pass.
-		self.full_clean()
-
-		self.log.open()  # Make sure that the file is open to the beginning of it.
-		raw_log_str = self.log.read().decode("utf-8")
-		parser = parse_log(StringIO(raw_log_str), processor='GameState', date=self.match_start_timestamp)
-
-		if not len(parser.games):
-			# We were not able to generate a replay
-			raise ValidationError("Could not parse a replay from the raw log data")
-
-		return parser
-
-	def _generate_replay_element_tree_from_packets(self, parser):
-		doc = create_document(version=hsreplay_version, build=self.hearthstone_build)
-
-		game = game_to_xml(parser.games[0],
-						   game_meta=self._generate_game_meta_data(),
-						   player_meta=self._generate_player_meta_data(),
-						   decks=self._generate_deck_lists())
-
-		doc.append(game)
-
-		return doc
-
-	def _generate_replay_element_tree(self):
-		parser = self._generate_replay_packet_tree()
-		return self._generate_replay_element_tree_from_packets(parser)
-
 	def _generate_game_meta_data(self):
 		meta_data = {}
 
@@ -250,10 +220,12 @@ class GlobalGame(models.Model):
 								   verbose_name="Battle.net Region ID",
 								   help_text="This is the accountHi value from either Player entity.")
 
-	# We believe game_id is not monotonically increasing, it appears to roll over and reset periodically.
-	game_id = models.IntegerField(null=True,
+	# We believe game_id is not monotonically increasing as it appears to roll over and reset periodically.
+	game_server_game_id = models.IntegerField(null=True,
 								  verbose_name="Battle.net Game ID",
 								  help_text="This is the game_id from the Net.log")
+	game_server_address = models.GenericIPAddressField(null=True, blank=True)
+	game_server_port = models.IntegerField(null=True, blank=True)
 
 	hearthstone_build = models.CharField(max_length=50,
 										 null=True,
@@ -328,9 +300,25 @@ class GlobalGame(models.Model):
 class GameReplayUploadManager(models.Manager):
 
 	def create_from_raw_log_upload(self, raw_log):
-		# Matching Regions, Matching Player Battle.net IDs, Match Start Timestamp within minutes.
-		packet_tree = raw_log._generate_replay_packet_tree()
-		replay_tree = raw_log._generate_replay_element_tree_from_packets(packet_tree)
+		# Don't attempt to create a replay if validation doesn't pass
+		raw_log.full_clean()
+
+		raw_log.log.open()  # Make sure that the file is open to the beginning of it.
+		raw_log_str = raw_log.log.read().decode("utf-8")
+		packet_tree = parse_log(StringIO(raw_log_str), processor='GameState', date=raw_log.match_start_timestamp)
+
+		if not len(packet_tree.games):
+			# We were not able to generate a replay
+			raise ValidationError("Could not parse a replay from the raw log data")
+
+		replay_tree = create_document(version=hsreplay_version, build=raw_log.hearthstone_build)
+
+		game = game_to_xml(packet_tree.games[0],
+						   game_meta=raw_log._generate_game_meta_data(),
+						   player_meta=raw_log._generate_player_meta_data(),
+						   decks=raw_log._generate_deck_lists())
+
+		replay_tree.append(game)
 
 		bnet_region_id = None
 		player_one_battlenet_id = None
@@ -356,26 +344,15 @@ class GameReplayUploadManager(models.Manager):
 		if not player_two_battlenet_id:
 			raise ValidationError("Could not locate Player 2's Battle.net ID which is required.")
 
-		# This while loop section is to keep tightening the bounds of the time window until we identify a single match
-		time_drift_buffer = 60
-		global_game_candidates = self._query_for_global_game_candidates_within_starting_window(bnet_region_id,
-																							   player_one_battlenet_id,
-																							   player_two_battlenet_id,
-																							   raw_log.match_start_timestamp,
-																							   time_drift_buffer)
-		while len(global_game_candidates) > 1 and time_drift_buffer > 10:
-			time_drift_buffer = time_drift_buffer - 10
 
-			global_game_candidates = self._query_for_global_game_candidates_within_starting_window(bnet_region_id,
-																								   player_one_battlenet_id,
-																								   player_two_battlenet_id,
-																								   raw_log.match_start_timestamp,
-																								   time_drift_buffer)
+		global_game = GlobalGame.objects.filter(bnet_region_id=bnet_region_id,
+												  game_server_address=raw_log.game_server_address,
+												  game_server_port=raw_log.game_server_port,
+												  game_server_game_id=raw_log.game_server_game_id,
+												  player_one_battlenet_id=player_one_battlenet_id,
+												  player_two_battlenet_id=player_two_battlenet_id).first()
 
-		global_game = None
-		if len(global_game_candidates) == 1:
-			global_game = global_game_candidates[0]
-
+		if global_game:
 			# If a global_game already exists then there is a possibility that this is a duplicate upload, so check for it.
 			duplicate = GameReplayUpload.objects.filter(upload_token=raw_log.upload_token, global_game=global_game).first()
 			if duplicate:
@@ -383,9 +360,11 @@ class GameReplayUploadManager(models.Manager):
 		else:
 			global_game = GlobalGame.objects.create(bnet_region_id=bnet_region_id,
 									 brawl_season=None,
-									 game_id=replay_tree.find("Game").get("id"),
-									 game_type=replay_tree.find("Game").get("type"),
-									 hearthstone_build=replay_tree.get("build"),
+									 game_server_game_id=raw_log.game_server_game_id,
+									 game_server_address = raw_log.game_server_address,
+									 game_server_port = raw_log.game_server_port,
+									 game_type=raw_log.game_type,
+									 hearthstone_build=raw_log.hearthstone_build,
 									 ladder_season=self._current_season_number(raw_log.match_start_timestamp),
 									 match_end_timestamp=self._find_match_end_timestamp(packet_tree),
 									 match_start_timestamp=raw_log.match_start_timestamp,
@@ -403,9 +382,7 @@ class GameReplayUploadManager(models.Manager):
 
 		replay_upload = GameReplayUpload(
 			friendly_player_id = raw_log.friendly_player_id,
-			game_server_address = raw_log.game_server_address,
 			game_server_client_id = raw_log.game_server_client_id,
-			game_server_port = raw_log.game_server_port,
 			game_server_spectate_key = raw_log.game_server_spectate_key,
 			global_game = global_game,
 			hsreplay_version = hsreplay_version,
@@ -431,14 +408,14 @@ class GameReplayUploadManager(models.Manager):
 				starting_deck_card_ids = raw_log.player_1_deck_list.split(',')
 			else:
 				starting_deck_card_ids = [e.card_id for e in packet_tree.games[0].players[num].initial_deck if e.card_id]
-			return Deck.objects.create_from_id_list(starting_deck_card_ids)
+			return Deck.objects.get_or_create_from_id_list(starting_deck_card_ids)
 
 		if num == 1:
 			if raw_log.player_2_deck_list:
 				starting_deck_card_ids = raw_log.player_2_deck_list.split(',')
 			else:
 				starting_deck_card_ids = [e.card_id for e in packet_tree.games[0].players[num].initial_deck if e.card_id]
-			return Deck.objects.create_from_id_list(starting_deck_card_ids)
+			return Deck.objects.get_or_create_from_id_list(starting_deck_card_ids)
 
 	def _get_name_for_player(self, num, packet_tree):
 		return packet_tree.games[0].players[num].name
@@ -473,15 +450,6 @@ class GameReplayUploadManager(models.Manager):
 
 		delta_months = (match_start_timestamp.year - epoch_start.year) * 12 + (match_start_timestamp.month - epoch_start.month)
 		return epoch_start_season + delta_months
-
-	def _query_for_global_game_candidates_within_starting_window(self, bnet_region_id, player_one_battlenet_id, player_two_battlenet_id, match_start_timestamp, time_drift_seconds):
-		match_start_lower_bound = match_start_timestamp - timedelta(seconds=time_drift_seconds)
-		match_start_upper_bound = match_start_timestamp + timedelta(seconds=time_drift_seconds)
-		match_start_range = (match_start_lower_bound, match_start_upper_bound)
-
-		return GlobalGame.objects.filter(bnet_region_id = bnet_region_id,
-										 player_one_battlenet_id = player_one_battlenet_id,
-										 player_two_battlenet_id = player_two_battlenet_id).filter(match_start_timestamp__range=match_start_range).all()
 
 
 class GameReplayUpload(models.Model):
@@ -538,8 +506,6 @@ class GameReplayUpload(models.Model):
 	# This information is all optional and is from the Net.log ConnectAPI
 	game_server_spectate_key = models.CharField(max_length=50, null=True, blank=True)
 	game_server_client_id = models.IntegerField(null=True, blank=True)
-	game_server_address = models.GenericIPAddressField(null=True, blank=True)
-	game_server_port = models.IntegerField(null=True, blank=True)
 
 	replay_xml = models.FileField(upload_to=_generate_replay_upload_key)
 	hsreplay_version = models.CharField(max_length=20,
