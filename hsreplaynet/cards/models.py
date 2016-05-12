@@ -2,6 +2,8 @@ from django.db import models
 from random import randint
 from datetime import datetime
 from hearthstone import enums
+import hashlib
+
 
 class Faction(models.Model):
 	id = models.AutoField(primary_key=True)
@@ -231,7 +233,6 @@ class DeckManager(models.Manager):
 
 		return deck
 
-
 class Deck(models.Model):
 	""" Represents an abstract collection of cards.
 
@@ -243,9 +244,8 @@ class Deck(models.Model):
 	id = models.AutoField(primary_key=True)
 	objects = DeckManager()
 	cards = models.ManyToManyField(Card, through='Include')
-
+	digest = models.CharField(max_length=32, unique=True)
 	created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
-	modified = models.DateTimeField(auto_now=True, null=True, blank=True)
 
 	def __str__(self):
 		return "[" + ",".join(map(str, self.include_set.all())) + "]"
@@ -258,6 +258,14 @@ class Deck(models.Model):
 		alpha_sorted = sorted(self.cards.all(), key = lambda c: c.name)
 		mana_sorted = sorted(alpha_sorted, key = lambda c: c.cost)
 		return mana_sorted.__iter__()
+
+	def save(self, *args, **kwargs):
+		sorted_cards = sorted(self.card_id_list())
+		m = hashlib.md5()
+		m.update(",".join(sorted_cards))
+		self.digest = m.hexdigest()
+
+		return super(Deck, self).save(*args, **kwargs)
 
 	def card_id_list(self):
 		result = []
