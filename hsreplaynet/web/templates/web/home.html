@@ -6,73 +6,81 @@
 {% endblock %}
 
 {% block content %}
-<figure id="main">
+<div id="home">
 	<header id="promo">
-		<img src="{% static 'web/images/logo.png' %}" id="logo" alt="HSReplay"/>
-		<h1>HSReplay</h1>
-		<p class="tagline">Watch and share your Hearthstone replays</p>
-		{% if user.is_authenticated %}
-			<p>
-				<a href="{% url 'private_replay_collection' %}" class="promo-button">My Replays</a>
-				<a href="{% url 'account_logout' %}" class="promo-button-outline">
-					<img src="{% static 'web/images/bnet.png' %}"/>
-					<span>{{ user.username }}</span>
-				</a>
-			</p>
-			<p>
-				<a href="https://hsdecktracker.net/" target="_blank" class="promo-link">Download Hearthstone Deck Tracker</a>
-			</p>
-		{% else %}
-			<p><a href="{% provider_login_url 'battlenet' %}" class="promo-button hero-button">Sign in</a></p>
-			<p class="promo-help">You don't need a new account&mdash;we'll simply use <img src="{% static 'web/images/bnet.png' %}"/> Battle.net.</p>
-		{% endif %}
-	</header>
-	<article id="front-features">
-		<div id="front-intro">
-			<h2>Save and share your Hearthstone games</h2>
-			<p>
-				Study and improve your own gameplay.<br/>
-				Share your craziest moments.
-			</p>
-			<img src="{% static 'web/images/joust-screenshot.jpg' %}" id="feat-joust-screenshot" alt="Joust: View your HSReplays"/>
+		<div class="container">
+			<img src="{% static 'web/images/logo.png' %}" id="logo" alt="HSReplay"/>
+			<h1>HSReplay</h1>
+			<p class="tagline">Watch and share your Hearthstone replays</p>
+			{% if user.is_authenticated %}
+				<p>
+					<a href="{% url 'private_replay_collection' %}" class="promo-button">My Replays</a>
+					<a href="{% url 'account_logout' %}" class="promo-button-outline">
+						<img src="{% static 'web/images/bnet.png' %}"/>
+						<span>{{ user.username }}</span>
+					</a>
+				</p>
+				<p>
+					<a href="https://hsdecktracker.net/" target="_blank" class="promo-link">Download Hearthstone Deck Tracker</a>
+				</p>
+			{% else %}
+				<p><a href="{% provider_login_url 'battlenet' %}" class="promo-button hero-button">Sign in</a></p>
+				<p class="promo-help">You don't need a new account&mdash;we'll simply use <img src="{% static 'web/images/bnet.png' %}"/> Battle.net.</p>
+			{% endif %}
 		</div>
-
-		<figure class="front-feature">
-			<img src="{% static 'web/images/front-feat-history.jpg' %}" alt="Match history" height="120" width="190" />
-			<figcaption>
-				<h2>All your matches in one place</h2>
-				<p>Filter your match history per game type, season, deck and more&hellip;</p>
-			</figcaption>
-		</figure>
-
-		<figure class="front-feature flip">
-			<img src="{% static 'web/images/front-feat-stats.jpg' %}" alt="Monthly statistics" height="120" width="190" />
-			<figcaption>
-				<h2>Track your performance every season</h2>
-				<p>Follow your rank progression through the month and save your longest win streaks!</p>
-			</figcaption>
-		</figure>
-
-		<div id="how-it-works">
-			<h3>How it works</h3>
-			<div id="how-it-works-step1">
-				<h5>Step 1</h5>
-				<h6>Download <a href="https://github.com/HearthSim/Hearthstone-Deck-Tracker/releases/latest">Hearthstone Deck Tracker</a>.</h6>
-				<img src="{% static 'web/images/hdt-preview.jpg' %}"/>
+	</header>
+	<article>
+		<div class="container">
+			<div id="front-intro">
+				<h2>Save all your Hearthstone games</h2>
 				<p>
-					HDT automatically saves and uploads your matches as you play them.
+					Study and improve your own gameplay.<br/>
+					Share your craziest moments.
 				</p>
+				<img src="{% static 'web/images/joust-screenshot.jpg' %}" id="feat-joust-screenshot" alt="Joust: View your HSReplays"/>
 			</div>
-			<div id="how-it-works-step2">
-				<h5>Step 2</h5>
-				<h6>Play Hearthstone</h6>
-				<img src="{% static 'web/images/joust-share-preview.jpg' %}"/>
-				<p>
-					Your match history is private.<br/>
-					You can share individual games with your friends
-					and show off your craziest plays!
-				</p>
-			</div>
+
+			<figure class="front-feature">
+				<img src="{% static 'web/images/front-feat-history.jpg' %}" alt="Match history" height="120" width="190" />
+				<figcaption>
+					<h2>All your matches in one place</h2>
+					<p>Filter your match history per game type, season, deck and more&hellip;</p>
+				</figcaption>
+			</figure>
+
+			<figure class="front-feature flip">
+				<img src="{% static 'web/images/front-feat-stats.jpg' %}" alt="Monthly statistics" height="120" width="190" />
+				<figcaption>
+					<h2>Track your performance every season</h2>
+					<p>Follow your rank progression through the month and save your longest win streaks!</p>
+				</figcaption>
+			</figure>
+		</div>
+	</article>
+	<article>
+		<div class="container">
+			<h2 class="text-center">How it works:</h2>
+			<ul class="row home-steps">
+				<li class="col-sm-6">
+					<h3>Step 1</h3>
+					<p><a href="https://hsdecktracker.net/" target="_blank" class="promo-button">Download HDT</a></p>
+					<p>Hearthstone Deck Tracker runs while you're in Hearthstone.<br />
+					It will automatically upload your matches as you play them.</p>
+				</li>
+				<li class="col-sm-6">
+					<h3>Step 2</h3>
+					<p><a href="https://battle.net/account/download/?show=hearthstone&style=hearthstone" class="promo-button-outline text-uppercase">Play Hearthstone</a></p>
+					<p>Your full match history will always stay private.<br />
+					Share individual games with your friends and show off your craziest plays!</p>
+				</li>
+			</ul>
+			<p class="text-center">
+				{% if user.is_authenticated %}
+						<a href="{% url 'private_replay_collection' %}" class="promo-button">View your replays</a>
+				{% else %}
+					<a href="{% provider_login_url 'battlenet' %}" class="promo-button hero-button">Sign in to view your replays</a>
+				{% endif %}
+			</p>
 		</div>
 	</article>
 </div>

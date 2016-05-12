@@ -28,34 +28,56 @@
 	line-height: 2em;
 	font-size: 1.2em;
 	text-decoration: none;
-	border: solid 1px white;
+	border: solid 1px #c9485b;
+	color: white;
+	background-color: #c9485b;
+}
+
+.promo-button {
+	text-transform: uppercase;
+}
+
+.promo-button:hover, .promo-button:active {
+	color: #c9485b;
+	background-color: white;
+	text-decoration: none;
+	border-color: #c9485b;
+}
+
+#promo .promo-button, #promo .promo-button:visited {
+	background-color: white;
+	color: #c9485b;
+	border-color: white;
 }
 
 .promo-button-outline, .promo-button-outline:visited {
-	color: white;
+	background-color: transparent;
+	color: #c9485b;
 }
 
-.promo-button, .promo-button:visited {
+.promo-button-outline:hover, .promo-button-outline:active{
+	text-decoration: none;
 	color: #c9485b;
-	text-transform: uppercase;
-	background-color: white;
+}
+
+#promo .promo-button-outline, #promo .promo-button-outline:visited {
+	color: white;
+	border-color: white;
 }
 
 .promo-button img, .promo-button-outline img {
 	vertical-align: text-bottom;
 }
 
-.promo-button:hover, .promo-button:active {
+#promo .promo-button:hover, #promo .promo-button:active {
 	color: white;
-	text-decoration: none;
 	background-color: #c9485b;
 	border-color: #c9485b;
 }
 
-.promo-button-outline:hover, .promo-button-outline:active {
-	color: #c9485b;;
+#promo .promo-button-outline:hover, #promo .promo-button-outline:active {
 	border-color: #c9485b;
-	text-decoration: none;
+	color: #c9485b;
 }
 
 .promo-button.hero-button {
@@ -142,4 +164,27 @@
 #how-it-works-step2 {
 	float: right;
 	width: 50%;
+}
+
+ul.home-steps {
+	list-style-type: none;
+	padding-left: 0;
+	margin: 2em 0;
+}
+
+ul.home-steps li  {
+	border-right: solid 1px black;
+	text-align: center;
+}
+
+ul.home-steps li h3 {
+	margin: 10px 0 30px 0;
+}
+
+ul.home-steps li:last-child  {
+	border-right: none;
+}
+
+ul.home-steps .promo-button {
+	text-align: center;
 }
