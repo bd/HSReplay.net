@@ -83,7 +83,12 @@ footer {
 	color: #aaa;
 	font-size: x-small;
 	padding-top: 3em;
+	padding-bottom: 2em;
 	text-align: center;
+}
+
+footer p {
+	margin: 0;
 }
 
 footer a {
