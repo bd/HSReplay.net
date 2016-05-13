@@ -7,15 +7,15 @@
 {% endblock stylesheets %}
 
 {% block fullcontent %}
-<div id="tabletop" class="row">
-    <div class="col-lg-offset-1 col-lg-10 col-xs-12 full_height">
-        <div id="joust-container" class="full_height"></div>
+<div id="tabletop">
+    <div class="row full_height">
+        <div class="col-lg-offset-1 col-lg-10 col-xs-12 full_height">
+            <div id="joust-container" class="full_height"></div>
+        </div>
     </div>
 </div>
-<div class="row">
-    <div class="col-xs-12">
-        <a href="{{ replay_data_url }}">Download replay</a>
-    </div>
+<div class="container">
+    <p><a href="{{ replay_data_url }}">Download replay</a></p>
 </div>
 
 <script src="http://hsreplay.net/static/joust/bundle.js"></script>
