@@ -1,0 +1,311 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>HSReplay Thumbnail Demos</title>
+		<link href="css/bootstrap.min.css" rel="stylesheet">
+		<style>
+			body {
+				font-family: sans-serif;
+				width: 1024px;
+			}
+		</style>
+		<style>
+			.hsreplay-thumbnail {
+				border: solid 2px black;
+			}
+
+			.hsreplay-thumbnail.hsreplay-positive {
+				border-color: #8ce62c;
+				background-color: rgb(240, 245, 233);
+			}
+
+			.hsreplay-thumbnail.hsreplay-negative {
+				border-color: #e64032;
+				background-color: rgb(245, 236, 233);
+			}
+
+			.hsreplay-thumbnail.hsreplay-invalid {
+				border-color: #bbbbbb;
+				background-color: rgb(247, 247, 247);
+			}
+
+			/* Top section (.hsreplay-involved) */
+
+			.hsreplay-involved {
+				width: 100%;
+				margin: 0;
+				position: relative;
+			}
+
+			.hsreplay-involved figure {
+				display: inline-block;
+				width: 50%;
+				position: relative;
+				background-color: black;
+				clip-path: rect(2%, 10%, 2%, 10%);
+			}
+
+			.hsreplay-involved figure img {
+				width: 100%;
+			}
+
+			.hsreplay-involved figcaption {
+				font-size: 1.1em;
+				color: white;
+				position: absolute;
+				background-color: rgba(0, 0, 0, 0.65);
+				font-weight: bold;
+				width: 100%;
+				height: 25%;
+				margin-top: -25%;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				text-align: center;
+			}
+
+			.hsreplay-involved figcaption span {
+				width: 100%;
+			}
+
+			.hsreplay-involved figure.winner figcaption:before {
+				content: '✔';
+				margin-right: 2px;
+				font-size: 2em;
+				color: green;
+			}
+
+			.hsreplay-invalid .hsreplay-involved figure img {
+				opacity: 0.6;
+			}
+
+			.hsreplay-versus {
+				position: absolute;
+				width: 12%;
+				bottom: 10%;
+				margin-left: -6%;
+				z-index: 1;
+			}
+
+			.hsreplay-involved figure.loser img {
+				filter: grayscale(100%);
+				-webkit-filter: grayscale(100%);
+				-moz-filter: grayscale(100%);
+			}
+
+			/* Bottom section (.hsreplay-details/.hsreplay-message) */
+
+			.hsreplay-details dl {
+				margin: 4px 0;
+				width: 60%;
+				display: inline-block;
+			}
+
+			.hsreplay-details dt {
+				color: #959595;
+				font-size: 0.8em;
+				font-style: italic;
+				font-weight: normal;
+				margin-top: 4px;
+			}
+
+			.hsreplay-details dd {
+				font-size: 1.2em;
+				font-weight: bold;
+				margin-left: 4px;
+			}
+
+			.hsreplay-details > div {
+				margin: 16px 0 0 0;
+				width: 40%;
+				display: inline-block;
+				vertical-align: top;
+				text-align: center;
+			}
+
+			.hsreplay-type {
+				width: 50%;
+			}
+		</style>
+	</head>
+	<body lang="en">
+		<div class="row">
+			<div class="col-xs-3">
+				<div class="thumbnail hsreplay-thumbnail hsreplay-positive">
+					<div class="hsreplay-involved">
+						<figure class="winner">
+							<img src="assets/hunter.jpg">
+							<figcaption>YOU</figcaption>
+						</figure><img src="assets/vs.png" class="hsreplay-versus"><figure class="loser">
+							<img src="assets/paladin.jpg">
+							<figcaption>Epix</figcaption>
+						</figure>
+					</div>
+					<div class="hsreplay-details">
+						<dl>
+							<dt>Date</dt>
+							<dd>2 days ago</dd>
+							<dt>Duration</dt>
+							<dd>12 minutes</dd>
+							<dt>Turns</dt>
+							<dd>17 turns</dd>
+						</dl><div>
+							<img src="assets/brm.png" class="hsreplay-type" title="Blackrock Mountain">
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-xs-3">
+				<div class="thumbnail hsreplay-thumbnail hsreplay-invalid">
+					<div class="hsreplay-involved">
+						<figure>
+							<img src="assets/hunter.jpg">
+							<figcaption>YOU</figcaption>
+						</figure><img src="assets/vs.png" class="hsreplay-versus"><figure>
+							<img src="assets/paladin.jpg">
+							<figcaption>Epix</figcaption>
+					</figure>
+					</div>
+					<div class="hsreplay-details">
+						<dl>
+							<dt>Date</dt>
+							<dd>2 days ago</dd>
+							<dt>Duration</dt>
+							<dd>12 minutes</dd>
+							<dt>Turns</dt>
+							<dd>17 turns</dd>
+						</dl><div>
+							<img src="assets/dc.png" class="hsreplay-type" title="Disconnected">
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-3">
+				<div class="thumbnail hsreplay-thumbnail hsreplay-negative">
+					<div class="hsreplay-involved">
+						<figure class="loser">
+							<img src="assets/hunter.jpg">
+							<figcaption>YOU</figcaption>
+						</figure><img src="assets/vs.png" class="hsreplay-versus"><figure class="winner">
+							<img src="assets/paladin.jpg">
+							<figcaption>Epix</figcaption>
+					</figure>
+					</div>
+					<div class="hsreplay-details">
+						<dl>
+							<dt>Date</dt>
+							<dd>2 days ago</dd>
+							<dt>Duration</dt>
+							<dd>12 minutes</dd>
+							<dt>Turns</dt>
+							<dd>17 turns</dd>
+						</dl><div>
+							<img src="assets/rank14.png" class="hsreplay-type" title="Rank 14">
+					</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-xs-3">
+				<div class="thumbnail hsreplay-thumbnail hsreplay-positive">
+					<div class="hsreplay-involved">
+						<figure class="winner">
+							<img src="assets/hunter.jpg">
+							<figcaption>YOU</figcaption>
+						</figure><img src="assets/vs.png" class="hsreplay-versus"><figure class="loser">
+							<img src="assets/paladin.jpg">
+							<figcaption>Epix</figcaption>
+					</figure>
+					</div>
+					<div class="hsreplay-details">
+						<dl>
+							<dt>Date</dt>
+							<dd>2 days ago</dd>
+							<dt>Duration</dt>
+							<dd>12 minutes</dd>
+							<dt>Turns</dt>
+							<dd>17 turns</dd>
+						</dl><div>
+						<img src="assets/arena8.png" class="hsreplay-type" title="Arena">
+					</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-xs-3">
+				<div class="thumbnail hsreplay-thumbnail hsreplay-negative">
+					<div class="hsreplay-involved">
+						<figure class="loser">
+							<img src="assets/hunter.jpg">
+							<figcaption>YOU</figcaption>
+						</figure><img src="assets/vs.png" class="hsreplay-versus"><figure class="winner">
+							<img src="assets/paladin.jpg">
+							<figcaption>Epix</figcaption>
+					</figure>
+					</div>
+					<div class="hsreplay-details">
+						<dl>
+							<dt>Date</dt>
+							<dd>2 days ago</dd>
+							<dt>Duration</dt>
+							<dd>12 minutes</dd>
+							<dt>Turns</dt>
+							<dd>17 turns</dd>
+						</dl><div>
+						<img src="assets/naxx.png" class="hsreplay-type" title="Curse of Naxxramas">
+					</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-xs-3">
+				<div class="thumbnail hsreplay-thumbnail hsreplay-negative">
+					<div class="hsreplay-involved">
+						<figure class="loser">
+							<img src="assets/hunter.jpg">
+							<figcaption>YOU</figcaption>
+						</figure><img src="assets/vs.png" class="hsreplay-versus"><figure class="winner">
+							<img src="assets/paladin.jpg">
+							<figcaption>Epix</figcaption>
+					</figure>
+					</div>
+					<div class="hsreplay-details">
+						<dl>
+							<dt>Date</dt>
+							<dd>2 days ago</dd>
+							<dt>Duration</dt>
+							<dd>12 minutes</dd>
+							<dt>Turns</dt>
+							<dd>17 turns</dd>
+						</dl><div>
+						<img src="assets/loe.png" class="hsreplay-type" title="League of Explorers">
+					</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-xs-3">
+				<div class="thumbnail hsreplay-thumbnail hsreplay-positive">
+					<div class="hsreplay-involved">
+						<figure class="winner">
+							<img src="assets/hunter.jpg">
+							<figcaption>YOU</figcaption>
+						</figure><img src="assets/vs.png" class="hsreplay-versus"><figure class="loser">
+						<img src="assets/paladin.jpg">
+						<figcaption>Epix</figcaption>
+					</figure>
+					</div>
+					<div class="hsreplay-details">
+						<dl>
+							<dt>Date</dt>
+							<dd>2 days ago</dd>
+							<dt>Duration</dt>
+							<dd>12 minutes</dd>
+							<dt>Turns</dt>
+							<dd>17 turns</dd>
+						</dl><div>
+						<img src="assets/brawl.png" class="hsreplay-type" title="Brawl">
+					</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
