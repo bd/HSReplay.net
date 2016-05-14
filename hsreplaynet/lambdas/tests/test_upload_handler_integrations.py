@@ -1,6 +1,5 @@
 from base64 import b64encode
-from unittest import skip
-from unittest.mock import patch
+from mock import patch
 from django.core.files.storage import FileSystemStorage
 from handlers import raw_log_upload_handler
 from test.base import TestDataConsumerMixin, CardDataBaseTest
@@ -9,11 +8,10 @@ from web.models import *
 
 # We patch S3Storage because we don't want to be interacting with S3 in unit tests
 # You can temporarily comment out the @patch line to run the test in "integration mode" against S3. It should pass.
-@skip
 @patch("storages.backends.s3boto3.S3Boto3Storage", FileSystemStorage)
 class TestRawLogUploadHandler(CardDataBaseTest, TestDataConsumerMixin):
 	def setUp(self):
-		super().setUp()
+		super(TestRawLogUploadHandler, self).setUp()
 		self.upload_agent = UploadAgentAPIKey.objects.create(
 			full_name="Test Upload Agent",
 			email="test@testagent.example.org",

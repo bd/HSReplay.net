@@ -128,8 +128,9 @@ class TestDataConsumerMixin:
 
 
 class CardDataBaseTest(TestCase):
+
 	@classmethod
 	def setUpClass(cls):
 		# Call `manage.py load_cards`
 		call_command("load_cards")
-		super().setUpClass()
+		super(CardDataBaseTest, cls).setUpClass()

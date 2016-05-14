@@ -2,7 +2,6 @@ import uuid
 import logging
 import re
 from datetime import date, datetime, timedelta
-from io import StringIO
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.files.storage import default_storage
@@ -16,6 +15,14 @@ from hsreplay.dumper import parse_log, create_document, game_to_xml
 from hsreplay.utils import pretty_xml
 from cards.models import Card, Deck
 
+try:
+	# We attempt to import the Python 2.7 Library in case the code is running on Lambda
+	from StringIO import StringIO
+	_wrap_log_in_stream = lambda s: StringIO(s)
+except ImportError:
+	# We are running on Python3 and it is safe to use this.
+	from io import StringIO
+	_wrap_log_in_stream = lambda s: StringIO(s.decode("utf-8"))
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +35,7 @@ class UploadAgentAPIKey(models.Model):
 
 	def save(self, *args, **kwargs):
 		self.api_key = uuid.uuid4()
-		return super().save(*args, **kwargs)
+		return super(UploadAgentAPIKey, self).save(*args, **kwargs)
 
 
 class SingleSiteUploadToken(models.Model):
@@ -306,8 +313,8 @@ class GameReplayUploadManager(models.Manager):
 		raw_log.full_clean()
 
 		raw_log.log.open()  # Make sure that the file is open to the beginning of it.
-		raw_log_str = raw_log.log.read().decode("utf-8")
-		packet_tree = parse_log(StringIO(raw_log_str), processor='GameState', date=raw_log.match_start_timestamp)
+		raw_log_str = raw_log.log.read()
+		packet_tree = parse_log(_wrap_log_in_stream(raw_log_str), processor='GameState', date=raw_log.match_start_timestamp)
 
 		if not len(packet_tree.games):
 			# We were not able to generate a replay
