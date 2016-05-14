@@ -30,12 +30,26 @@ def _raw_log_upload_handler(event, context):
 	raw_log_upload_record = SingleGameRawLogUpload()
 	# Model fileds populated in the following section
 	raw_log_upload_record.upload_token = SingleSiteUploadToken.objects.filter(token=upload_token).first()
-	raw_log_upload_record.game_server_address = event.get('game_server_address')
-	raw_log_upload_record.game_server_port = event.get('game_server_port')
-	raw_log_upload_record.game_server_game_id = event.get('game_server_game_id')
-	raw_log_upload_record.game_server_reconnecting = event.get('game_server_reconnecting')
-	raw_log_upload_record.game_server_client_id = event.get('game_server_client_id')
-	raw_log_upload_record.game_server_spectate_key = event.get('game_server_spectate_key')
+
+	if event.get('game_server_address'):
+		raw_log_upload_record.game_server_address = event.get('game_server_address')
+
+	if event.get('game_server_port'):
+		raw_log_upload_record.game_server_port = int(event.get('game_server_port'))
+
+	if event.get('game_server_game_id'):
+		raw_log_upload_record.game_server_game_id = int(event.get('game_server_game_id'))
+
+	if event.get('game_server_reconnecting') and event.get('game_server_reconnecting').lower() == 'true':
+		raw_log_upload_record.game_server_reconnecting = True
+	else:
+		raw_log_upload_record.game_server_reconnecting = False
+
+	if event.get('game_server_client_id'):
+		raw_log_upload_record.game_server_client_id = int(event.get('game_server_client_id'))
+
+	if event.get('game_server_spectate_key'):
+		raw_log_upload_record.game_server_spectate_key = event.get('game_server_spectate_key')
 
 	raw_log_upload_record.upload_timestamp = now()
 
@@ -54,17 +68,41 @@ def _raw_log_upload_handler(event, context):
 		raw_log_upload_record.match_start_timestamp = raw_log_upload_record.upload_timestamp
 
 	raw_log_upload_record.log.save('Power.log', ContentFile(raw_log), save=False)
-	raw_log_upload_record.hearthstone_build = event.get('hearthstone_build')
-	raw_log_upload_record.game_type = event.get('game_type')
-	raw_log_upload_record.is_spectated_game = event.get('is_spectated_game')
-	raw_log_upload_record.friendly_player_id = event.get('friendly_player_id')
-	raw_log_upload_record.scenario_id = event.get('scenario_id')
-	raw_log_upload_record.player_1_rank = event.get('player_1_rank')
-	raw_log_upload_record.player_1_legend_rank = event.get('player_1_legend_rank')
-	raw_log_upload_record.player_1_deck_list = event.get('player_1_deck_list')
-	raw_log_upload_record.player_2_rank = event.get('player_2_rank')
-	raw_log_upload_record.player_2_legend_rank = event.get('player_2_legend_rank')
-	raw_log_upload_record.player_2_deck_list = event.get('player_2_deck_list')
+
+	if event.get('hearthstone_build'):
+		raw_log_upload_record.hearthstone_build = event.get('hearthstone_build')
+
+	if event.get('game_type'):
+		raw_log_upload_record.game_type = int(event.get('game_type'))
+
+	if event.get('is_spectated_game') and event.get('is_spectated_game').lower() == 'true':
+		raw_log_upload_record.is_spectated_game = True
+	else:
+		raw_log_upload_record.is_spectated_game = False
+
+	if event.get('friendly_player_id'):
+		raw_log_upload_record.friendly_player_id = int(event.get('friendly_player_id'))
+
+	if event.get('scenario_id'):
+		raw_log_upload_record.scenario_id = int(event.get('scenario_id'))
+
+	if event.get('player_1_rank'):
+		raw_log_upload_record.player_1_rank = int(event.get('player_1_rank'))
+
+	if event.get('player_1_legend_rank'):
+		raw_log_upload_record.player_1_legend_rank = event.get('player_1_legend_rank')
+
+	if event.get('player_1_deck_list'):
+		raw_log_upload_record.player_1_deck_list = event.get('player_1_deck_list')
+
+	if event.get('player_2_rank'):
+		raw_log_upload_record.player_2_rank = int(event.get('player_2_rank'))
+
+	if event.get('player_2_legend_rank'):
+		raw_log_upload_record.player_2_legend_rank = int(event.get('player_2_legend_rank'))
+
+	if event.get('player_2_deck_list'):
+		raw_log_upload_record.player_2_deck_list = event.get('player_2_deck_list')
 
 	try:
 		raw_log_upload_record.full_clean()
