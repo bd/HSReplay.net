@@ -10,12 +10,13 @@ logger.setLevel(logging.INFO)
 
 
 def _raw_log_upload_handler(event, context):
-	#logger.info("Event: %s" % str(event))
-
+	logger.info("*** Event Data (excluding the body content) ***")
+	for k,v in event.items():
+		if k != 'body':
+			logger.info("%s: %s" % (k, v))
 
 	b64encoded_log = event['body']
 	raw_log = b64decode(b64encoded_log)
-	#logger.info("*** Raw Log Data ***\n%s" % raw_log)
 
 	api_key = event['x-hsreplay-api-key']
 	logger.info("Upload submitted with API Key: %s" % api_key)
@@ -34,7 +35,7 @@ def _raw_log_upload_handler(event, context):
 
 	raw_log_upload_record.upload_timestamp = now()
 
-	if 'match_start_timestamp' in event:
+	if 'match_start_timestamp' in event and len(event.get('match_start_timestamp')):
 		match_start_timestamp = event.get('match_start_timestamp')
 		if match_start_timestamp[-3] == ":":
 			prefix, suffix = match_start_timestamp.rsplit(":", 1)
