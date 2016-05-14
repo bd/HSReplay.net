@@ -12,7 +12,8 @@ from hsreplay.utils import pretty_xml
 from cards.models import Card
 from test.base import CardDataBaseTest, TestDataConsumerMixin
 from web.models import *
-
+import boto3
+import botocore.session
 
 # We patch S3Storage because we don't want to be interacting with S3 in unit tests
 # You can temporarily comment out the @patch line to run the test in "integration mode" against S3. It should pass.
@@ -20,6 +21,7 @@ from web.models import *
 class CreateReplayFromRawLogTests(CardDataBaseTest, TestDataConsumerMixin):
 	def setUp(self):
 		super().setUp()
+
 		self.log_data_fixture = self.get_raw_log_fixture_for_random_innkeeper_match()
 		self.log_data = self.log_data_fixture["raw_log"]
 
@@ -51,7 +53,9 @@ class CreateReplayFromRawLogTests(CardDataBaseTest, TestDataConsumerMixin):
 
 		self.upload.log.delete()
 
+
 	def test_create_replay_from_raw_log(self):
+
 		self.upload.log.save("Power.log", ContentFile(self.log_data), save=False)
 		self.upload.player_1_deck_list = ",".join(self.thirty_card_deck)
 		self.upload.player_1_rank = 18

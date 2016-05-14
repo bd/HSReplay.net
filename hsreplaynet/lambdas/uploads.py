@@ -3,6 +3,7 @@ from base64 import b64decode
 from web.models import *
 from django.utils.timezone import now
 from django.core.files.base import ContentFile
+import botocore.session
 
 logging.getLogger('boto').setLevel(logging.WARN)
 logger = logging.getLogger(__file__)
@@ -14,6 +15,9 @@ def _raw_log_upload_handler(event, context):
 	for k,v in event.items():
 		if k != 'body':
 			logger.info("%s: %s" % (k, v))
+
+	# Debug logging for Boto connection
+	logger.info("Boto Credentials: %s" % str(botocore.session.get_session().get_credentials()))
 
 	b64encoded_log = event['body']
 	raw_log = b64decode(b64encoded_log)
