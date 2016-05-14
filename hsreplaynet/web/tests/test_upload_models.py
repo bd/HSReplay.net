@@ -12,7 +12,7 @@ from web.models import *
 
 # We patch S3Storage because we don"t want to be interacting with S3 in unit tests
 # You can temporarily comment out the @patch line to run the test in "integration mode" against S3. It should pass.
-@patch("storages.backends.s3boto.S3BotoStorage", FileSystemStorage)
+@patch("storages.backends.s3boto3.S3Boto3Storage", FileSystemStorage)
 class ReplayUploadTests(TestCase, TestDataConsumerMixin):
 	def setUp(self):
 		super().setUp()
