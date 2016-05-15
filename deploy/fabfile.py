@@ -48,7 +48,7 @@ def _update_virtualenv(source_folder):
     virtualenv_folder = source_folder + '/virtualenv'
     if not exists(virtualenv_folder + '/bin/pip'):
         sudo('python3 -m venv %s' % (virtualenv_folder,), user='www-data')
-    sudo('%s/bin/pip install -r %s/requirements.txt --ignore-installed --no-cache-dir' % (virtualenv_folder, source_folder), user='www-data')
+    sudo('%s/bin/pip install -r %s/requirements.txt' % (virtualenv_folder, source_folder), user='www-data')
 
 
 def _update_static_files(source_folder):
