@@ -122,8 +122,10 @@ AWS_S3_USE_SSL = False
 
 AWS_IS_GZIPPED = True
 GZIP_CONTENT_TYPES = (
+    'text/xml',
     'text/plain',
     'application/xml',
+    'application/octet-stream',
 )
 
 
