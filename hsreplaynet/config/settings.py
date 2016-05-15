@@ -43,12 +43,10 @@ if not IS_RUNNING_AS_LAMBDA:
         'allauth',
         'allauth.account',
         'allauth.socialaccount',
-        'allauth.socialaccount.providers.twitch',
         'allauth_battlenet',
     )
 
     SOCIALACCOUNT_PROVIDERS = {
-        "twitch": {"SCOPE": ["user_read"]},
         "battlenet": {"SCOPE": []}
     }
 
