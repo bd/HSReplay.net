@@ -1,20 +1,24 @@
-from django.shortcuts import render
-from django.views.generic import View
-from django.http import HttpResponse, HttpResponseRedirect
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-from hsreplayparser.parser import HSReplayParser
-from .forms import UploadAgentAPIKeyForm, RawLogUploadForm
-from .models import *
-import json, os
-from django.conf import settings
-from zlib import decompress
+import json
+import os
 import logging
-from web.utils import fetch_s3_object
-from hsreplay.dumper import parse_log, create_document, game_to_xml, __version__ as hsreplay_version
-from hsreplay.utils import pretty_xml
 from datetime import datetime
 from io import StringIO
+from zlib import decompress
+from django.conf import settings
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect
+from django.shortcuts import render
+from django.utils.decorators import method_decorator
+from django.utils.http import urlencode
+from django.views.generic import View
+from django.views.decorators.csrf import csrf_exempt
+from hsreplay.dumper import parse_log, create_document, game_to_xml, __version__ as hsreplay_version
+from hsreplay.utils import pretty_xml
+from hsreplayparser.parser import HSReplayParser
+from web.utils import fetch_s3_object
+from .forms import UploadAgentAPIKeyForm, RawLogUploadForm
+from .models import *
+
 
 logger = logging.getLogger(__name__)
 
@@ -160,8 +164,12 @@ class GenerateSingleSiteUploadTokenView(View):
 
 
 class AttachSiteUploadTokenView(View):
+	@method_decorator(login_required)
+	def dispatch(self, *args, **kwargs):
+		return super().dispatch(*args, **kwargs)
 
 	def get(self, request, api_key, single_site_upload_token):
+		upload_token = single_site_upload_token
 		response = HttpResponse()
 		upload_agent = None
 		token = None
@@ -169,26 +177,19 @@ class AttachSiteUploadTokenView(View):
 		try:
 			upload_agent = UploadAgentAPIKey.objects.get(api_key=api_key)
 		except UploadAgentAPIKey.DoesNotExist:
-			response.status_code = 403
-			response.content = "%s is not a valid API Key." % api_key
-			return response
+			return HttpResponseForbidden("Invalid API key: %r" % (api_key))
 
 		try:
-			token = SingleSiteUploadToken.objects.get(requested_by_upload_agent=upload_agent, token=single_site_upload_token)
+			token = SingleSiteUploadToken.objects.get(
+				requested_by_upload_agent=upload_agent,
+				token=upload_token
+			)
 		except SingleSiteUploadToken.DoesNotExist:
-			response.status_code = 403
-			response.content = "%s is not a valid upload token or was not assigned to this api kiey." % single_site_upload_token
-			return response
+			return HttpResponseForbidden("Invalid upload token: %r" % (upload_token))
 
-		if request.user.is_authenticated():
-			token.user = request.user
-			token.save()
-			return render(request, 'web/token_attached.html', {'token': str(token.token)})
-		else:
-			request.session['api_key'] = api_key
-			request.session['upload_token'] = single_site_upload_token
-			request.session['token_attachment_requested'] = True
-			return HttpResponseRedirect(reverse("battlenet_login"))
+		token.user = request.user
+		token.save()
+		return render(request, "web/token_attached.html", {"token": str(token.token)})
 
 
 class UploadTokenDetailsView(View):
@@ -256,9 +257,6 @@ class UploadTokenDetailsView(View):
 			response.status_code = 400
 			response.content = "You must include a JSON object with a 'replays_are_public' field when submitting a post request."
 			return response
-
-
-
 
 
 class ReplayUploadView(View):
