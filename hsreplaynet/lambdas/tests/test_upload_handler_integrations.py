@@ -4,11 +4,11 @@ from django.core.files.storage import FileSystemStorage
 from handlers import raw_log_upload_handler
 from test.base import TestDataConsumerMixin, CardDataBaseTest
 from web.models import *
-from django.conf import settings
+import json
 
 # We patch S3Storage because we don't want to be interacting with S3 in unit tests
 # You can temporarily comment out the @patch line to run the test in "integration mode" against S3. It should pass.
-@patch(settings.DEFAULT_FILE_STORAGE, FileSystemStorage)
+@patch('storages.backends.s3boto3.S3Boto3Storage', FileSystemStorage)
 class TestRawLogUploadHandler(CardDataBaseTest, TestDataConsumerMixin):
 	def setUp(self):
 		super(TestRawLogUploadHandler, self).setUp()
@@ -31,15 +31,16 @@ class TestRawLogUploadHandler(CardDataBaseTest, TestDataConsumerMixin):
 				context = descriptor["context"]
 
 				# Invoke main handler code
-				result = raw_log_upload_handler(event, context)
+				result_str = raw_log_upload_handler(event, context)
+				result = json.loads(result_str)
 
 				# Begin verification process...
 				if descriptor["expected_response_is_replay_id"].lower() == "true":
 					# This test case expects a success, so now verify the correctness of the replay records generated
-					replay = GameReplayUpload.objects.get(id=result)
+					replay = GameReplayUpload.objects.get(id=result["replay_uuid"])
 					self.assertIsNotNone(replay)
 					assertions = descriptor["expected_replay_assertions"]
 				else:
 					# This test expects a failure, so assert the error string is what is expected.
-					self.assertEqual(result, descriptor["expected_response_string"])
+					self.assertEqual(result["msg"], descriptor["expected_response_string"])
 

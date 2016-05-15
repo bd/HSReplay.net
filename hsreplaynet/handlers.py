@@ -38,9 +38,11 @@ def raw_log_upload_handler(event, context):
 		return result
 	except ValidationError as e:
 		logger.exception(e)
-		return "VALIDATION_ERROR: %s" % str(e)
+		result = '{"result": "ERROR", "replay_available" : "False", "msg" : "%s", "replay_uuid" : ""}' % str(e)
+		return result
 	except Exception as e:
 		logger.exception(e)
-		return "UNKNOWN_ERROR: %s" % str(e)
+		result = '{"result": "ERROR", "replay_available" : "False", "msg" : "%s", "replay_uuid" : ""}' % str(e)
+		return result
 
 	return "ERROR_= - UNREACHABLE BLOCK"

@@ -6,11 +6,10 @@ from django.core.files.storage import FileSystemStorage
 from lambdas.uploads import _raw_log_upload_handler
 from test.base import CardDataBaseTest, TestDataConsumerMixin
 from web.models import *
-from django.conf import settings
 
 # We patch S3Storage because we don't want to be interacting with S3 in unit tests
 # You can temporarily comment out the @patch line to run the test in "integration mode" against S3. It should pass.
-@patch(settings.DEFAULT_FILE_STORAGE, FileSystemStorage)
+@patch('storages.backends.s3boto3.S3Boto3Storage', FileSystemStorage)
 class TestRawLogUploadHandler(CardDataBaseTest, TestDataConsumerMixin):
 	def setUp(self):
 		super().setUp()
@@ -46,6 +45,7 @@ class TestRawLogUploadHandler(CardDataBaseTest, TestDataConsumerMixin):
 
 		context = {}
 
-		replay_id = _raw_log_upload_handler(event, context)
-		replay = GameReplayUpload.objects.get(id=replay_id)
+		result_str = _raw_log_upload_handler(event, context)
+		result = json.loads(result_str)
+		replay = GameReplayUpload.objects.get(id=result["replay_uuid"])
 		self.assertIsNotNone(replay)

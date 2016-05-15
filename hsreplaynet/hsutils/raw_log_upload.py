@@ -8,7 +8,7 @@ upload_tokens = ['0adf879704bf46c1adbfaecf954079c2',
 				 'fb938a3b47814d54b348b1b06085f6c0',]
 
 API_KEY = 'd1050cd9e8ed4ff7853dd109ee428505'
-UPLOAD_TOKEN = upload_tokens[0]
+UPLOAD_TOKEN = upload_tokens[3]
 HOST = 'https://upload.hsreplay.net/api/v1/replay/upload/raw'
 #RAW_LOG_PATH = '/Users/awilson/PycharmProjects/hsreplaynet/hsreplaynet/test/integration_data/empty_raw_log_file_test/test_Data.log'
 RAW_LOG_PATH = '/Users/awilson/Downloads/76d57f67-9ebb-4fc2-8b06-0cfd9cd564be.log'

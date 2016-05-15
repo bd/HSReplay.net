@@ -114,10 +114,10 @@ def _raw_log_upload_handler(event, context):
 	logger.info("Raw Log Record ID: %s" % raw_log_upload_record.id)
 
 	replay = None
-	previously_uploaded = False
+	created = False
 	try:
 		#Attempt parsing....
-		replay, previously_uploaded = GameReplayUpload.objects.get_or_create_from_raw_log_upload(raw_log_upload_record)
+		replay, created = GameReplayUpload.objects.get_or_create_from_raw_log_upload(raw_log_upload_record)
 		time_logger.info("TIMING: %s - After GameReplayUpload.objects.get_or_create_from_raw_log_upload" % _time_elapsed())
 	except Exception as e:
 		# Even if parsing fails we don't return an error to the user because it's likely a problem that we can solve and
@@ -128,13 +128,14 @@ def _raw_log_upload_handler(event, context):
 	if replay:
 		#Parsing succeeded so return the UUID of the replay.
 		logger.info("Parsing Succeeded! Replay is %s turns, and has ID: %s" % (str(replay.global_game.num_turns), str(replay.id)))
-		if previously_uploaded:
+		if not created:
 			logger.warn("This replay was determined to be a duplicate of an earlier upload. A new replay record did not need to be created.")
-		result = str(replay.id)
+		result = '{"result": "SUCCESS", "replay_available": "True", "msg" : "", "replay_uuid" : "%s"}' % str(replay.id)
 	else:
 		logger.error("Parsing Failed!")
 		# Parsing failed so notify the uploader that there will be a delay
-		result = "Upload succeeded, however there was a problem generating the replay. The replay will be available shortly."
+		msg = "Upload succeeded, however there was a problem generating the replay. The replay will be available shortly."
+		result = '{"result": "SUCCESS", "replay_available" : "False", "msg" : "%s", "replay_uuid" : ""}' % msg
 
 	time_logger.info("TIMING: %s - About to send result." % _time_elapsed())
 	return result
