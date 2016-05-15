@@ -279,7 +279,7 @@ USE_TZ = True
 SITE_ID = 1
 
 LOGIN_REDIRECT_URL = reverse_lazy('joust_replay_list')
-ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https'
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = "http" if DEBUG else "https"
 
 SOCIALACCOUNT_ADAPTER = "allauth_battlenet.provider.BattleNetSocialAccountAdapter"
 
