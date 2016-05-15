@@ -112,7 +112,8 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',
 )
 
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+#DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
 S3_RAW_LOG_STORAGE_BUCKET = os.environ.get('S3_RAW_LOG_STORAGE_BUCKET', 'test.raw.replaystorage.hsreplay.net')
 S3_REPLAY_STORAGE_BUCKET = os.environ.get('S3_REPLAY_STORAGE_BUCKET', 'test.replaystorage.hsreplay.net')
 AWS_STORAGE_BUCKET_NAME = S3_REPLAY_STORAGE_BUCKET
