@@ -125,7 +125,7 @@ def _raw_log_upload_handler(event, context):
 		logger.exception(e)
 
 	result = {
-		"result" : "SUCCUESS",
+		"result" : "SUCCESS",
 		"replay_available" : False,
 		"msg" : "",
 		"replay_uuid" : ""
