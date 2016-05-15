@@ -3,7 +3,7 @@ from base64 import b64decode
 from web.models import *
 from django.utils.timezone import now
 from django.core.files.base import ContentFile
-import botocore.session
+import dateutil.parser
 
 logging.getLogger('boto').setLevel(logging.WARN)
 logger = logging.getLogger(__file__)
@@ -51,16 +51,9 @@ def _raw_log_upload_handler(event, context):
 	raw_log_upload_record.upload_timestamp = now()
 
 	if 'match_start_timestamp' in event and len(event.get('match_start_timestamp')):
-		match_start_timestamp = event.get('match_start_timestamp')
-		if match_start_timestamp[-3] == ":":
-			prefix, suffix = match_start_timestamp.rsplit(":", 1)
-			match_start_timestamp = prefix + suffix
-
-			# Now remove one degree of precision from microseconds
-			prefix, suffix = match_start_timestamp.rsplit(".", 1)
-			match_start_timestamp = prefix + '.' + suffix[:6] + suffix[-5:]
-
-		raw_log_upload_record.match_start_timestamp = datetime.strptime(match_start_timestamp,'%Y-%m-%dT%H:%M:%S.%f%z')
+		match_start_timestamp_str = event.get('match_start_timestamp')
+		match_start_timestamp = dateutil.parser.parse(match_start_timestamp_str, default=raw_log_upload_record.upload_timestamp)
+		raw_log_upload_record.match_start_timestamp = match_start_timestamp
 	else:
 		raw_log_upload_record.match_start_timestamp = raw_log_upload_record.upload_timestamp
 
