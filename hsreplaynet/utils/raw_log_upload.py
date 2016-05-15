@@ -7,8 +7,8 @@ UPLOAD_TOKEN = 'e422a2b3b8e04e078e26d129dc4c20c8'
 HOST = 'https://upload.hsreplay.net/api/v1/replay/upload/raw'
 RAW_LOG_PATH = '/Users/awilson/PycharmProjects/hsreplaynet/hsreplaynet/test/integration_data/9ab32b03-8efc-47d6-a40d-0a96e5c57685/power.log'
 QUERY_PARAMS = {
-#	'player_1_rank' : 18
-# 'match_start_timestamp' : '2016-05-10T17:10:06.4923855+02:00'
+	# 'player_1_rank' : 18
+	# 'match_start_timestamp' : '2016-05-10T17:10:06.4923855+02:00'
 }
 HEADERS = {
 	'x-hsreplay-api-key':API_KEY,

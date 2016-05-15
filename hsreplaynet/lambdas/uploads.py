@@ -16,9 +16,6 @@ def _raw_log_upload_handler(event, context):
 		if k != 'body':
 			logger.info("%s: %s" % (k, v))
 
-	# Debug logging for Boto connection
-	logger.info("Boto Credentials: %s" % str(botocore.session.get_session().get_credentials()))
-
 	b64encoded_log = event['body']
 	raw_log = b64decode(b64encoded_log)
 
@@ -116,9 +113,10 @@ def _raw_log_upload_handler(event, context):
 	logger.info("Raw Log Record ID: %s" % raw_log_upload_record.id)
 
 	replay = None
+	previously_uploaded = False
 	try:
 		#Attempt parsing....
-		replay = GameReplayUpload.objects.create_from_raw_log_upload(raw_log_upload_record)
+		replay, previously_uploaded = GameReplayUpload.objects.get_or_create_from_raw_log_upload(raw_log_upload_record)
 	except Exception as e:
 		# Even if parsing fails we don't return an error to the user because it's likely a problem that we can solve and
 		# then reprocess the raw log file afterwords.
@@ -128,6 +126,8 @@ def _raw_log_upload_handler(event, context):
 	if replay:
 		#Parsing succeeded so return the UUID of the replay.
 		logger.info("Parsing Succeeded! Replay is %s turns, and has ID: %s" % (str(replay.global_game.num_turns), str(replay.id)))
+		if previously_uploaded:
+			logger.warn("This replay was determined to be a duplicate of an earlier upload. A new replay record did not need to be created.")
 		result = str(replay.id)
 	else:
 		logger.error("Parsing Failed!")

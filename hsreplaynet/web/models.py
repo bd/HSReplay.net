@@ -308,7 +308,9 @@ class GlobalGame(models.Model):
 
 class GameReplayUploadManager(models.Manager):
 
-	def create_from_raw_log_upload(self, raw_log):
+	def get_or_create_from_raw_log_upload(self, raw_log):
+		""" Returns a tuple of the record and boolean indicating whether it was created."""
+
 		# Don't attempt to create a replay if validation doesn't pass
 		raw_log.full_clean()
 
@@ -363,9 +365,9 @@ class GameReplayUploadManager(models.Manager):
 
 		if global_game:
 			# If a global_game already exists then there is a possibility that this is a duplicate upload, so check for it.
-			duplicate = GameReplayUpload.objects.filter(upload_token=raw_log.upload_token, global_game=global_game).first()
-			if duplicate:
-				raise ValidationError("This replay has already been uploaded by this user and has UUID: %s" % str(duplicate.id))
+			existing = GameReplayUpload.objects.filter(upload_token=raw_log.upload_token, global_game=global_game).first()
+			if existing:
+				return (existing, False)
 		else:
 			global_game = GlobalGame.objects.create(bnet_region_id=bnet_region_id,
 									 brawl_season=None,
@@ -407,7 +409,7 @@ class GameReplayUploadManager(models.Manager):
 		replay_upload.replay_xml.save('hsreplay.xml', ContentFile(pretty_xml(replay_tree)), save=False)
 		replay_upload.save()
 
-		return replay_upload
+		return (replay_upload, True)
 
 	def _get_starting_deck_list_for_player(self, num, packet_tree, raw_log):
 		#If the raw_log has a deck_list then the client has uploaded a complete 30 card list which takes precedence.

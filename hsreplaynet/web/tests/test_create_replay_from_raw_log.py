@@ -62,7 +62,7 @@ class CreateReplayFromRawLogTests(CardDataBaseTest, TestDataConsumerMixin):
 		self.upload.match_type = BnetGameType.BGT_RANKED_STANDARD
 		self.upload.save()
 
-		replay = GameReplayUpload.objects.create_from_raw_log_upload(self.upload)
+		replay, previously_existed = GameReplayUpload.objects.get_or_create_from_raw_log_upload(self.upload)
 		self.assertEqual(replay.upload_token, self.token)
 		self.assertEqual(replay.upload_timestamp, self.upload_date)
 		self.assertEqual(replay.raw_log, self.upload)
