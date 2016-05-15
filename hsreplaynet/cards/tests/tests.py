@@ -20,6 +20,21 @@ class DeckTests(CardDataBaseTest):
 					self.cards_in_deck.append(random_card)
 					Include.objects.create(deck=self.random_deck, card=random_card)
 
+	def test_get_or_create_from_id_list(self):
+		thirty_card_deck = [
+			"AT_004", "AT_004", "AT_006", "AT_006", "AT_019", "CS2_142", "CS2_142", "CS2_146", "CS2_146", "CS2_161",
+			"CS2_161", "CS2_169", "CS2_169", "CS2_181", "CS2_181", "CS2_189", "CS2_189", "CS2_200", "CS2_200", "AT_130",
+			"GVG_081", "CS2_213", "EX1_371", "GVG_002", "NEW1_026", "EX1_405", "CS2_213", "EX1_250", "CS2_222", "AT_130"
+		]
+
+		d1, created1 = Deck.objects.get_or_create_from_id_list(thirty_card_deck)
+		self.assertEqual(d1.size(), 30)
+		self.assertTrue(created1)
+
+		d2, created2 = Deck.objects.get_or_create_from_id_list(thirty_card_deck)
+		self.assertEqual(d2.size(), 30)
+		self.assertFalse(created2)
+
 	def test_random_deck_list_of_size(self):
 		size = 30
 		random_deck = Deck.objects.random_deck_list_of_size(size)

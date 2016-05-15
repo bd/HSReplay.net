@@ -119,9 +119,9 @@ class DeckManager(models.Manager):
 		digest = generate_digest_from_deck_list(id_list)
 		existing_deck = Deck.objects.filter(digest=digest).first()
 		if existing_deck:
-			return existing_deck
+			return (existing_deck, False)
 
-		deck = Deck.objects.create()
+		deck = Deck.objects.create(digest=digest)
 
 		for card_id in id_list:
 			include, created = deck.include_set.get_or_create(
@@ -137,7 +137,7 @@ class DeckManager(models.Manager):
 				include.save()
 
 		deck.save()
-		return deck
+		return (deck, True)
 
 
 def generate_digest_from_deck_list(id_list):
@@ -160,6 +160,7 @@ class Deck(models.Model):
 	digest = models.CharField(max_length=32, unique=True)
 	created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
+
 	def __str__(self):
 		return "[" + ",".join(map(str, self.include_set.all())) + "]"
 
@@ -173,8 +174,13 @@ class Deck(models.Model):
 		return mana_sorted.__iter__()
 
 	def save(self, *args, **kwargs):
-		self.digest = generate_digest_from_deck_list(self.card_id_list())
-		return super(Deck, self).save(*args, **kwargs)
+		EMPTY_DECK_DIGEST = 'd41d8cd98f00b204e9800998ecf8427e'
+		if self.digest != EMPTY_DECK_DIGEST and self.include_set.count() == 0:
+			# A client has set a digest by hand, so don't recalculate it.
+			return super(Deck, self).save(*args, **kwargs)
+		else:
+			self.digest = generate_digest_from_deck_list(self.card_id_list())
+			return super(Deck, self).save(*args, **kwargs)
 
 	def card_id_list(self):
 		result = []

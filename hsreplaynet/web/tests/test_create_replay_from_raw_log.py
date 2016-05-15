@@ -71,7 +71,7 @@ class CreateReplayFromRawLogTests(CardDataBaseTest, TestDataConsumerMixin):
 		self.assertEqual(replay.hsreplay_version, hsreplay_version)
 
 		player_one_starting_deck = replay.player_one_starting_deck_list
-		expected_starting_deck = Deck.objects.get_or_create_from_id_list(self.thirty_card_deck)
+		expected_starting_deck, created = Deck.objects.get_or_create_from_id_list(self.thirty_card_deck)
 		self.assertEqual(player_one_starting_deck.card_id_list(), expected_starting_deck.card_id_list())
 
 		self.assertIsNotNone(replay.global_game)

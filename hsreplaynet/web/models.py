@@ -419,14 +419,16 @@ class GameReplayUploadManager(models.Manager):
 				starting_deck_card_ids = raw_log.player_1_deck_list.split(',')
 			else:
 				starting_deck_card_ids = [e.card_id for e in packet_tree.games[0].players[num].initial_deck if e.card_id]
-			return Deck.objects.get_or_create_from_id_list(starting_deck_card_ids)
+			deck, created = Deck.objects.get_or_create_from_id_list(starting_deck_card_ids)
+			return deck
 
 		if num == 1:
 			if raw_log.player_2_deck_list:
 				starting_deck_card_ids = raw_log.player_2_deck_list.split(',')
 			else:
 				starting_deck_card_ids = [e.card_id for e in packet_tree.games[0].players[num].initial_deck if e.card_id]
-			return Deck.objects.get_or_create_from_id_list(starting_deck_card_ids)
+			deck, created = Deck.objects.get_or_create_from_id_list(starting_deck_card_ids)
+			return deck
 
 	def _get_name_for_player(self, num, packet_tree):
 		return packet_tree.games[0].players[num].name
