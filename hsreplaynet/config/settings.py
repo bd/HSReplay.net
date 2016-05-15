@@ -191,6 +191,14 @@ if not IS_RUNNING_AS_LAMBDA:
                 'backupCount': 5,
                 'formatter': 'verbose'
             },
+            'timing': {
+                'level': 'DEBUG',
+                'class': 'logging.handlers.RotatingFileHandler',
+                'filename': os.path.join(LOG_ROOT_DIR, 'timing.log'),
+                'maxBytes': 5242880,
+                'backupCount': 5,
+                'formatter': 'verbose'
+            },
             'web': {
                 'level': 'DEBUG',
                 'class': 'logging.handlers.RotatingFileHandler',
@@ -227,6 +235,11 @@ if not IS_RUNNING_AS_LAMBDA:
         'loggers': {
             'django': {
                 'handlers':['django_file', 'error_file'],
+                'propagate': True,
+                'level':'INFO',
+            },
+            'TIMING': {
+                'handlers':['timing'],
                 'propagate': True,
                 'level':'INFO',
             },

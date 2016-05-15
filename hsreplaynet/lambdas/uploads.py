@@ -4,13 +4,18 @@ from web.models import *
 from django.utils.timezone import now
 from django.core.files.base import ContentFile
 import dateutil.parser
+from utils.performance import _time_elapsed
 
 logging.getLogger('boto').setLevel(logging.WARN)
 logger = logging.getLogger(__file__)
+time_logger = logging.getLogger("TIMING")
 logger.setLevel(logging.INFO)
 
 
+
 def _raw_log_upload_handler(event, context):
+
+	time_logger.info("TIMING: %s - Upload handler start." % _time_elapsed())
 	logger.info("*** Event Data (excluding the body content) ***")
 	for k,v in event.items():
 		if k != 'body':
@@ -18,6 +23,7 @@ def _raw_log_upload_handler(event, context):
 
 	b64encoded_log = event['body']
 	raw_log = b64decode(b64encoded_log)
+	time_logger.info("TIMING: %s - After Base64 decoding." % _time_elapsed())
 
 	api_key = event['x-hsreplay-api-key']
 	logger.info("Upload submitted with API Key: %s" % api_key)
@@ -58,6 +64,7 @@ def _raw_log_upload_handler(event, context):
 		raw_log_upload_record.match_start_timestamp = raw_log_upload_record.upload_timestamp
 
 	raw_log_upload_record.log.save('Power.log', ContentFile(raw_log), save=False)
+	time_logger.info("TIMING: %s - After raw_log_upload_record.log.save" % _time_elapsed())
 
 	if event.get('hearthstone_build'):
 		raw_log_upload_record.hearthstone_build = event.get('hearthstone_build')
@@ -97,6 +104,7 @@ def _raw_log_upload_handler(event, context):
 	try:
 		raw_log_upload_record.full_clean()
 		raw_log_upload_record.save()
+		time_logger.info("TIMING: %s - After raw_log_upload_record.save()" % _time_elapsed())
 	except ValidationError as e:
 		# If we have a validation error we don't continue because it's most likely the result of malformed client requests.
 		logger.exception(e)
@@ -110,6 +118,7 @@ def _raw_log_upload_handler(event, context):
 	try:
 		#Attempt parsing....
 		replay, previously_uploaded = GameReplayUpload.objects.get_or_create_from_raw_log_upload(raw_log_upload_record)
+		time_logger.info("TIMING: %s - After GameReplayUpload.objects.get_or_create_from_raw_log_upload" % _time_elapsed())
 	except Exception as e:
 		# Even if parsing fails we don't return an error to the user because it's likely a problem that we can solve and
 		# then reprocess the raw log file afterwords.
@@ -127,4 +136,5 @@ def _raw_log_upload_handler(event, context):
 		# Parsing failed so notify the uploader that there will be a delay
 		result = "Upload succeeded, however there was a problem generating the replay. The replay will be available shortly."
 
+	time_logger.info("TIMING: %s - About to send result." % _time_elapsed())
 	return result

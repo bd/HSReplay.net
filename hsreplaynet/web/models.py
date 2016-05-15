@@ -14,6 +14,7 @@ from hsreplay import __version__ as hsreplay_version
 from hsreplay.dumper import parse_log, create_document, game_to_xml
 from hsreplay.utils import pretty_xml
 from cards.models import Card, Deck
+from utils.performance import _time_elapsed
 
 try:
 	# We attempt to import the Python 2.7 Library in case the code is running on Lambda
@@ -25,7 +26,7 @@ except ImportError:
 	_wrap_log_in_stream = lambda s: StringIO(s.decode("utf-8"))
 
 logger = logging.getLogger(__name__)
-
+time_logger = logging.getLogger("TIMING")
 
 class UploadAgentAPIKey(models.Model):
 	full_name = models.CharField(max_length=254)
@@ -310,13 +311,17 @@ class GameReplayUploadManager(models.Manager):
 
 	def get_or_create_from_raw_log_upload(self, raw_log):
 		""" Returns a tuple of the record and boolean indicating whether it was created."""
-
+		time_logger.info("TIMING: %s - Start of get_or_create_from_raw_log_upload" % _time_elapsed())
 		# Don't attempt to create a replay if validation doesn't pass
 		raw_log.full_clean()
 
+		time_logger.info("TIMING: %s - About to read back raw log from S3" % _time_elapsed())
 		raw_log.log.open()  # Make sure that the file is open to the beginning of it.
 		raw_log_str = raw_log.log.read()
+		time_logger.info("TIMING: %s - Finished reading raw log. About to generate packet tree." % _time_elapsed())
+
 		packet_tree = parse_log(_wrap_log_in_stream(raw_log_str), processor='GameState', date=raw_log.match_start_timestamp)
+		time_logger.info("TIMING: %s - Finished generating packet tree." % _time_elapsed())
 
 		if not len(packet_tree.games):
 			# We were not able to generate a replay
@@ -324,10 +329,12 @@ class GameReplayUploadManager(models.Manager):
 
 		replay_tree = create_document(version=hsreplay_version, build=raw_log.hearthstone_build)
 
+		time_logger.info("TIMING: %s - About to invoke game_to_xml" % _time_elapsed())
 		game = game_to_xml(packet_tree.games[0],
 						   game_meta=raw_log._generate_game_meta_data(),
 						   player_meta=raw_log._generate_player_meta_data(),
 						   decks=raw_log._generate_deck_lists())
+		time_logger.info("TIMING: %s - game_to_xml Finished" % _time_elapsed())
 
 		replay_tree.append(game)
 
@@ -406,8 +413,15 @@ class GameReplayUploadManager(models.Manager):
 			upload_timestamp = raw_log.upload_timestamp,
 			upload_token = raw_log.upload_token)
 
-		replay_upload.replay_xml.save('hsreplay.xml', ContentFile(pretty_xml(replay_tree)), save=False)
+		time_logger.info("TIMING: %s - About to generate XML." % _time_elapsed())
+		xml_str = pretty_xml(replay_tree)
+		time_logger.info("TIMING: %s - Generate XML finished." % _time_elapsed())
+		time_logger.info("TIMING: %s - About to call replay_upload.replay_xml.save." % _time_elapsed())
+		replay_upload.replay_xml.save('hsreplay.xml', ContentFile(xml_str), save=False)
+		time_logger.info("TIMING: %s - replay_upload.replay_xml.save finished." % _time_elapsed())
+		time_logger.info("TIMING: %s - About to call replay_upload.save()" % _time_elapsed())
 		replay_upload.save()
+		time_logger.info("TIMING: %s - replay_upload.save() finished." % _time_elapsed())
 
 		return (replay_upload, True)
 
