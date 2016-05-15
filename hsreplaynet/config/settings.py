@@ -44,7 +44,7 @@ if not IS_RUNNING_AS_LAMBDA:
         'allauth.account',
         'allauth.socialaccount',
         'allauth.socialaccount.providers.twitch',
-        'oauth.battlenet',
+        'allauth_battlenet',
     )
 
     SOCIALACCOUNT_PROVIDERS = {
@@ -242,7 +242,7 @@ if not IS_RUNNING_AS_LAMBDA:
                 'propagate': False,
                 'level': 'DEBUG',
             },
-            'oauth.battlenet': {
+            'allauth_battlenet': {
                 'handlers': ['battlenet', 'error_file'],
                 'propagate': False,
                 'level': 'DEBUG',
@@ -270,7 +270,7 @@ SITE_ID = 1
 LOGIN_REDIRECT_URL = reverse_lazy('joust_replay_list')
 ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https'
 
-SOCIALACCOUNT_ADAPTER = "oauth.battlenet.provider.BattleNetSocialAccountAdapter"
+SOCIALACCOUNT_ADAPTER = "allauth_battlenet.provider.BattleNetSocialAccountAdapter"
 
 BATTLE_NET_KEY = os.environ.get('BATTLE_NET_KEY', '')
 BATTLE_NET_SECRET = os.environ.get('BATTLE_NET_SECRET', '')
