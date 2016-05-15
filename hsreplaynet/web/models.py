@@ -554,25 +554,3 @@ class GameReplayUpload(models.Model):
 
 	def get_absolute_url(self):
 		return reverse('joust_replay_view', kwargs={'id':self.id})
-
-
-
-class HSReplaySingleGameFileUpload(models.Model):
-	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-	data = models.BinaryField()
-	upload_date = models.DateField(default=date.today)
-	match_date = models.DateField(null=True)
-	player_1_name = models.CharField(max_length=255, null=True)
-	player_2_name = models.CharField(max_length=255, null=True)
-	upload_token = models.ForeignKey(SingleSiteUploadToken, null=True)
-	is_public = models.BooleanField(default=False)
-	md5_hexdigest = models.CharField(max_length=32)
-
-	class Meta:
-		unique_together = ("upload_token", "md5_hexdigest")
-
-	def get_absolute_url(self):
-		return reverse('joust_replay_view', kwargs={'id':self.id})
-
-	def get_s3_key(self):
-		return self.match_date.strftime('%Y/%m/%d/') + str(self.id).replace("-", "")
