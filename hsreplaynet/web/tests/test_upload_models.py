@@ -1,18 +1,16 @@
 import pytz
 from unittest.mock import patch, MagicMock
-from django.core.exceptions import ValidationError
-from django.core.files.base import ContentFile
+from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from django.test import TestCase
 from django.utils.timezone import now
-from cards.models import Card
 from test.base import TestDataConsumerMixin
 from web.models import *
 
 
 # We patch S3Storage because we don"t want to be interacting with S3 in unit tests
 # You can temporarily comment out the @patch line to run the test in "integration mode" against S3. It should pass.
-@patch("storages.backends.s3boto3.S3Boto3Storage", FileSystemStorage)
+@patch(settings.DEFAULT_FILE_STORAGE, FileSystemStorage)
 class ReplayUploadTests(TestCase, TestDataConsumerMixin):
 	def setUp(self):
 		super().setUp()
