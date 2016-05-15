@@ -23,7 +23,7 @@ class JoustPrivateCollectionView(View):
 		replays = []
 
 		for token in request.user.tokens.all():
-			replays.append(GameReplayUpload.objects.filter(upload_token=token).all())
+			replays.extend(list(GameReplayUpload.objects.filter(upload_token=token).all()))
 
 		sorted_replays = sorted(replays, key=lambda r: r.global_game.match_start_timestamp )
 
