@@ -1,22 +1,12 @@
 import json
-import os
 import logging
-from datetime import datetime
-from io import StringIO
-from zlib import decompress
-from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect, Http404
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
-from django.utils.http import urlencode
 from django.views.generic import View
 from django.views.decorators.csrf import csrf_exempt
-from hsreplay.dumper import parse_log, create_document, game_to_xml, __version__ as hsreplay_version
-from hsreplay.utils import pretty_xml
-from hsreplayparser.parser import HSReplayParser
-from web.utils import fetch_s3_object
-from .forms import UploadAgentAPIKeyForm, RawLogUploadForm
+from .forms import UploadAgentAPIKeyForm
 from .models import *
 
 
@@ -38,36 +28,8 @@ def home(request):
 	return render(request, 'web/home.html')
 
 
-class UploadRawReplayView(View):
-
-	def get(self, request):
-		return render(request, 'web/upload_raw_log.html', {'form': RawLogUploadForm()})
-
-	def post(self, request):
-		form = RawLogUploadForm(request.POST)
-		context = {}
-
-		if form.is_valid():
-
-			raw_log = form.cleaned_data['log']
-
-			parser = parse_log(StringIO(raw_log), processor='GameState', date=datetime.now())
-
-			doc = create_document(version=hsreplay_version, build=None)
-			game = game_to_xml(parser.games[0], game_meta=None, player_meta=None, decks=None)
-			doc.append(game)
-
-			replay_xml = pretty_xml(doc)
-			form = RawLogUploadForm({'log':raw_log, 'replay':replay_xml})
-
-		# If we get here there are form errors to present.
-		context['form'] = form
-
-		return render(request, 'web/upload_raw_log.html', context)
-
-
 class ContributeView(View):
-
+	"""This view serves the API docs including the form to generate an API Token."""
 	def get(self, request, method='client'):
 		is_download_client = method != 'api'
 		context = {'is_download_client': is_download_client}
@@ -105,7 +67,6 @@ def fetch_replay(request, id):
 	except GameReplayUpload.DoesNotExist as e:
 		logger.exception(e)
 		return Http404("Unknown Replay ID: %s" % id)
-
 
 
 class GenerateSingleSiteUploadTokenView(View):
@@ -232,62 +193,3 @@ class UploadTokenDetailsView(View):
 			response.status_code = 400
 			response.content = "You must include a JSON object with a 'replays_are_public' field when submitting a post request."
 			return response
-
-
-class ReplayUploadView(View):
-
-	@method_decorator(csrf_exempt)
-	def dispatch(self, *args, **kwargs):
-		return super(ReplayUploadView, self).dispatch(*args, **kwargs)
-
-	def post(self, request):
-		response = HttpResponse()
-
-		api_key_header = fetch_header(request, settings.API_KEY_HEADER)
-		upload_token_header = fetch_header(request, settings.UPLOAD_TOKEN_HEADER)
-
-		upload_token = None
-		if api_key_header and upload_token_header:
-			upload_agent = UploadAgentAPIKey.objects.get(api_key=api_key_header)
-			upload_token = SingleSiteUploadToken.objects.get(token=upload_token_header)
-			if upload_token.requested_by_upload_agent != upload_agent:
-				response.status_code = 403
-				response.content = "The upload token: %s was not issued to the API key: %s" % (upload_token_header, api_key_header)
-
-		data = request.body.decode("utf-8")
-		try:
-			parser = HSReplayParser()
-			parser.parse_data(data, is_final=True)
-
-			if len(parser.replay.games) != 1:
-				# Raise an error
-				pass
-
-			game = parser.replay.games[0]
-
-			upload = HSReplaySingleGameFileUpload.objects.create(data=request.body)
-
-			if upload_token:
-				upload.upload_token = upload_token
-				upload.is_public = upload_token.replays_are_public
-
-			if game.first_player.name:
-				upload.player_1_name = game.first_player.name
-
-			if game.second_player.name:
-				upload.player_2_name = game.second_player.name
-
-			if game.match_date:
-				upload.match_date = game.match_date
-			else:
-				upload.match_date = date.today()
-
-			upload.save()
-
-			response['Location'] = '%s://%s/api/v1/replay/%s' % (request.scheme, request.get_host(), upload.id)
-			response.status_code = 201
-			response.content = json.dumps({"replay_uuid": str(upload.id)})
-		except Exception as e:
-			response.status_code = 500
-
-		return response
