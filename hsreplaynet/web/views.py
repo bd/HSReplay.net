@@ -6,7 +6,7 @@ from io import StringIO
 from zlib import decompress
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect, Http404
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.utils.http import urlencode
@@ -89,48 +89,23 @@ class ContributeView(View):
 
 
 def fetch_replay(request, id):
-	response = HttpResponse()
 	logger.info("Replay data requested for UUID: %s" % id)
+	response = HttpResponse()
 
 	try:
-		replay = HSReplaySingleGameFileUpload.objects.get(id=id)
-
-		s3_replay_obj = None
-		try:
-			logger.info("Attempting to fetch replay using key: %s from bucket: %s" % (replay.get_s3_key(), settings.S3_REPLAY_STORAGE_BUCKET))
-			s3_replay_obj = fetch_s3_object(settings.S3_REPLAY_STORAGE_BUCKET, replay.get_s3_key())
-
-			if not s3_replay_obj:
-				logger.info("S3 Object not found. Attempting to fetch using key: %s" % str(replay.id))
-				# Fallback to fetch replays before we started using date prefixing
-				s3_replay_obj = fetch_s3_object(settings.S3_REPLAY_STORAGE_BUCKET, str(replay.id))
-				if not s3_replay_obj:
-					logger.info("S3 Object still not found.")
-
-		except Exception as e:
-			logger.exception("Boto Connection To S3 Failed")
-
-		if s3_replay_obj:
-			logger.info("Successfully retrieved object from S3")
-			if 'ContentEncoding' in s3_replay_obj and s3_replay_obj['ContentEncoding'] == 'gzip':
-				logger.info("Replay object has been gzipped.")
-				response.content = decompress(s3_replay_obj['Body'].read())
-			else:
-				logger.info("Replay object is not gzipped")
-				response.content = s3_replay_obj['Body'].read()
-		else:
-			logger.info("Replay data served from DB")
-			response.content = replay.data
-
+		replay = GameReplayUpload.objects.get(id=id)
 		response['Content-Type'] = 'application/vnd.hearthsim-hsreplay+xml'
 		response.status_code = 200
 
-	except Exception as e:
-		logger.exception("An unexpected error occurred fetching the replay")
-		response.status_code = 500
+		replay.replay_xml.open()
+		response.content = replay.replay_xml.read()
+		logger.info("Fetching replay view is complete.")
+		return response
 
-	logger.info("Fetching replay view is complete.")
-	return response
+	except GameReplayUpload.DoesNotExist as e:
+		logger.exception(e)
+		return Http404("Unknown Replay ID: %s" % id)
+
 
 
 class GenerateSingleSiteUploadTokenView(View):

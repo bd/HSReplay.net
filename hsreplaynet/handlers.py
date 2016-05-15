@@ -56,6 +56,5 @@ def raw_log_upload_handler(event, context):
 			"replay_uuid" : ""
 		}
 
-	#return json.dumps(result)
 	return result
 
