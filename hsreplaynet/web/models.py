@@ -14,7 +14,7 @@ from hsreplay import __version__ as hsreplay_version
 from hsreplay.dumper import parse_log, create_document, game_to_xml
 from hsreplay.utils import pretty_xml
 from cards.models import Card, Deck
-from utils.performance import _time_elapsed
+from hsutils.performance import _time_elapsed
 
 try:
 	# We attempt to import the Python 2.7 Library in case the code is running on Lambda

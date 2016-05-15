@@ -4,7 +4,7 @@ from web.models import *
 from django.utils.timezone import now
 from django.core.files.base import ContentFile
 import dateutil.parser
-from utils.performance import _time_elapsed
+from hsutils.performance import _time_elapsed
 
 logging.getLogger('boto').setLevel(logging.WARN)
 logger = logging.getLogger(__file__)
