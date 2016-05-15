@@ -552,6 +552,10 @@ class GameReplayUpload(models.Model):
 	exclude_in_aggregate_stats = models.BooleanField(default=False)
 	is_public = models.BooleanField(default=False)
 
+	def get_absolute_url(self):
+		return reverse('joust_replay_view', kwargs={'id':self.id})
+
+
 
 class HSReplaySingleGameFileUpload(models.Model):
 	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

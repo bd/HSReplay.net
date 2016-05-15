@@ -32,7 +32,8 @@ class TestRawLogUploadHandler(CardDataBaseTest, TestDataConsumerMixin):
 
 				# Invoke main handler code
 				result_str = raw_log_upload_handler(event, context)
-				result = json.loads(result_str)
+				#result = json.loads(result_str)
+				result = result_str
 
 				# Begin verification process...
 				if descriptor["expected_response_is_replay_id"].lower() == "true":

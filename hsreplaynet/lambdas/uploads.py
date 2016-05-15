@@ -124,18 +124,23 @@ def _raw_log_upload_handler(event, context):
 		# then reprocess the raw log file afterwords.
 		logger.exception(e)
 
-	result = None
+	result = {
+		"result" : "SUCCUESS",
+		"replay_available" : False,
+		"msg" : "",
+		"replay_uuid" : ""
+	}
 	if replay:
 		#Parsing succeeded so return the UUID of the replay.
 		logger.info("Parsing Succeeded! Replay is %s turns, and has ID: %s" % (str(replay.global_game.num_turns), str(replay.id)))
 		if not created:
 			logger.warn("This replay was determined to be a duplicate of an earlier upload. A new replay record did not need to be created.")
-		result = '{"result": "SUCCESS", "replay_available": "True", "msg" : "", "replay_uuid" : "%s"}' % str(replay.id)
+		result["replay_available"] = True
+		result["replay_uuid"] = str(replay.id)
 	else:
 		logger.error("Parsing Failed!")
 		# Parsing failed so notify the uploader that there will be a delay
-		msg = "Upload succeeded, however there was a problem generating the replay. The replay will be available shortly."
-		result = '{"result": "SUCCESS", "replay_available" : "False", "msg" : "%s", "replay_uuid" : ""}' % msg
+		result["msg"] = "Upload succeeded, however there was a problem generating the replay. The replay will be available shortly."
 
 	time_logger.info("TIMING: %s - About to send result." % _time_elapsed())
 	return result

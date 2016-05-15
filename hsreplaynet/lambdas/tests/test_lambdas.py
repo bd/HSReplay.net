@@ -45,7 +45,6 @@ class TestRawLogUploadHandler(CardDataBaseTest, TestDataConsumerMixin):
 
 		context = {}
 
-		result_str = _raw_log_upload_handler(event, context)
-		result = json.loads(result_str)
+		result = _raw_log_upload_handler(event, context)
 		replay = GameReplayUpload.objects.get(id=result["replay_uuid"])
 		self.assertIsNotNone(replay)

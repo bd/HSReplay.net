@@ -1,16 +1,17 @@
 from django.shortcuts import render
 from django.views.generic import View
 
-from web.models import HSReplaySingleGameFileUpload
+from web.models import *
 
 
 class JoustStartupView(View):
 
 	def get(self, request):
+
 		if request.user.is_authenticated() and request.user.is_staff:
-			replays = HSReplaySingleGameFileUpload.objects.order_by('-match_date').all()
+			replays = GameReplayUpload.objects.order_by('-global_game__match_start_timestamp').all()
 		else:
-			replays = HSReplaySingleGameFileUpload.objects.order_by('-match_date').filter(is_public=True).all()
+			replays = GameReplayUpload.objects.order_by('-global_game__match_start_timestamp').filter(is_public=True).all()
 
 		context = {'replays': replays }
 		return render(request, 'joust/public_replay_list.html', context)
@@ -22,9 +23,9 @@ class JoustPrivateCollectionView(View):
 		replays = []
 
 		for token in request.user.tokens.all():
-			replays.append(HSReplaySingleGameFileUpload.objects.filter(upload_token=token).all())
+			replays.append(GameReplayUpload.objects.filter(upload_token=token).all())
 
-		sorted_replays = sorted(replays, key=lambda r: r.match_date )
+		sorted_replays = sorted(replays, key=lambda r: r.global_game.match_start_timestamp )
 
 		context = {'replays': sorted_replays, 'count': len(sorted_replays) }
 		return render(request, 'joust/private_replay_collection.html', context)

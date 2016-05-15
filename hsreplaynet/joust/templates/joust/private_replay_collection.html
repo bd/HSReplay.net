@@ -21,9 +21,9 @@
                 {% for replay in replays %}
                     <tr>
                         <td><a href="{{ replay.get_absolute_url }}">{{ replay.id }}</a></td>
-                        <td>{{ replay.match_date }}</td>
-                        <td>{{ replay.player_1_name }}</td>
-                        <td>{{ replay.player_2_name }}</td>
+                        <td>{{ replay.global_game.match_start_timestamp }}</td>
+                        <td>{{ replay.player_one_name }}</td>
+                        <td>{{ replay.player_two_name }}</td>
                         <td>{{ replay.upload_token }}</td>
                         <td>{{ replay.is_public }}</td>
                     </tr>
