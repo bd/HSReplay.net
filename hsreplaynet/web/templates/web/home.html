@@ -19,7 +19,7 @@
 			<p class="tagline">Watch and share your Hearthstone replays</p>
 			{% if user.is_authenticated %}
 				<p>
-					<a href="{% url 'private_replay_collection' %}" class="promo-button">My Replays</a>
+					<a href="{% url 'my_replays' %}" class="promo-button">My Replays</a>
 					<a href="{% url 'account_logout' %}" class="promo-button-outline">
 						<img src="{% static 'web/images/bnet.png' %}"/>
 						<span>{{ user.username }}</span>
@@ -81,7 +81,7 @@
 			</ul>
 			<p class="text-center">
 				{% if user.is_authenticated %}
-						<a href="{% url 'private_replay_collection' %}" class="promo-button">View your replays</a>
+					<a href="{% url 'my_replays' %}" class="promo-button">View your replays</a>
 				{% else %}
 					<a href="{% provider_login_url 'battlenet' %}" class="promo-button hero-button">Sign in to view your replays</a>
 				{% endif %}

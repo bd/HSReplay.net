@@ -40,7 +40,7 @@
 			<a href="/"><img src="{% static 'web/images/logo.png' %}" id="navbar-logo" alt="HSReplay"/><h1>HSReplay</h1></a>
 			<ul>
 			{% if user.is_authenticated %}
-				<li><a href="{% url 'private_replay_collection' %}">My Replays</a></li>
+				<li><a href="{% url 'my_replays' %}">My Replays</a></li>
 			{% endif %}
 			</ul>
 

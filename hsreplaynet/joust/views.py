@@ -13,7 +13,7 @@ class JoustPrivateCollectionView(View):
 		sorted_replays = sorted(replays, key=lambda r: r.global_game.match_start_timestamp)
 
 		context = {"replays": sorted_replays, "count": len(sorted_replays)}
-		return render(request, "joust/private_replay_collection.html", context)
+		return render(request, "joust/my_replays.html", context)
 
 
 class ReplayDetailView(View):
