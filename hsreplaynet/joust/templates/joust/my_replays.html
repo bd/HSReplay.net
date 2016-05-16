@@ -1,36 +1,45 @@
 {% extends "base.html" %}
 {% load static from staticfiles %}
 
-{% block stylesheets %}
-    {{ block.super }}
-{% endblock stylesheets %}
-
 {% block content %}
 <div class="container-fluid">
-    <div class="row">
-        <div class="col-xs-12">
-            <table class="table table-hover table-condensed table-responsive" >
-                <tr>
-                    <th>Replay</th>
-                    <th>Match Date</th>
-                    <th>First Player Name</th>
-                    <th>Second Player Name</th>
-                    <th>Upload Token</th>
-                    <th>Is Public</th>
-                </tr>
-                {% for replay in replays %}
-                    <tr>
-                        <td><a href="{{ replay.get_absolute_url }}">{{ replay.id }}</a></td>
-                        <td>{{ replay.global_game.match_start_timestamp }}</td>
-                        <td>{{ replay.player_one_name }}</td>
-                        <td>{{ replay.player_two_name }}</td>
-                        <td>{{ replay.upload_token }}</td>
-                        <td>{{ replay.is_public }}</td>
-                    </tr>
-
-                {% endfor %}
-            </table>
-        </div>
-    </div>
+<div class="row">
+	{% for replay in replays %}
+	<div class="col-xs-3">
+		<!-- hsreplay-negative, hsreplay-positive, hsreplay-invalid -->
+		<div class="thumbnail hsreplay-thumbnail hsreplay-positive">
+			<div class="hsreplay-involved">
+				<figure class="winner">
+					<img src="{% static 'web/images/hunter.jpg' %}" alt="Rexxar"/>
+					<figcaption>{{ replay.player_one_name }}</figcaption>
+				</figure>
+				<img src="{% static 'web/images/vs.png' %}" class="hsreplay-versus"/>
+				<figure class="loser">
+					<img src="{% static 'web/images/paladin.jpg' %}" alt="Uther the Lightbringer"/>
+					<figcaption>{{ replay.player_two_name }}</figcaption>
+				</figure>
+			</div>
+			<div class="hsreplay-details">
+				<dl>
+					<dt>Date</dt>
+					<dd>{{ replay.global_game.match_start_timestamp }}</dd>
+					<dt>Duration</dt>
+					<dd>{{ replay.global_game.match_end_timestamp }}</dd>
+					<dt>Turns</dt>
+					<dd>{{ replay.global_game.num_turns }} turns</dd>
+				</dl><div>
+					<img src="assets/brm.png" class="hsreplay-type" title="Blackrock Mountain">
+					<!-- <img src="assets/dc.png" class="hsreplay-type" title="Disconnected">
+					<img src="assets/loe.png" class="hsreplay-type" title="League of Explorers">
+					<img src="assets/rank14.png" class="hsreplay-type" title="Rank 14">
+					<img src="assets/arena8.png" class="hsreplay-type" title="Arena">
+					<img src="assets/naxx.png" class="hsreplay-type" title="Curse of Naxxramas">
+					<img src="assets/brawl.png" class="hsreplay-type" title="Brawl"> -->
+				</div>
+			</div>
+		</div>
+	</div>
+	{% endfor %}
+</div>
 </div>
 {% endblock content %}
