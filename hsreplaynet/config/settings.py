@@ -110,11 +110,6 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',
 )
 
-if DEBUG:
-    DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
-else:
-    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
-
 S3_RAW_LOG_STORAGE_BUCKET = os.environ.get('S3_RAW_LOG_STORAGE_BUCKET', 'test.raw.replaystorage.hsreplay.net')
 S3_REPLAY_STORAGE_BUCKET = os.environ.get('S3_REPLAY_STORAGE_BUCKET', 'test.replaystorage.hsreplay.net')
 AWS_STORAGE_BUCKET_NAME = S3_REPLAY_STORAGE_BUCKET
@@ -131,18 +126,23 @@ GZIP_CONTENT_TYPES = (
 )
 
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-
-STATIC_HOST = "//static.hsreplay.net" if not DEBUG else ""
-STATIC_URL = STATIC_HOST + '/static/'
-
-if not DEBUG:
-    STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+if DEBUG:
+    DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+    STATIC_HOST = ""
+else:
+    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+    STATICFILES_STORAGE = "whitenoise.django.GzipManifestStaticFilesStorage"
+    STATIC_HOST = "//static.hsreplay.net"
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+STATIC_URL = STATIC_HOST + '/static/'
+
+
 
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
