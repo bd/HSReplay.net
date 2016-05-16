@@ -28,11 +28,15 @@ except ImportError:
 logger = logging.getLogger(__name__)
 time_logger = logging.getLogger("TIMING")
 
+
 class UploadAgentAPIKey(models.Model):
 	full_name = models.CharField(max_length=254)
 	email = models.EmailField()
 	website = models.URLField(blank=True)
 	api_key = models.UUIDField(blank=True)
+
+	def __str__(self):
+		return self.full_name
 
 	def save(self, *args, **kwargs):
 		self.api_key = uuid.uuid4()
