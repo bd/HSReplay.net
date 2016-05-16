@@ -1,6 +1,6 @@
-import uuid
 import logging
 import re
+import uuid
 from datetime import date, datetime, timedelta
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -12,7 +12,7 @@ from django.utils import timezone
 from hearthstone.enums import *
 from hsreplay import __version__ as hsreplay_version
 from hsreplay.dumper import parse_log, create_document, game_to_xml
-from hsreplay.utils import pretty_xml
+from hsreplay.utils import toxml
 from cards.models import Card, Deck
 from hsutils.performance import _time_elapsed
 
@@ -330,10 +330,12 @@ class GameReplayUploadManager(models.Manager):
 		replay_tree = create_document(version=hsreplay_version, build=raw_log.hearthstone_build)
 
 		time_logger.info("TIMING: %s - About to invoke game_to_xml" % _time_elapsed())
-		game = game_to_xml(packet_tree.games[0],
-						   game_meta=raw_log._generate_game_meta_data(),
-						   player_meta=raw_log._generate_player_meta_data(),
-						   decks=raw_log._generate_deck_lists())
+		game = game_to_xml(
+			packet_tree.games[0],
+			game_meta=raw_log._generate_game_meta_data(),
+			player_meta=raw_log._generate_player_meta_data(),
+			decks=raw_log._generate_deck_lists()
+		)
 		time_logger.info("TIMING: %s - game_to_xml Finished" % _time_elapsed())
 
 		replay_tree.append(game)
@@ -414,7 +416,7 @@ class GameReplayUploadManager(models.Manager):
 			upload_token = raw_log.upload_token)
 
 		time_logger.info("TIMING: %s - About to generate XML." % _time_elapsed())
-		xml_str = pretty_xml(replay_tree)
+		xml_str = toxml(replay_tree, pretty=False)
 		time_logger.info("TIMING: %s - Generate XML finished." % _time_elapsed())
 		time_logger.info("TIMING: %s - About to call replay_upload.replay_xml.save." % _time_elapsed())
 		replay_upload.replay_xml.save('hsreplay.xml', ContentFile(xml_str), save=False)
