@@ -161,6 +161,9 @@ class SingleGameRawLogUpload(models.Model):
 
 		return super(SingleGameRawLogUpload, self).clean()
 
+	def get_absolute_url(self):
+		return self.log.url
+
 	def _generate_game_meta_data(self):
 		meta_data = {}
 
