@@ -11,7 +11,6 @@ def deploy():
     source_folder = site_folder + '/source'
     _get_latest_source(source_folder)
     _create_directory_structure_if_necessary(site_folder)
-    _update_settings(source_folder, 'hsreplay.net')
     _update_virtualenv(source_folder)
     _update_static_files(source_folder)
     _update_database(source_folder)
@@ -30,18 +29,6 @@ def _get_latest_source(source_folder):
         sudo('git clone %s %s' % (REPO_URL, source_folder), user='www-data')
     current_commit = local("git log -n 1 --format=%H", capture=True)
     sudo('cd %s && git reset --hard %s' % (source_folder, current_commit), user='www-data')
-
-
-def _update_settings(source_folder, site_name):
-    settings_path = source_folder + '/hsreplaynet/config/settings.py'
-    sed(settings_path, "DEBUG = True", "DEBUG = False", use_sudo=True)
-    sed(settings_path, 'ALLOWED_HOSTS =.+$', 'ALLOWED_HOSTS = ["%s", "www.%s"]' % (site_name,site_name), use_sudo=True)
-    secret_key_file = source_folder + '/hsreplaynet/config/secret_key.py'
-    if not exists(secret_key_file):
-        chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
-        key = ''.join(random.SystemRandom().choice(chars) for _ in range(50))
-        append(secret_key_file, "SECRET_KEY = '%s'" % (key,), use_sudo=True)
-    append(settings_path, '\nfrom .secret_key import SECRET_KEY', use_sudo=True)
 
 
 def _update_virtualenv(source_folder):
