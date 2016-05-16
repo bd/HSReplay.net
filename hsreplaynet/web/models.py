@@ -106,9 +106,11 @@ def _validate_friendly_player_id(value):
 
 
 class SingleGameRawLogUpload(models.Model):
-	"""Represents an upload of raw Hearthstone log data.
+	"""
+	Represents an upload of raw Hearthstone log data.
 
-	The metadata captured is what was provided by the uploader. The raw logs have not yet been parsed for validity.
+	The metadata captured is what was provided by the uploader.
+	The raw logs have not yet been parsed for validity.
 	"""
 	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 	upload_token = models.ForeignKey(SingleSiteUploadToken)
@@ -215,96 +217,122 @@ class SingleGameRawLogUpload(models.Model):
 
 
 class GlobalGame(models.Model):
-	"""Represents a globally unique game (e.g. from the perspective of the server).
+	"""
+	Represents a globally unique game (e.g. from the server's POV).
 
-	The fields on this object represent information that is public to all players and spectators. When the same game is
-	uploaded by multiple players or spectators they will all share a reference to a single global game.
+	The fields on this object represent information that is public
+	to all players and spectators. When the same game is uploaded
+	by multiple players or spectators they will all share a
+	reference to a single global game.
 
-	When a replay or raw log file is uploaded the server first checks for the existence of a GlobalGame record. It looks
-	for any games that occured on the same region where both players have matching battle_net_ids and where the match
-	start timestamp is within +/- 1 minute from the timestamp on the upload. The +/- range on the match start timestamp
-	is to account for potential clock drift between the computer that generated this replay and the computer that uploaded
-	the earlier record which first created the GlobalGame record. If no existing GlobalGame record is found, then one is
-	created.
+	When a replay or raw log file is uploaded the server first checks
+	for the existence of a GlobalGame record. It looks for any games
+	that occured on the same region where both players have matching
+	battle_net_ids and where the match start timestamp is within +/- 1
+	minute from the timestamp on the upload.
+	The +/- range on the match start timestamp is to account for
+	potential clock drift between the computer that generated this
+	replay and the computer that uploaded the earlier record which
+	first created the GlobalGame record. If no existing GlobalGame
+	record is found, then one is created.
 	"""
 	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
-	# Note: The Innkeeper does not share the same accountHi value as real Battle.net Accounts
-	bnet_region_id = models.CharField(max_length=50,
-								   verbose_name="Battle.net Region ID",
-								   help_text="This is the accountHi value from either Player entity.")
+	# NOTE: The Innkeeper does not share the same accountHi value as real accounts
+	bnet_region_id = models.CharField("Battle.net Region ID",
+		max_length=50,
+		help_text="The accountHi value from either Player entity."
+	)
 
-	# We believe game_id is not monotonically increasing as it appears to roll over and reset periodically.
-	game_server_game_id = models.IntegerField(null=True,
-								  verbose_name="Battle.net Game ID",
-								  help_text="This is the game_id from the Net.log")
+	# We believe game_id is not monotonically increasing as it appears
+	# to roll over and reset periodically.
+	game_server_game_id = models.IntegerField("Battle.net Game ID",
+		null=True, blank=True,
+		help_text="This is the game_id from the Net.log"
+	)
 	game_server_address = models.GenericIPAddressField(null=True, blank=True)
 	game_server_port = models.IntegerField(null=True, blank=True)
 
-	hearthstone_build = models.CharField(max_length=50,
-										 null=True,
-										 verbose_name="Hearthstone Build Number",
-										 help_text="This can be discovered by inspecting the game client executable.")
+	hearthstone_build = models.CharField("Hearthstone Build Number",
+		max_length=50, blank=True, null=True,
+		help_text="Patch number at the time the game was played."
+	)
 
-	match_start_timestamp = models.DateTimeField(verbose_name="Match Start Timestamp",
-												 help_text="This must be a timezone aware datetime.")
+	match_start_timestamp = models.DateTimeField("Match Start Timestamp",
+		help_text="Must be a timezone aware datetime."
+	)
 
-	match_end_timestamp = models.DateTimeField(verbose_name="Match End Timestamp",
-												 help_text="This must be a timezone aware datetime.")
+	match_end_timestamp = models.DateTimeField("Match End Timestamp",
+		help_text="Must be a timezone aware datetime."
+	)
 
 	# The BnetGameType enum encodes whether it's ranked or casual as well as standard or wild.
-	game_type = models.IntegerField(null=True,
-									verbose_name="Game Type",
-									help_text="A value from hearthstone.enums.BnetGameType")
+	game_type = models.IntegerField("Game Type",
+		null=True, blank=True,
+		help_text="A value from hearthstone.enums.BnetGameType"
+	)
 
-	# ladder_season is nullable since not all games are ladder games, e.g. Adventure or Arena.
-	ladder_season = models.IntegerField(null=True,
-										verbose_name="Ladder Season",
-										help_text="The season as calculated from the match start timestamp.")
+	# ladder_season is nullable since not all games are ladder games
+	ladder_season = models.IntegerField("Ladder season",
+		null=True, blank=True,
+		help_text="The season as calculated from the match start timestamp."
+	)
 
-	# Nullable, since not all replays are TBs. Will currently have no way to calculate this so it will always be null for now.
-	brawl_season = models.IntegerField(null=True,
-									   verbose_name="Brawl Season",
-									   help_text="The brawl season which resets each week when the brawl changes.")
+	# Nullable, since not all replays are TBs.
+	# Will currently have no way to calculate this so it will always be null for now.
+	brawl_season = models.IntegerField("Tavern Brawl Season",
+		null=True, blank=True,
+		help_text="The brawl season which increments every week the brawl changes."
+	)
 
 	# Nullable, We currently have no way to discover this.
-	scenario_id = models.IntegerField(null=True,
-									  verbose_name="Scenario ID",
-									  help_text="Indicates which Adventure or Brawl logic the server should use.")
+	scenario_id = models.IntegerField("Scenario ID",
+		null=True, blank=True,
+		help_text="ID from DBF/SCENARIO.xml or Scenario cache",
+	)
 
 	# For Adventure bosses & The Innkeeper this value is "0"
-	player_one_battlenet_id = models.CharField(max_length=50,
-											   verbose_name="Player 1 Battle.net ID",
-											   help_text="The accountLo value from the Player entity.")
+	player_one_battlenet_id = models.CharField("Player 1 Battle.net ID",
+		max_length=50, blank=True,
+		help_text="The accountLo value from the Player entity."
+	)
 
 	# The player can change their hero during a game, e.g. via Jaraxxas or Major Domo.
 	# In tavern brawl its possible for this to be a hero like Nefarian or Ragnaros.
-	player_one_starting_hero_id = models.CharField(max_length=50,
-												   verbose_name="Player 1 Starting Hero Card ID",
-												   help_text="The CardID representing Player 1's initial hero.")
+	player_one_starting_hero_id = models.CharField(
+		max_length=50, blank=True,
+		verbose_name="Player 1 Starting Hero CardID",
+		help_text="The CardID representing Player 1's initial hero."
+	)
 
 	# In tavern brawls if the hero is a card like Nefarian or Ragnaros this value will be "0" or CardClass.NEUTRAL
-	player_one_starting_hero_class = models.IntegerField(verbose_name="Player 1 Starting Hero Class",
-														 help_text="A value from hearthstone.enums.CardClass.")
+	player_one_starting_hero_class = models.IntegerField("Player 1 Starting Hero Class",
+		help_text="A value from hearthstone.enums.CardClass."
+	)
 
 	# It is possible for both players to loose a match (but not both for both players to loose).
-	player_one_final_state = models.IntegerField(verbose_name="Player 1 Final State",
-												help_text="A value from hearthstone.enums.PlayState.")
+	player_one_final_state = models.IntegerField("Player 1 Final State",
+		help_text="A value from hearthstone.enums.PlayState."
+	)
 
 	### The next 3 fields all identical to the previous 3, but for Player 2 ###
-	player_two_battlenet_id = models.CharField(max_length=50,
-											   verbose_name="Player 2 Battle.net ID",
-											   help_text="The accountLo value from the Player entity.")
+	player_two_battlenet_id = models.CharField("Player 2 Battle.net ID",
+		max_length=50, blank=True,
+		help_text="The accountLo value from the Player entity."
+	)
 
-	player_two_starting_hero_id = models.CharField(max_length=50,
-												   verbose_name="Player 1 Starting Hero Card ID",
-												   help_text="The CardID representing Player 1's initial hero.")
+	player_two_starting_hero_id = models.CharField("Player 2 Starting Hero CardID",
+		max_length=50, blank=True,
+		help_text="The CardID representing Player 2's initial hero."
+	)
 
-	player_two_starting_hero_class = models.IntegerField(verbose_name="Player 1 Starting Hero Class",
-														 help_text="A value from hearthstone.enums.CardClass.")
+	player_two_starting_hero_class = models.IntegerField("Player 2 Starting Hero Class",
+		help_text="A value from hearthstone.enums.CardClass."
+	)
 
-	player_two_final_state = models.IntegerField(verbose_name="Player 2 Final State",
-												 help_text="A value from hearthstone.enums.PlayState.")
+	player_two_final_state = models.IntegerField("Player 2 Final State",
+		help_text="A value from hearthstone.enums.PlayState."
+	)
 
 	# The following basic stats are globally visible to all
 	num_turns = models.IntegerField()
@@ -314,7 +342,10 @@ class GlobalGame(models.Model):
 class GameReplayUploadManager(models.Manager):
 
 	def get_or_create_from_raw_log_upload(self, raw_log):
-		""" Returns a tuple of the record and boolean indicating whether it was created."""
+		"""
+		Returns a tuple of the record and boolean indicating
+		whether it was created.
+		"""
 		time_logger.info("TIMING: %s - Start of get_or_create_from_raw_log_upload" % _time_elapsed())
 		# Don't attempt to create a replay if validation doesn't pass
 		raw_log.full_clean()
@@ -368,41 +399,46 @@ class GameReplayUploadManager(models.Manager):
 		if not player_two_battlenet_id:
 			raise ValidationError("Could not locate Player 2's Battle.net ID which is required.")
 
-
 		global_game = GlobalGame.objects.filter(bnet_region_id=bnet_region_id,
-												  game_server_address=raw_log.game_server_address,
-												  game_server_port=raw_log.game_server_port,
-												  game_server_game_id=raw_log.game_server_game_id,
-												  player_one_battlenet_id=player_one_battlenet_id,
-												  player_two_battlenet_id=player_two_battlenet_id).first()
+			game_server_address=raw_log.game_server_address,
+			game_server_port=raw_log.game_server_port,
+			game_server_game_id=raw_log.game_server_game_id,
+			player_one_battlenet_id=player_one_battlenet_id,
+			player_two_battlenet_id=player_two_battlenet_id
+		).first()
 
 		if global_game:
-			# If a global_game already exists then there is a possibility that this is a duplicate upload, so check for it.
-			existing = GameReplayUpload.objects.filter(upload_token=raw_log.upload_token, global_game=global_game).first()
+			# If a global_game already exists then there is a possibility
+			# that this is a duplicate upload, so check for it.
+			existing = GameReplayUpload.objects.filter(
+				upload_token=raw_log.upload_token,
+				global_game=global_game
+			).first()
 			if existing:
-				return (existing, False)
+				return existing, False
 		else:
 			global_game = GlobalGame.objects.create(bnet_region_id=bnet_region_id,
-									 brawl_season=None,
-									 game_server_game_id=raw_log.game_server_game_id,
-									 game_server_address = raw_log.game_server_address,
-									 game_server_port = raw_log.game_server_port,
-									 game_type=raw_log.game_type,
-									 hearthstone_build=raw_log.hearthstone_build,
-									 ladder_season=self._current_season_number(raw_log.match_start_timestamp),
-									 match_end_timestamp=self._find_match_end_timestamp(packet_tree),
-									 match_start_timestamp=raw_log.match_start_timestamp,
-									 num_entities=self._get_num_entities(packet_tree),
-									 num_turns=self._get_num_turns(packet_tree),
-									 player_one_battlenet_id=player_one_battlenet_id,
-									 player_one_starting_hero_class=self._get_starting_hero_class_for_player(0, packet_tree),
-									 player_one_starting_hero_id=self._get_starting_hero_for_player(0,packet_tree).card_id,
-									 player_one_final_state = self._get_final_state_for_player(0, packet_tree),
-									 player_two_battlenet_id=player_two_battlenet_id,
-									 player_two_starting_hero_class=self._get_starting_hero_class_for_player(1, packet_tree),
-									 player_two_starting_hero_id=self._get_starting_hero_for_player(1,packet_tree).card_id,
-									 player_two_final_state=self._get_final_state_for_player(1, packet_tree),
-									 scenario_id=raw_log.scenario_id)
+				brawl_season=None,
+				game_server_game_id=raw_log.game_server_game_id,
+				game_server_address=raw_log.game_server_address,
+				game_server_port=raw_log.game_server_port,
+				game_type=raw_log.game_type,
+				hearthstone_build=raw_log.hearthstone_build,
+				ladder_season=self._current_season_number(raw_log.match_start_timestamp),
+				match_end_timestamp=self._find_match_end_timestamp(packet_tree),
+				match_start_timestamp=raw_log.match_start_timestamp,
+				num_entities=self._get_num_entities(packet_tree),
+				num_turns=self._get_num_turns(packet_tree),
+				player_one_battlenet_id=player_one_battlenet_id,
+				player_one_starting_hero_class=self._get_starting_hero_class_for_player(0, packet_tree),
+				player_one_starting_hero_id=self._get_starting_hero_for_player(0,packet_tree).card_id,
+				player_one_final_state=self._get_final_state_for_player(0, packet_tree),
+				player_two_battlenet_id=player_two_battlenet_id,
+				player_two_starting_hero_class=self._get_starting_hero_class_for_player(1, packet_tree),
+				player_two_starting_hero_id=self._get_starting_hero_for_player(1,packet_tree).card_id,
+				player_two_final_state=self._get_final_state_for_player(1, packet_tree),
+				scenario_id=raw_log.scenario_id
+			)
 
 		replay_upload = GameReplayUpload(
 			friendly_player_id = raw_log.friendly_player_id,
