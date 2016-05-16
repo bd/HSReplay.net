@@ -287,8 +287,5 @@ ACCOUNT_DEFAULT_HTTP_PROTOCOL = "http" if DEBUG else "https"
 
 SOCIALACCOUNT_ADAPTER = "allauth_battlenet.provider.BattleNetSocialAccountAdapter"
 
-BATTLE_NET_KEY = os.environ.get('BATTLE_NET_KEY', '')
-BATTLE_NET_SECRET = os.environ.get('BATTLE_NET_SECRET', '')
-
 API_KEY_HEADER = 'x-hsreplay-api-key'
 UPLOAD_TOKEN_HEADER = 'x-hsreplay-upload-token'
