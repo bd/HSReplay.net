@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block fullcontent %}
+<div class="page page-account">
+	<nav>
+		<ul class="nav">
+			<li><a href="{% url 'account_email' %}">Update email</a></li>
+			<li><a href="{% url 'account_change_password' %}">Change password</a></li>
+			<li><a href="{% url 'socialaccount_connections' %}">Battle.net Linking</a></li>
+		</ul>
+	</nav>
+	{% block content %}{% endblock %}
+</div>
+{% endblock %}
