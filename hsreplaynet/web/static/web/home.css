@@ -111,6 +111,7 @@
 #feat-joust-screenshot {
 	height: 280px;
 	width: 500px;
+	margin: 1em 0;
 }
 
 #front-intro {
@@ -119,6 +120,7 @@
 
 .front-feature {
 	clear: both;
+	padding-top: 2em;
 }
 
 .front-feature h2 {
@@ -172,7 +174,7 @@ ul.home-steps {
 	margin: 2em 0;
 }
 
-ul.home-steps li  {
+ul.home-steps li {
 	border-right: solid 1px black;
 	text-align: center;
 }
@@ -181,7 +183,7 @@ ul.home-steps li h3 {
 	margin: 10px 0 30px 0;
 }
 
-ul.home-steps li:last-child  {
+ul.home-steps li:last-child {
 	border-right: none;
 }
 
