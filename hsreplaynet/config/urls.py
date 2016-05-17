@@ -9,7 +9,7 @@ urlpatterns = [
 	url(r"^api/", include(api)),
 	url(r"^docs/", include(docs)),
 	url(r"^games/", include("joust.urls")),
-	url(r"^accounts/", include("allauth_battlenet.urls")),
-	url(r"^accounts/", include("allauth.urls")),
+	url(r"^account/", include("allauth_battlenet.urls")),
+	url(r"^account/", include("allauth.urls")),
 	url(r"^", include("django.contrib.flatpages.urls")),
 ]
