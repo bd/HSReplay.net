@@ -341,6 +341,10 @@ class GlobalGame(models.Model):
 	num_turns = models.IntegerField()
 	num_entities = models.IntegerField()
 
+	@property
+	def duration(self):
+		return self.match_end_timestamp - self.match_start_timestamp
+
 
 class GameReplayUploadManager(models.Manager):
 

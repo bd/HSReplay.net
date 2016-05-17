@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static from staticfiles %}
+{% load web_extras %}
 
 {% block fullcontent %}
 <div class="content replay-listing">
@@ -23,7 +24,7 @@
 					<dt>Date</dt>
 					<dd>{{ replay.global_game.match_start_timestamp }}</dd>
 					<dt>Duration</dt>
-					<dd>{{ replay.global_game.match_end_timestamp }}</dd>
+					<dd>{{ replay.global_game.duration|human_duration }}</dd>
 					<dt>Turns</dt>
 					<dd>{{ replay.global_game.num_turns }} turns</dd>
 				</dl><div>
