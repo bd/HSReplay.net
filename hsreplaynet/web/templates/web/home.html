@@ -20,7 +20,7 @@
 			{% if user.is_authenticated %}
 				<p>
 					<a href="{% url 'my_replays' %}" class="promo-button">My Replays</a>
-					<a href="{% url 'account_logout' %}" class="promo-button-outline">
+					<a href="{% url 'account_edit' %}" class="promo-button-outline">
 						<img src="{% static 'web/images/bnet.png' %}"/>
 						<span>{{ user.username }}</span>
 					</a>
