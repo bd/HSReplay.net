@@ -42,6 +42,7 @@ INSTALLED_APPS = (
 
 if not IS_RUNNING_AS_LAMBDA:
 	INSTALLED_APPS += (
+		"django.contrib.flatpages",
 		"allauth",
 		"allauth.account",
 		"allauth.socialaccount",

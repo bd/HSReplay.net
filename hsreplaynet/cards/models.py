@@ -1,9 +1,8 @@
-import random
-from django.db import models
-from datetime import datetime
-from hearthstone import enums
 import hashlib
-
+import random
+from datetime import datetime
+from django.db import models
+from hearthstone import enums
 
 
 class CardManager(models.Manager):
@@ -159,7 +158,6 @@ class Deck(models.Model):
 	cards = models.ManyToManyField(Card, through="Include")
 	digest = models.CharField(max_length=32, unique=True)
 	created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
-
 
 	def __str__(self):
 		return "[" + ",".join(map(str, self.include_set.all())) + "]"

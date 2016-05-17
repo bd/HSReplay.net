@@ -1,9 +1,9 @@
 html {
-  box-sizing: border-box;
+	box-sizing: border-box;
 }
 
 *, *:before, *:after {
-  box-sizing: inherit;
+	box-sizing: inherit;
 }
 
 ::selection {
@@ -24,7 +24,7 @@ body {
 	height: 100%;
 }
 
-body, html{
+body, html {
 	margin: 0;
 	padding: 0;
 	height: 100%;

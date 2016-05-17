@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load static from staticfiles %}
+
+{% block stylesheets %}
+	{{ block.super }}
+	<link href="{% static 'web/flatpages.css' %}" rel="stylesheet"/>
+{% endblock stylesheets %}
+
+{% block content %}
+<article id="flatpage">
+	<header id="flatpage-header">
+		<h2 id="flatpage-title">{{ flatpage.title }}</h2>
+	</header>
+
+	<section id="flatpage-content">
+		{{ flatpage.content }}
+	</section>
+</article>
+{% endblock content %}

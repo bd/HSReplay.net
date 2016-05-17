@@ -11,4 +11,5 @@ urlpatterns = [
 	url(r"^games/", include("joust.urls")),
 	url(r"^accounts/", include("allauth_battlenet.urls")),
 	url(r"^accounts/", include("allauth.urls")),
+	url(r"^", include("django.contrib.flatpages.urls")),
 ]
