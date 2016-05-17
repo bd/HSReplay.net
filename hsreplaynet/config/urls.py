@@ -2,10 +2,11 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from django.views.generic import TemplateView
 from web.urls import api, docs
+from web.views import home
 
 
 urlpatterns = [
-	url(r"^$", "web.views.home", name="home"),
+	url(r"^$", home, name="home"),
 	url(r"^admin/", include(admin.site.urls)),
 	url(r"^api/", include(api)),
 	url(r"^docs/", include(docs)),
