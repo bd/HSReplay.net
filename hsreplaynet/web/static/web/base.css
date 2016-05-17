@@ -100,3 +100,27 @@ footer p {
 footer a {
 	color: #aaa;
 }
+
+
+/* Generic pages (eg. account, flatpages) */
+
+.page {
+	padding: 0 3em;
+	max-width: 950px;
+	margin: 0 auto;
+}
+
+.page section {
+	margin-bottom: 2.5em;
+}
+
+#flatpage-content {
+	margin: 0 auto;
+}
+
+#flatpage-header {
+	color: #333;
+	text-align: center;
+	font-size: 3em;
+	padding: 1em;
+}
