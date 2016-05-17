@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% load static from staticfiles %}
 
-{% block content %}
+{% block fullcontent %}
+<div class="content replay-listing">
 <div class="container-fluid">
 <div class="row">
 	{% for replay in replays %}
@@ -40,4 +41,5 @@
 	{% endfor %}
 </div>
 </div>
-{% endblock content %}
+</div>
+{% endblock %}
