@@ -56,7 +56,7 @@ a.hsreplay-thumbnail:link, a.hsreplay-thumbnail:hover {
 }
 
 .hsreplay-involved figcaption {
-	font-size: 1.1em;
+	font-size: 1vw;
 	color: white;
 	position: absolute;
 	background-color: rgba(0, 0, 0, 0.65);
