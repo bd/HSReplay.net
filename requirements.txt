@@ -1,5 +1,5 @@
 allauth_battlenet==0.9.4
-Django==1.8
+Django==1.9.6
 gunicorn==18.0
 requests==2.8.1
 wheel==0.24.0
