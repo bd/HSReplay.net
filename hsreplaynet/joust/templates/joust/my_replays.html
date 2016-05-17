@@ -7,14 +7,12 @@
 	{% for replay in replays %}
 	<div class="col-xs-3">
 		<!-- hsreplay-negative, hsreplay-positive, hsreplay-invalid -->
-		<div class="thumbnail hsreplay-thumbnail hsreplay-positive">
+		<a href="{{ replay.get_absolute_url }}" class="hsreplay-thumbnail hsreplay-positive">
 			<div class="hsreplay-involved">
 				<figure class="winner">
 					<img src="{% static 'web/images/hunter.jpg' %}" alt="Rexxar"/>
 					<figcaption>{{ replay.player_one_name }}</figcaption>
-				</figure>
-				<img src="{% static 'web/images/vs.png' %}" class="hsreplay-versus"/>
-				<figure class="loser">
+				</figure><img src="{% static 'web/images/vs.png' %}" class="hsreplay-versus"/><figure class="loser">
 					<img src="{% static 'web/images/paladin.jpg' %}" alt="Uther the Lightbringer"/>
 					<figcaption>{{ replay.player_two_name }}</figcaption>
 				</figure>
@@ -28,8 +26,8 @@
 					<dt>Turns</dt>
 					<dd>{{ replay.global_game.num_turns }} turns</dd>
 				</dl><div>
-					<img src="assets/brm.png" class="hsreplay-type" title="Blackrock Mountain">
-					<!-- <img src="assets/dc.png" class="hsreplay-type" title="Disconnected">
+					<!--<img src="assets/brm.png" class="hsreplay-type" title="Blackrock Mountain">
+					<img src="assets/dc.png" class="hsreplay-type" title="Disconnected">
 					<img src="assets/loe.png" class="hsreplay-type" title="League of Explorers">
 					<img src="assets/rank14.png" class="hsreplay-type" title="Rank 14">
 					<img src="assets/arena8.png" class="hsreplay-type" title="Arena">
@@ -37,7 +35,7 @@
 					<img src="assets/brawl.png" class="hsreplay-type" title="Brawl"> -->
 				</div>
 			</div>
-		</div>
+		</a>
 	</div>
 	{% endfor %}
 </div>
