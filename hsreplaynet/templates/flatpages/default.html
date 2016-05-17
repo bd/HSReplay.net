@@ -13,6 +13,9 @@
 	</header>
 
 	<section id="flatpage-content">
+		{% if user.is_superuser %}
+			<p><a href="{% url 'admin:flatpages_flatpage_change' flatpage.id %}">Edit this page</a></p>
+		{% endif %}
 		{{ flatpage.content }}
 	</section>
 </article>
