@@ -16,7 +16,7 @@ class JoustPrivateCollectionView(View):
 		for token in request.user.tokens.all():
 			replays.extend(list(GameReplayUpload.objects.filter(upload_token=token).all()))
 
-		sorted_replays = sorted(replays, key=lambda r: r.global_game.match_start_timestamp)
+		sorted_replays = sorted(replays, key=lambda r: r.global_game.match_start_timestamp, reverse=True)
 
 		context = {"replays": sorted_replays, "count": len(sorted_replays)}
 		return render(request, "joust/my_replays.html", context)
