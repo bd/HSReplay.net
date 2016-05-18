@@ -12,10 +12,10 @@
 		<a href="{{ replay.get_absolute_url }}" class="hsreplay-thumbnail hsreplay-positive">
 			<div class="hsreplay-involved">
 				<figure class="winner">
-					<img src="{% static 'web/images/hunter.jpg' %}" alt="Rexxar"/>
+					<img src="//static.hsreplay.net/static/joust/card-art/{{ replay.global_game.player_one_starting_hero_id }}.jpg" alt="Rexxar"/>
 					<figcaption>{{ replay.player_one_name }}</figcaption>
 				</figure><img src="{% static 'web/images/vs.png' %}" class="hsreplay-versus"/><figure class="loser">
-					<img src="{% static 'web/images/paladin.jpg' %}" alt="Uther the Lightbringer"/>
+					<img src="//static.hsreplay.net/static/joust/card-art/{{ replay.global_game.player_two_starting_hero_id }}.jpg" alt="Rexxar"/>
 					<figcaption>{{ replay.player_two_name }}</figcaption>
 				</figure>
 			</div>
