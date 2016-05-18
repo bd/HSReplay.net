@@ -21,8 +21,8 @@
 			</div>
 			<div class="hsreplay-details">
 				<dl>
-					<dt>Date</dt>
-					<dd>{{ replay.global_game.match_start_timestamp }}</dd>
+					<dt>Played</dt>
+					<dd title="{{ replay.global_game.match_start_timestamp }}">{{ replay.global_game.match_start_timestamp|human_time }}</dd>
 					<dt>Duration</dt>
 					<dd>{{ replay.global_game.duration|human_duration }}</dd>
 					<dt>Turns</dt>
