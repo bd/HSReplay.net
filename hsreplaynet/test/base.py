@@ -10,12 +10,12 @@ from hearthstone.enums import *
 
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
-SCREEN_DUMP_LOCATION = os.path.join(APP_DIR,'screendumps')
-JSON_DATA_LOCATION = os.path.join(APP_DIR,'json')
-REPLAY_DATA_LOCATION = os.path.join(APP_DIR, 'replays')
-FIXTURE_DATA_LOCATION = os.path.join(APP_DIR, 'fixtures')
-LOG_DATA_LOCATION = os.path.join(APP_DIR, 'logs')
-INTEGRATION_DATA_LOCATION = os.path.join(APP_DIR, 'integration_data')
+SCREEN_DUMP_LOCATION = os.path.join(APP_DIR,"screendumps")
+JSON_DATA_LOCATION = os.path.join(APP_DIR,"json")
+REPLAY_DATA_LOCATION = os.path.join(APP_DIR, "replays")
+FIXTURE_DATA_LOCATION = os.path.join(APP_DIR, "fixtures")
+LOG_DATA_LOCATION = os.path.join(APP_DIR, "logs")
+INTEGRATION_DATA_LOCATION = os.path.join(APP_DIR, "integration_data")
 
 
 class FunctionalTest(StaticLiveServerTestCase):
@@ -51,19 +51,19 @@ class FunctionalTest(StaticLiveServerTestCase):
 		return False
 
 	def take_screenshot(self):
-		filename = self._get_filename() + '.png'
-		print('screenshotting to', filename)
+		filename = self._get_filename() + ".png"
+		print("screenshotting to", filename)
 		self.browser.get_screenshot_as_file(filename)
 
 	def dump_html(self):
-		filename = self._get_filename() + '.html'
-		print('dumping page HTML to', filename)
-		with open(filename, 'w') as f:
+		filename = self._get_filename() + ".html"
+		print("dumping page HTML to", filename)
+		with open(filename, "w") as f:
 			f.write(self.browser.page_source)
 
 	def _get_filename(self):
-		timestamp = datetime.now().isoformat().replace(':', '.')[:19]
-		return '{folder}/{classname}.{method}-window{windowid}-{timestamp}'.format(
+		timestamp = datetime.now().isoformat().replace(":", ".")[:19]
+		return "{folder}/{classname}.{method}-window{windowid}-{timestamp}".format(
 			folder = SCREEN_DUMP_LOCATION,
 			classname = self.__class__.__name__,
 			method = self._testMethodName,
@@ -75,12 +75,10 @@ class TestDataConsumerMixin:
 	"""A mixin class for accessing test data."""
 
 	def get_raw_log_integration_fixtures(self):
-
 		for test_case_uuid_dir in os.listdir(INTEGRATION_DATA_LOCATION):
-			descriptor = json.load(open(os.path.join(INTEGRATION_DATA_LOCATION, test_case_uuid_dir, 'descriptor.json')))
-			raw_log = open(os.path.join(INTEGRATION_DATA_LOCATION, test_case_uuid_dir, 'power.log')).read()
+			descriptor = json.load(open(os.path.join(INTEGRATION_DATA_LOCATION, test_case_uuid_dir, "descriptor.json")))
+			raw_log = open(os.path.join(INTEGRATION_DATA_LOCATION, test_case_uuid_dir, "power.log")).read()
 			yield (descriptor, raw_log, test_case_uuid_dir)
-
 
 	def replay_file_path(self, replay_name):
 		return os.path.join(REPLAY_DATA_LOCATION, replay_name)
@@ -91,44 +89,24 @@ class TestDataConsumerMixin:
 
 	def get_raw_log_fixture_for_random_innkeeper_match(self):
 		fixture = {}
-		fixture['raw_log'] = self.read_raw_log_file("Power.log")
-		utc = pytz.timezone('UTC')
-		fixture['upload_date'] = datetime.combine(date.today(),
-												  time(hour=2,
-													   minute=59,
-													   second=14,
-													   microsecond=608862,
-													   tzinfo=utc))
+		fixture["raw_log"] = self.read_raw_log_file("Power.log")
+		utc = pytz.timezone("UTC")
+		fixture["upload_date"] = datetime.combine(date.today(),
+			time(hour=2, minute=59, second=14, microsecond=608862, tzinfo=utc)
+		)
 
-		fixture['match_start_timestamp'] = fixture['upload_date']
-		fixture['match_end_timestamp'] = datetime.combine(date.today(),
-														  time(hour=3,
-															   minute=0,
-															   second=50,
-															   microsecond=725690,
-															   tzinfo=utc))
+		fixture["match_start_timestamp"] = fixture["upload_date"]
+		fixture["match_end_timestamp"] = datetime.combine(date.today(),
+			time(hour=3, minute=0, second=50, microsecond=725690, tzinfo=utc)
+		)
 
-		fixture['player_one_name'] = "Nicodemus"
-		fixture['player_one_final_state'] = PlayState.LOST
-		fixture['player_one_battlenet_id'] = "37760170"
-		fixture['player_one_starting_hero_id'] = "HERO_01"
-		fixture['player_one_starting_hero_class'] = CardClass.WARRIOR
-
-		fixture['player_two_name'] = "The Innkeeper"
-		fixture['player_two_final_state'] = PlayState.WON
-		fixture['player_two_battlenet_id'] = "0"
-		fixture['bnet_region_id'] = '144115193835963207'
-		fixture['player_two_starting_hero_id'] = "HERO_06"
-		fixture['player_two_starting_hero_class'] = CardClass.DRUID
-
-		fixture['num_turns'] = 6
-		fixture['num_entities'] = 70
+		fixture["num_turns"] = 6
+		fixture["num_entities"] = 70
 
 		return fixture
 
 
 class CardDataBaseTest(TestCase):
-
 	@classmethod
 	def setUpClass(cls):
 		# Call `manage.py load_cards`

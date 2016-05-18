@@ -11,13 +11,13 @@
 		<!-- hsreplay-negative, hsreplay-positive, hsreplay-invalid -->
 		<a href="{{ replay.get_absolute_url }}" class="hsreplay-thumbnail hsreplay-positive">
 			<div class="hsreplay-involved">
-				<figure class="winner">
-					<img src="//static.hsreplay.net/static/joust/card-art/{{ replay.global_game.player_one_starting_hero_id }}.jpg" alt="Rexxar"/>
-					<figcaption>{{ replay.player_one_name }}</figcaption>
-				</figure><img src="{% static 'web/images/vs.png' %}" class="hsreplay-versus"/><figure class="loser">
-					<img src="//static.hsreplay.net/static/joust/card-art/{{ replay.global_game.player_two_starting_hero_id }}.jpg" alt="Rexxar"/>
-					<figcaption>{{ replay.player_two_name }}</figcaption>
+				<img src="{% static 'web/images/vs.png' %}" class="hsreplay-versus"/>
+				{% for player in replay.global_game.players.all %}
+				<figure class="{% if player.won %}winner{% endif %}">
+					<img src="//static.hsreplay.net/static/joust/card-art/{{ player.hero_card_id }}.jpg" alt="{{ player.hero_card_id }}"/>
+					<figcaption>{{ player.name }}</figcaption>
 				</figure>
+				{% endfor %}
 			</div>
 			<div class="hsreplay-details">
 				<dl>

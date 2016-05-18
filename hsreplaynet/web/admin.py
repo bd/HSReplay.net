@@ -6,29 +6,30 @@ from .models import *
 class GameReplayUploadAdmin(admin.ModelAdmin):
 	date_hierarchy = "upload_timestamp"
 	list_display = (
-		"__str__", "player_one_name", "player_two_name", "upload_timestamp",
-		"global_game", "hsreplay_version", "replay_xml", "raw_log"
+		"__str__", "upload_timestamp", "global_game",
+		"hsreplay_version", "replay_xml", "raw_log",
 	)
 	list_filter = ("is_spectated_game", "hsreplay_version")
 	raw_id_fields = (
 		"upload_token", "global_game", "raw_log",
-		"player_one_starting_deck_list",
-		"player_two_starting_deck_list"
 	)
-	search_fields = ("player_one_name", "player_two_name")
 
 
 @admin.register(GlobalGame)
 class GlobalGameAdmin(admin.ModelAdmin):
 	date_hierarchy = "match_start_timestamp"
 	list_display = (
-		"__str__", "player_one_starting_hero_class", "player_two_starting_hero_class",
-		"game_server_game_id", "game_type", "ladder_season", "brawl_season",
-		"scenario_id", "num_turns", "num_entities"
+		"__str__", "game_server_game_id", "game_type", "ladder_season",
+		"brawl_season", "scenario_id", "num_turns", "num_entities",
 	)
 	list_filter = (
 		"game_type", "ladder_season", "brawl_season", "hearthstone_build"
 	)
+
+@admin.register(GlobalGamePlayer)
+class GlobalGamePlayerAdmin(admin.ModelAdmin):
+	list_display = ("__str__", "user", "player_id", "is_first")
+	list_filter = ("is_ai", "rank", "is_first")
 
 
 @admin.register(SingleGameRawLogUpload)

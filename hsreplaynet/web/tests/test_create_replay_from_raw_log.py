@@ -46,9 +46,7 @@ class CreateReplayFromRawLogTests(CardDataBaseTest, TestDataConsumerMixin):
 
 		self.upload.log.delete()
 
-
 	def test_create_replay_from_raw_log(self):
-
 		self.upload.log.save("Power.log", ContentFile(self.log_data), save=False)
 		self.upload.player_1_deck_list = ",".join(self.thirty_card_deck)
 		self.upload.player_1_rank = 18
@@ -60,37 +58,18 @@ class CreateReplayFromRawLogTests(CardDataBaseTest, TestDataConsumerMixin):
 		self.assertEqual(replay.upload_timestamp, self.upload_date)
 		self.assertEqual(replay.raw_log, self.upload)
 
-		self.assertEqual(replay.player_one_name, self.log_data_fixture["player_one_name"])
-		self.assertEqual(replay.player_two_name, self.log_data_fixture["player_two_name"])
-
-
 		replay_xml = replay.replay_xml.read()
 		replay_tree = ElementTree.fromstring(replay_xml)
 		self.assertIsNotNone(replay_tree.find("Game"))
 		self.assertEqual(len(list(replay_tree.iter("Player"))), 2)
 		self.assertEqual(replay.hsreplay_version, hsreplay_version)
 
-		player_one_starting_deck = replay.player_one_starting_deck_list
-		expected_starting_deck, created = Deck.objects.get_or_create_from_id_list(self.thirty_card_deck)
-		self.assertEqual(player_one_starting_deck.card_id_list(), expected_starting_deck.card_id_list())
-
 		self.assertIsNotNone(replay.global_game)
 		global_game = replay.global_game
-		self.assertEqual(global_game.bnet_region_id, self.log_data_fixture["bnet_region_id"])
 		self.assertEqual(global_game.match_start_timestamp, self.log_data_fixture["match_start_timestamp"])
 
 		# There might be an issue with hslog.parser.parse_timestamp() rolling over the match date when it doesn"t need to.
 		# self.assertEqual(global_game.match_end_timestamp, self.log_data_fixture["match_end_timestamp"])
-
-		self.assertEqual(global_game.player_one_battlenet_id, self.log_data_fixture["player_one_battlenet_id"])
-		self.assertEqual(global_game.player_one_starting_hero_id, self.log_data_fixture["player_one_starting_hero_id"])
-		self.assertEqual(global_game.player_one_starting_hero_class, self.log_data_fixture["player_one_starting_hero_class"])
-		self.assertEqual(global_game.player_one_final_state, self.log_data_fixture["player_one_final_state"])
-
-		self.assertEqual(global_game.player_two_battlenet_id, self.log_data_fixture["player_two_battlenet_id"])
-		self.assertEqual(global_game.player_two_starting_hero_id, self.log_data_fixture["player_two_starting_hero_id"])
-		self.assertEqual(global_game.player_two_starting_hero_class, self.log_data_fixture["player_two_starting_hero_class"])
-		self.assertEqual(global_game.player_two_final_state, self.log_data_fixture["player_two_final_state"])
 
 		self.assertEqual(global_game.num_turns, self.log_data_fixture["num_turns"])
 		self.assertEqual(global_game.num_entities, self.log_data_fixture["num_entities"])

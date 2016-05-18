@@ -42,9 +42,10 @@ a.hsreplay-thumbnail:link, a.hsreplay-thumbnail:hover {
 /* Top section (.hsreplay-involved) */
 
 .hsreplay-involved {
-	width: 100%;
 	margin: 0;
 	position: relative;
+	width: 100%;
+	white-space: nowrap;
 }
 
 .hsreplay-involved figure {
@@ -117,7 +118,7 @@ a.hsreplay-thumbnail:link, a.hsreplay-thumbnail:hover {
 	position: absolute;
 	width: 12%;
 	bottom: 10%;
-	margin-left: -6%;
+	margin-left: 44%;
 	z-index: 1;
 }
 
