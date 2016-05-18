@@ -1,6 +1,5 @@
 .content.replay-listing {
 	margin: 1em auto;
-	max-width: 80%;
 }
 
 .hsreplay-thumbnail {
@@ -64,7 +63,7 @@ a.hsreplay-thumbnail:link, a.hsreplay-thumbnail:hover {
 	background-color: rgba(0, 0, 0, 0.65);
 	color: white;
 	display: flex;
-	font-size: 1vw;
+	font-size: 4vw;
 	font-weight: bold;
 	margin-top: -25%;
 	position: absolute;
@@ -75,6 +74,28 @@ a.hsreplay-thumbnail:link, a.hsreplay-thumbnail:hover {
 	text-align: center;
 	text-shadow: -1px -1px 0 #000, 1px -1px 0 #000,
 		-1px 1px 0 #000, 1px 1px 0 #000;
+}
+
+@media (min-width: 768px) {
+	.hsreplay-involved figcaption {
+		font-size: 2vw;
+	}
+}
+
+@media (min-width: 992px) {
+	.hsreplay-involved figcaption {
+		font-size: 1.5vw;
+	}
+}
+
+@media (min-width: 1200px) {
+	.content.replay-listing {
+		max-width: 80%;
+	}
+
+	.hsreplay-involved figcaption {
+		font-size: 1vw;
+	}
 }
 
 .hsreplay-involved figcaption span {
