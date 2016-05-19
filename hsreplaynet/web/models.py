@@ -271,7 +271,7 @@ class GlobalGame(models.Model):
 	# Nullable, since not all replays are TBs.
 	# Will currently have no way to calculate this so it will always be null for now.
 	brawl_season = models.IntegerField("Tavern Brawl Season",
-		null=True, blank=True,
+		default=0,
 		help_text="The brawl season which increments every week the brawl changes."
 	)
 
@@ -418,7 +418,6 @@ class GameReplayUploadManager(models.Manager):
 		num_turns = packet_tree.games[0].tags.get(GameTag.TURN)
 
 		global_game = GlobalGame.objects.create(
-			brawl_season = None,
 			game_server_game_id = raw_log.game_server_game_id,
 			game_server_address = raw_log.game_server_address,
 			game_server_port = raw_log.game_server_port,
