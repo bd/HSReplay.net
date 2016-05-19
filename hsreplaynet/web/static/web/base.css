@@ -125,3 +125,62 @@ footer a {
 	font-size: 3em;
 	padding: 1em;
 }
+
+
+/* Elements */
+
+.promo-button, .promo-button:visited, .promo-button-outline, .promo-button-outline:visited {
+	display: inline-block;
+	font-weight: bold;
+	padding: 7px 30px;
+	line-height: 2em;
+	font-size: 1.2em;
+	text-decoration: none;
+	border: solid 1px #c9485b;
+	color: white;
+	background-color: #c9485b;
+}
+
+.promo-button {
+	text-transform: uppercase;
+}
+
+.promo-button:hover, .promo-button:active {
+	color: #c9485b;
+	background-color: white;
+	text-decoration: none;
+	border-color: #c9485b;
+}
+
+
+.promo-button-outline, .promo-button-outline:visited {
+	background-color: transparent;
+	color: #c9485b;
+}
+
+.promo-button-outline:hover, .promo-button-outline:active{
+	text-decoration: none;
+	color: #c9485b;
+}
+
+.promo-button img, .promo-button-outline img {
+	vertical-align: text-bottom;
+}
+
+.promo-button.hero-button {
+	padding-left: 45px;
+	padding-right: 45px;
+}
+
+.promo-link, .promo-help {
+	font-size: 1.2em;
+}
+
+.promo-link, .promo-link:visited {
+	text-decoration: underline;
+	color: white;
+}
+
+.promo-link:hover, .promo-link:active {
+	color: #c9485b;
+}
