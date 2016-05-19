@@ -1,7 +1,8 @@
 import logging
 import re
 import uuid
-from datetime import date, datetime, timedelta
+from datetime import datetime
+from io import StringIO
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.files.storage import default_storage
@@ -16,14 +17,6 @@ from hsreplay.utils import toxml
 from cards.models import Card, Deck
 from hsutils.performance import _time_elapsed
 
-try:
-	# We attempt to import the Python 2.7 Library in case the code is running on Lambda
-	from StringIO import StringIO
-	_wrap_log_in_stream = lambda s: StringIO(s)
-except ImportError:
-	# We are running on Python3 and it is safe to use this.
-	from io import StringIO
-	_wrap_log_in_stream = lambda s: StringIO(s.decode("utf-8"))
 
 logger = logging.getLogger(__name__)
 time_logger = logging.getLogger("TIMING")
@@ -366,12 +359,14 @@ class GameReplayUploadManager(models.Manager):
 		raw_log.full_clean()
 
 		time_logger.info("TIMING: %s - About to read back raw log from S3" % _time_elapsed())
-		raw_log.log.open()  # Make sure that the file is open to the beginning of it.
-		raw_log_str = raw_log.log.read()
-		time_logger.info("TIMING: %s - Finished reading raw log. About to generate packet tree." % _time_elapsed())
 
-		packet_tree = parse_log(_wrap_log_in_stream(raw_log_str), processor="GameState", date=raw_log.match_start_timestamp)
+		raw_log.log.open(mode="rb")
+		log = StringIO(raw_log.log.read().decode("utf-8"))
+		raw_log.log.close()
+		time_logger.info("TIMING: %s - Finished opening raw log. Generating packet tree..." % _time_elapsed())
+		packet_tree = parse_log(log, processor="GameState", date=raw_log.match_start_timestamp)
 		time_logger.info("TIMING: %s - Finished generating packet tree." % _time_elapsed())
+		raw_log.log.close()
 
 		if not len(packet_tree.games):
 			# We were not able to generate a replay
