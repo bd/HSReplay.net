@@ -85,23 +85,22 @@ header nav h1 {
 	text-shadow: 1px 1px black;
 }
 
-footer {
+.site-footer {
 	clear: both;
 	color: #aaa;
 	font-size: x-small;
-	padding-top: 3em;
-	padding-bottom: 2em;
+	margin-top: 3em;
+	margin-bottom: 2em;
 	text-align: center;
 }
 
-footer p {
+.site-footer p {
 	margin: 0;
 }
 
-footer a {
+.site-footer a {
 	color: #aaa;
 }
-
 
 /* Generic pages (eg. account, flatpages) */
 

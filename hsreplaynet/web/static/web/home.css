@@ -54,13 +54,9 @@
 }
 
 #feat-joust-screenshot {
-	height: 280px;
 	width: 500px;
+	max-width: 100%;
 	margin: 1em 0;
-}
-
-#front-intro {
-	text-align: center;
 }
 
 .front-feature {
@@ -75,7 +71,6 @@
 .front-feature > figcaption p {
 	color: #555;
 }
-
 
 .front-feature > img{
 	float: left;
@@ -113,15 +108,40 @@
 	width: 50%;
 }
 
+article + article {
+	padding: 2em;
+	margin: 5em 0;
+}
+
 ul.home-steps {
 	list-style-type: none;
 	padding-left: 0;
 	margin: 2em 0;
 }
 
-ul.home-steps li {
-	border-right: solid 1px black;
+ul.home-steps > li {
+	border-right: solid 1px transparent;
 	text-align: center;
+}
+
+@media (max-width: 767px) {
+	ul.home-steps > li {
+		padding-bottom: 2em;
+		margin-bottom: 2em;
+		border-bottom: solid 1px black;
+	}
+
+	ul.home-steps > li:last-child {
+		margin-bottom: 1em;
+		border-bottom-color: transparent;
+	}
+}
+
+@media (min-width: 768px) {
+	ul.home-steps > li {
+		border-right-color: black;
+	}
+
 }
 
 ul.home-steps li h3 {
@@ -134,4 +154,17 @@ ul.home-steps li:last-child {
 
 ul.home-steps .promo-button {
 	text-align: center;
+}
+
+.promo {
+	background-color: #ebebeb;
+	color: black;
+}
+
+.front-pad {
+	margin: 2em 0;
+}
+
+#promo .promo-hint {
+	color: #ddd;
 }
