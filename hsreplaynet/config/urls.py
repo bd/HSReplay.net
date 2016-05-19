@@ -3,11 +3,10 @@ from django.contrib import admin
 from django.contrib.flatpages.views import flatpage
 from django.views.generic import TemplateView
 from web.urls import api, docs
-from web.views import home
 
 
 urlpatterns = [
-	url(r"^$", home, name="home"),
+	url(r"^$", TemplateView.as_view(template_name="web/home.html"), name="home"),
 	url(r"^admin/", include(admin.site.urls)),
 	url(r"^api/", include(api)),
 	url(r"^docs/", include(docs)),

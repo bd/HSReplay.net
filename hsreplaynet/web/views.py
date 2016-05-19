@@ -24,10 +24,6 @@ def fetch_header(request, header):
 	return ""
 
 
-def home(request):
-	return render(request, "web/home.html")
-
-
 class ContributeView(View):
 	"""This view serves the API docs including the form to generate an API Token."""
 	def get(self, request, method="client"):
