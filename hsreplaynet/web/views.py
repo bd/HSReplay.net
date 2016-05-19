@@ -1,8 +1,8 @@
 import json
 import logging
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect, Http404
-from django.shortcuts import render
+from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, render
 from django.utils.decorators import method_decorator
 from django.views.generic import View
 from django.views.decorators.csrf import csrf_exempt
@@ -17,56 +17,51 @@ def fetch_header(request, header):
 	if header in request.META:
 		return request.META[header]
 
-	django_header = 'HTTP_' + header.upper().replace('-', '_')
+	django_header = "HTTP_" + header.upper().replace("-", "_")
 	if django_header in request.META:
 		return request.META[django_header]
 
-	return ''
+	return ""
 
 
 def home(request):
-	return render(request, 'web/home.html')
+	return render(request, "web/home.html")
 
 
 class ContributeView(View):
 	"""This view serves the API docs including the form to generate an API Token."""
-	def get(self, request, method='client'):
-		is_download_client = method != 'api'
-		context = {'is_download_client': is_download_client}
+	def get(self, request, method="client"):
+		is_download_client = method != "api"
+		context = {"is_download_client": is_download_client}
 		if not is_download_client:
-			context['form'] = UploadAgentAPIKeyForm()
-		return render(request, 'web/contribute.html', context)
+			context["form"] = UploadAgentAPIKeyForm()
+		return render(request, "web/contribute.html", context)
 
-	def post(self, request, method='api'):
+	def post(self, request, method="api"):
 		form = UploadAgentAPIKeyForm(request.POST)
-		context = {'is_download_client': False}
+		context = {"is_download_client": False}
 
 		if form.is_valid():
 			api_key = form.save()
 			form = UploadAgentAPIKeyForm(instance = api_key)
 
-		context['form'] = form
+		context["form"] = form
 
-		return render(request, 'web/contribute.html', {'form': form, 'is_download_client': False})
+		return render(request, "web/contribute.html", {"form": form, "is_download_client": False})
 
 
 def fetch_replay(request, id):
 	logger.info("Replay data requested for UUID: %s" % id)
 	response = HttpResponse()
+	replay = get_object_or_404(GameReplayUpload, id=id)
 
-	try:
-		replay = GameReplayUpload.objects.get(id=id)
-		response['Content-Type'] = 'application/vnd.hearthsim-hsreplay+xml'
-		response.status_code = 200
+	response["Content-Type"] = "application/vnd.hearthsim-hsreplay+xml"
+	response.status_code = 200
 
-		replay.replay_xml.open()
-		response.content = replay.replay_xml.read()
-		logger.info("Fetching replay view is complete.")
-		return response
-
-	except GameReplayUpload.DoesNotExist as e:
-		logger.exception(e)
-		return Http404("Unknown Replay ID: %s" % id)
+	replay.replay_xml.open()
+	response.content = replay.replay_xml.read()
+	logger.info("Fetching replay view is complete.")
+	return response
 
 
 class GenerateSingleSiteUploadTokenView(View):
