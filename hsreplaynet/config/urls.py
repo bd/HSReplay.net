@@ -17,5 +17,5 @@ urlpatterns = [
 	),
 	url(r"^account/", include("allauth_battlenet.urls")),
 	url(r"^account/", include("allauth.urls")),
-	url(r"^", include("django.contrib.flatpages.urls")),
+	url(r"^pages/", include("django.contrib.flatpages.urls")),
 ]
