@@ -1,10 +1,12 @@
-from fabric.contrib.files import append, exists, sed
-from fabric.api import env, local, run, sudo
-import random, time
-from fabric.context_managers import shell_env
 import os
+from fabric.api import run, sudo
+from fabric.contrib.files import exists
+from fabric.context_managers import shell_env
+
 
 REPO_URL = "https://github.com/amw2104/hsreplaynet"
+NO_PIP_CACHE = True
+
 
 def deploy():
 	site_folder = "/srv/http/hsreplay.net"
@@ -35,7 +37,11 @@ def _update_virtualenv(source_folder):
 	virtualenv_folder = source_folder + "/virtualenv"
 	if not exists(virtualenv_folder + "/bin/pip"):
 		sudo("python3 -m venv %s" % (virtualenv_folder), user="www-data")
-	sudo("%s/bin/pip install -r %s/requirements.txt" % (virtualenv_folder, source_folder), user="www-data")
+
+	command = "%s/bin/pip install -r %s/requirements.txt" % (virtualenv_folder, source_folder)
+	if NO_PIP_CACHE:
+		command += " --no-cache-dir"
+	sudo(command, user="www-data")
 
 
 def _update_static_files(source_folder):
