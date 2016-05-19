@@ -5,6 +5,7 @@
 {% block fullcontent %}
 <div class="content replay-listing">
 <div class="container-fluid">
+{% if replays %}
 <div class="row">
 	{% for replay in replays %}
 	<div class="col-xs-12 col-sm-6 col-md-4 col-lg-3">
@@ -41,6 +42,13 @@
 	</div>
 	{% endfor %}
 </div>
+{% else %}
+    <div class="text-center">
+    <h1>Play a few games!</h1>
+    <p>Your replays will appear here once you've uploaded them using Hearthstone Deck Tracker.</p>
+    <p><a href="https://hsdecktracker.net/" class="promo-button">Download HDT</a></p>
+    </div>
+{% endif %}
 </div>
 </div>
 {% endblock %}
