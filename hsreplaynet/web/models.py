@@ -376,12 +376,16 @@ class GameReplayUploadManager(models.Manager):
 		if not len(packet_tree.games):
 			# We were not able to generate a replay
 			raise ValidationError("Could not parse a replay from the raw log data")
+		if len(packet_tree.games) > 1:
+			raise NotImplementedError("Uploading multiple games in one log is unsupported.")
+
+		game_tree = packet_tree.games[0]
 
 		replay_tree = create_document(version=hsreplay_version, build=raw_log.hearthstone_build)
 
 		time_logger.info("TIMING: %s - About to invoke game_to_xml" % _time_elapsed())
 		player_meta = raw_log._generate_player_meta_data()
-		game = game_to_xml(packet_tree.games[0],
+		game = game_to_xml(game_tree,
 			game_meta = raw_log._generate_game_meta_data(),
 			player_meta = player_meta,
 			decks = raw_log._generate_deck_lists()
@@ -390,8 +394,8 @@ class GameReplayUploadManager(models.Manager):
 
 		replay_tree.append(game)
 
-		match_start_timestamp = raw_log.match_start_timestamp
-		match_end_timestamp = self._find_match_end_timestamp(packet_tree)
+		match_start_timestamp = game_tree.start_time
+		match_end_timestamp = game_tree.end_time
 
 		global_game = GlobalGame.objects.filter(
 			game_server_address = raw_log.game_server_address,
@@ -455,7 +459,6 @@ class GameReplayUploadManager(models.Manager):
 				raise ValidationError("Unexpected accountHi: %r" % (account_hi))
 			account_lo, account_hi = int(account_lo), int(account_hi)
 
-			game_tree = packet_tree.games[0]
 			player_obj = game_tree.players[idx]
 			hero = list(player_obj.heroes)[0]
 			deck_list = self._get_starting_deck_list_for_player(idx, packet_tree, raw_log)
@@ -509,12 +512,6 @@ class GameReplayUploadManager(models.Manager):
 				starting_deck_card_ids = [e.card_id for e in packet_tree.games[0].players[num].initial_deck if e.card_id]
 			deck, created = Deck.objects.get_or_create_from_id_list(starting_deck_card_ids)
 			return deck
-
-	def _find_match_end_timestamp(self, packet_tree):
-		if len(packet_tree.games) > 1:
-			raise Exception("This method of determining match end timestamp is only valid for single game replays.")
-
-		return packet_tree._current_date
 
 	def _current_season_number(self, match_start_timestamp):
 		# Using Jan'2016 as a psuedo-epoch start since we know that is season 22

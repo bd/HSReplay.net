@@ -56,9 +56,9 @@ def _raw_log_upload_handler(event, context):
 
 	raw_log_upload_record.upload_timestamp = now()
 
-	if 'match_start_timestamp' in event and len(event.get('match_start_timestamp')):
-		match_start_timestamp_str = event.get('match_start_timestamp')
-		match_start_timestamp = dateutil.parser.parse(match_start_timestamp_str, default=raw_log_upload_record.upload_timestamp)
+	if event.get("match_start_timestamp"):
+		match_start_timestamp_str = event.get("match_start_timestamp")
+		match_start_timestamp = dateutil.parser.parse(match_start_timestamp_str)
 		raw_log_upload_record.match_start_timestamp = match_start_timestamp
 	else:
 		raw_log_upload_record.match_start_timestamp = raw_log_upload_record.upload_timestamp
