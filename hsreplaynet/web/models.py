@@ -219,62 +219,6 @@ class SingleGameRawLogUpload(models.Model):
 		return [player_one_deck, player_two_deck]
 
 
-class GlobalGamePlayer(models.Model):
-	name = models.CharField("Player name",
-		blank=True, max_length=64,
-	)
-	user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
-
-	player_id = models.PositiveSmallIntegerField("Player ID")
-	account_hi = models.BigIntegerField("Account Hi value",
-		blank=True, null=True,
-		help_text="The accountHi value from the Player entity (represents the region)."
-	)
-	account_lo = models.BigIntegerField("Account Lo value",
-		blank=True, null=True,
-		help_text="The accountLo value from the Player entity. (0 for AI)",
-	)
-	is_ai = models.BooleanField("Is AI",
-		default=False,
-		help_text="Whether the player is an AI.",
-	)
-	is_first = models.BooleanField("Is first player",
-		help_text="Whether the player is the first player",
-	)
-
-	rank = models.SmallIntegerField("Rank",
-		null=True, blank=True,
-		help_text="1 through 25, or 0 for legend.",
-	)
-	legend_rank = models.PositiveIntegerField("Legend rank",
-		null=True, blank=True,
-	)
-
-	hero_card_id = models.CharField("Hero CardID",
-		max_length=50,
-		help_text="CardID representing the player's initial hero.",
-	)
-	hero_card_class = models.SmallIntegerField("Hero CardClass",
-		help_text="The player's initial hero class. Member of enums.CardClass",
-	)
-	hero_premium = models.BooleanField("Hero Premium",
-		default=False,
-		help_text="Whether the player's initial hero is golden."
-	)
-
-	final_state = models.SmallIntegerField("Final State",
-		default=0,
-		help_text="The player's final PLAYSTATE. Member of enums.PlayState",
-	)
-
-	deck_list = models.ForeignKey(Deck,
-		help_text="As much as is known of the player's starting deck list."
-	)
-
-	def __str__(self):
-		return self.name
-
-
 class GlobalGame(models.Model):
 	"""
 	Represents a globally unique game (e.g. from the server's POV).
@@ -348,11 +292,67 @@ class GlobalGame(models.Model):
 	num_turns = models.IntegerField()
 	num_entities = models.IntegerField()
 
-	players = models.ManyToManyField(GlobalGamePlayer)
-
 	@property
 	def duration(self):
 		return self.match_end_timestamp - self.match_start_timestamp
+
+
+class GlobalGamePlayer(models.Model):
+	game = models.ForeignKey(GlobalGame, related_name="players")
+
+	name = models.CharField("Player name",
+		blank=True, max_length=64,
+	)
+	user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
+
+	player_id = models.PositiveSmallIntegerField("Player ID")
+	account_hi = models.BigIntegerField("Account Hi value",
+		blank=True, null=True,
+		help_text="The accountHi value from the Player entity (represents the region)."
+	)
+	account_lo = models.BigIntegerField("Account Lo value",
+		blank=True, null=True,
+		help_text="The accountLo value from the Player entity. (0 for AI)",
+	)
+	is_ai = models.BooleanField("Is AI",
+		default=False,
+		help_text="Whether the player is an AI.",
+	)
+	is_first = models.BooleanField("Is first player",
+		help_text="Whether the player is the first player",
+	)
+
+	rank = models.SmallIntegerField("Rank",
+		null=True, blank=True,
+		help_text="1 through 25, or 0 for legend.",
+	)
+	legend_rank = models.PositiveIntegerField("Legend rank",
+		null=True, blank=True,
+	)
+
+	hero_card_id = models.CharField("Hero CardID",
+		max_length=50,
+		help_text="CardID representing the player's initial hero.",
+	)
+	hero_card_class = models.SmallIntegerField("Hero CardClass",
+		help_text="The player's initial hero class. Member of enums.CardClass",
+	)
+	hero_premium = models.BooleanField("Hero Premium",
+		default=False,
+		help_text="Whether the player's initial hero is golden."
+	)
+
+	final_state = models.SmallIntegerField("Final State",
+		default=0,
+		help_text="The player's final PLAYSTATE. Member of enums.PlayState",
+	)
+
+	deck_list = models.ForeignKey(Deck,
+		help_text="As much as is known of the player's starting deck list."
+	)
+
+	def __str__(self):
+		return self.name
 
 
 class GameReplayUploadManager(models.Manager):
