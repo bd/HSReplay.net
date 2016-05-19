@@ -390,31 +390,6 @@ class GameReplayUploadManager(models.Manager):
 
 		replay_tree.append(game)
 
-		players = [{"player_id": 1}, {"player_id": 2}]
-		for player in replay_tree.iter("Player"):
-			player_id = player.get("playerID")
-			if player_id not in ("1", "2"):
-				raise ValidationError("Unexpected player ID: %r" % (player_id))
-			player_id = int(player_id)
-			idx = player_id - 1
-			p = players[idx]
-
-			account_lo, account_hi = player.get("accountLo"), player.get("accountHi")
-			if not account_lo.isdigit():
-				raise ValidationError("Unexpected accountLo: %r" % (account_lo))
-			if not account_hi.isdigit():
-				raise ValidationError("Unexpected accountHi: %r" % (account_hi))
-
-			account_lo, account_hi = int(account_lo), int(account_hi)
-			p["account_lo"] = account_lo
-			p["account_hi"] = account_hi
-			p["is_ai"] = account_lo == 0
-			p["rank"] = player_meta[idx].get("rank")
-			p["legend_rank"] = player_meta[idx].get("legendRank", 0)
-
-			player_name = self._get_name_for_player(idx, packet_tree),
-			deck_list = self._get_starting_deck_list_for_player(idx, packet_tree, raw_log)
-
 		match_start_timestamp = raw_log.match_start_timestamp
 		match_end_timestamp = self._find_match_end_timestamp(packet_tree)
 
@@ -466,6 +441,43 @@ class GameReplayUploadManager(models.Manager):
 			upload_token = raw_log.upload_token,
 		)
 
+		for player in replay_tree.iter("Player"):
+			player_id = player.get("playerID")
+			if player_id not in ("1", "2"):
+				raise ValidationError("Unexpected player ID: %r" % (player_id))
+			player_id = int(player_id)
+			idx = player_id - 1
+
+			account_lo, account_hi = player.get("accountLo"), player.get("accountHi")
+			if not account_lo.isdigit():
+				raise ValidationError("Unexpected accountLo: %r" % (account_lo))
+			if not account_hi.isdigit():
+				raise ValidationError("Unexpected accountHi: %r" % (account_hi))
+			account_lo, account_hi = int(account_lo), int(account_hi)
+
+			game_tree = packet_tree.games[0]
+			player_obj = game_tree.players[idx]
+			hero = list(player_obj.heroes)[0]
+			deck_list = self._get_starting_deck_list_for_player(idx, packet_tree, raw_log)
+
+			game_player = GlobalGamePlayer(
+				game = global_game,
+				player_id = player_id,
+				name = player_obj.name,
+				account_hi = account_hi,
+				account_lo = account_lo,
+				is_ai = account_lo == 0,
+				hero_card_id = hero.card_id,
+				hero_card_class = hero.tags.get(GameTag.CLASS, 0),
+				hero_premium = hero.tags.get(GameTag.PREMIUM, False),
+				rank = player_meta[idx].get("rank"),
+				legend_rank = player_meta[idx].get("legendRank", 0),
+				is_first = player_obj.tags.get(GameTag.FIRST_PLAYER, False),
+				final_state = player_obj.tags.get(GameTag.PLAYSTATE, 0),
+				deck_list = deck_list,
+			)
+			game_player.save()
+
 		time_logger.info("TIMING: %s - About to generate XML." % _time_elapsed())
 		xml_str = toxml(replay_tree, pretty=False)
 		time_logger.info("TIMING: %s - Generate XML finished." % _time_elapsed())
@@ -497,20 +509,6 @@ class GameReplayUploadManager(models.Manager):
 				starting_deck_card_ids = [e.card_id for e in packet_tree.games[0].players[num].initial_deck if e.card_id]
 			deck, created = Deck.objects.get_or_create_from_id_list(starting_deck_card_ids)
 			return deck
-
-	def _get_name_for_player(self, num, packet_tree):
-		return packet_tree.games[0].players[num].name
-
-	def _get_final_state_for_player(self, num, packet_tree):
-		return packet_tree.games[0].players[num].tags.get(GameTag.PLAYSTATE)
-
-	def _get_starting_hero_class_for_player(self, num, packet_tree):
-		hero_card_id = self._get_starting_hero_for_player(num, packet_tree).card_id
-		card = Card.objects.get(id=hero_card_id)
-		return CardClass(card.card_class)
-
-	def _get_starting_hero_for_player(self, num, packet_tree):
-		return list(packet_tree.games[0].players[num].heroes)[0]
 
 	def _find_match_end_timestamp(self, packet_tree):
 		if len(packet_tree.games) > 1:
