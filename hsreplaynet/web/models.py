@@ -460,6 +460,7 @@ class GameReplayUploadManager(models.Manager):
 			player_obj = game_tree.players[idx]
 			hero = list(player_obj.heroes)[0]
 			deck_list = self._get_starting_deck_list_for_player(idx, packet_tree, raw_log)
+			final_state = player_obj.tags.get(GameTag.PLAYSTATE, 0)
 
 			game_player = GlobalGamePlayer(
 				game = global_game,
@@ -474,10 +475,22 @@ class GameReplayUploadManager(models.Manager):
 				rank = player_meta[idx].get("rank"),
 				legend_rank = player_meta[idx].get("legendRank", 0),
 				is_first = player_obj.tags.get(GameTag.FIRST_PLAYER, False),
-				final_state = player_obj.tags.get(GameTag.PLAYSTATE, 0),
+				final_state = final_state,
 				deck_list = deck_list,
 			)
 			game_player.save()
+
+			if player_id == friendly_player_id:
+				# Record whether the uploader won/lost that game
+				if final_state in (PlayState.PLAYING, PlayState.INVALID):
+					# This means we disconnected during the game
+					replay_upload.disconnected = True
+				elif final_state in (PlayState.WINNING, PlayState.WON):
+					replay_upload.won = True
+				else:
+					# Anything else is a concede/loss/tie
+					replay_upload.won = False
+				replay_upload.save()
 
 		time_logger.info("TIMING: %s - About to generate XML." % _time_elapsed())
 		xml_str = toxml(replay_tree, pretty=False)
