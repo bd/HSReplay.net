@@ -14,7 +14,7 @@
 			<div class="hsreplay-involved">
 				<img src="{% static 'web/images/vs.png' %}" class="hsreplay-versus"/>
 				{% for player in replay.global_game.players.all %}
-				<figure class="{% if player.won %}winner{% endif %}">
+				<figure class="{% if player.won %}winner{% else %}loser{% endif %}">
 					<img src="//static.hsreplay.net/static/joust/card-art/{{ player.hero_card_id }}.jpg" alt="{{ player.hero_card_id }}"/>
 					<figcaption>{{ player.name }}</figcaption>
 				</figure>
