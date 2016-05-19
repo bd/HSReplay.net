@@ -534,7 +534,7 @@ class GameReplayUpload(models.Model):
 		Player A. However if Player B uploads a replay of the same match, his replay will show the real name for Player A.
 
 		- Likewise, if Player C either starts spectating the game after it has already begun or stops spectating before
-		 it ends, then his uploaded replay will have fewer turns of gameplay then Player B's replay.
+		it ends, then his uploaded replay will have fewer turns of gameplay then Player B's replay.
 
 	"""
 	class Meta:
@@ -543,12 +543,14 @@ class GameReplayUpload(models.Model):
 	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 	objects = GameReplayUploadManager()
 	upload_token = models.ForeignKey(SingleSiteUploadToken,
-									 related_name="replays",
-									 help_text="The upload token used by the owner of the replay when uploading it.")
+		related_name="replays",
+		help_text="The upload token used by the owner of the replay when uploading it."
+	)
 	upload_timestamp = models.DateTimeField()
 	global_game = models.ForeignKey(GlobalGame,
-									related_name="replays",
-									help_text="References the single global game that this replay shows.")
+		related_name="replays",
+		help_text="References the single global game that this replay shows."
+	)
 
 	# raw_log can be null because a user might upload the XML of a replay directly.
 	raw_log = models.ForeignKey(SingleGameRawLogUpload, related_name="replays", null=True)
@@ -560,21 +562,31 @@ class GameReplayUpload(models.Model):
 
 	# The "friendly player" is the player whose cards are at the bottom of the screen when watching a game.
 	# For spectators this is determined by which player they started spectating first (if they spectate both).
-	friendly_player_id = models.IntegerField(null=True,
-											help_text="Either 1 or 2, to indicate which Player entity is the friendly entity.")
+	friendly_player_id = models.IntegerField("Friendly Player ID",
+		null=True,
+		help_text="PlayerID of the friendly player (1 or 2)",
+	)
 
 	# This information is all optional and is from the Net.log ConnectAPI
 	game_server_spectate_key = models.CharField(max_length=50, null=True, blank=True)
 	game_server_client_id = models.IntegerField(null=True, blank=True)
 
 	replay_xml = models.FileField(upload_to=_generate_replay_upload_key)
-	hsreplay_version = models.CharField(max_length=20,
-										help_text="The value of hsreplay.__version__ when the replay was generated.")
+	hsreplay_version = models.CharField("HSReplay version",
+		max_length=20,
+		help_text="The HSReplay spec version of the HSReplay XML file",
+	)
 
 	# The fields below capture the preferences of the user who uploaded it.
-	is_deleted = models.BooleanField(default=False) # User indicated in UI to delete replay upload (don't include in query sets)
+	is_deleted = models.BooleanField("Soft deleted",
+		default=False,
+		help_text="Indicates user request to delete the upload"
+	)
 	exclude_in_aggregate_stats = models.BooleanField(default=False)
 	is_public = models.BooleanField(default=False)
 
+	won = models.NullBooleanField()
+	disconnected = models.BooleanField(default=False)
+
 	def get_absolute_url(self):
-		return reverse("joust_replay_view", kwargs={"id":self.id})
+		return reverse("joust_replay_view", kwargs={"id": self.id})
