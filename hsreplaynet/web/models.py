@@ -590,3 +590,15 @@ class GameReplayUpload(models.Model):
 
 	def get_absolute_url(self):
 		return reverse("joust_replay_view", kwargs={"id": self.id})
+
+	@property
+	def css_classes(self):
+		ret = []
+		if self.won is not None:
+			if self.won:
+				ret.append("hsreplay-positive")
+			else:
+				ret.append("hsreplay-negative")
+		if self.disconnected:
+			ret.append("hsreplay-disconnected")
+		return " ".join(ret)
