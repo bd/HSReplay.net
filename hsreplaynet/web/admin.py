@@ -26,10 +26,12 @@ class GlobalGameAdmin(admin.ModelAdmin):
 		"game_type", "ladder_season", "brawl_season", "hearthstone_build"
 	)
 
+
 @admin.register(GlobalGamePlayer)
 class GlobalGamePlayerAdmin(admin.ModelAdmin):
 	list_display = ("__str__", "user", "player_id", "is_first")
 	list_filter = ("is_ai", "rank", "is_first")
+	raw_id_fields = ("game", "user", "deck_list")
 
 
 @admin.register(SingleGameRawLogUpload)
