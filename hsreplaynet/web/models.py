@@ -347,6 +347,10 @@ class GlobalGamePlayer(models.Model):
 	def __str__(self):
 		return self.name
 
+	@property
+	def won(self):
+		return self.final_state in (PlayState.WINNING, PlayState.WON)
+
 
 class GameReplayUploadManager(models.Manager):
 	def get_or_create_from_raw_log_upload(self, raw_log):
