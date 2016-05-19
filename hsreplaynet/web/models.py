@@ -55,6 +55,15 @@ def _generate_replay_upload_key(instance, filename):
 	return "%sreplays/%s.xml" % (instance.global_game.match_start_timestamp.strftime("%Y/%m/%d/"), str(instance.id))
 
 
+def find_friendly_player(game_tree):
+	for packet in game_tree.packets[1:]:
+		if packet.__class__.__name__ != "FullEntity":
+			break
+		tags = dict(packet.tags)
+		if tags[GameTag.ZONE] == Zone.HAND and not packet.cardid:
+			return tags[GameTag.CONTROLLER] % 2 + 1
+
+
 def _validate_valid_game_type(value):
 	if value:
 		try:
@@ -431,8 +440,12 @@ class GameReplayUploadManager(models.Manager):
 			num_turns = num_turns,
 		)
 
+		friendly_player_id = raw_log.friendly_player_id or find_friendly_player(game_tree)
+		if not friendly_player_id:
+			raise ValidationError("Friendly player ID not present at upload and could not guess it.")
+
 		replay_upload = GameReplayUpload(
-			friendly_player_id = raw_log.friendly_player_id,
+			friendly_player_id = friendly_player_id,
 			game_server_client_id = raw_log.game_server_client_id,
 			game_server_spectate_key = raw_log.game_server_spectate_key,
 			global_game = global_game,
