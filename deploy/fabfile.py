@@ -27,7 +27,7 @@ def _get_latest_source(source_folder):
 		sudo("cd %s && git fetch" % (source_folder), user="www-data")
 	else:
 		sudo("git clone %s %s" % (REPO_URL, source_folder), user="www-data")
-	current_commit = local("git log -n 1 --format=%H", capture=True)
+	current_commit = run("git -C %s rev-parse origin/master" % (source_folder))
 	sudo("cd %s && git reset --hard %s" % (source_folder, current_commit), user="www-data")
 
 
