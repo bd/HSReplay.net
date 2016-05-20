@@ -12,7 +12,7 @@ class TestRawLogUploadHandler(CardDataBaseTest, TestDataConsumerMixin):
 			email="test@testagent.example.org",
 			website="http://testagent.example.org"
 		)
-		self.token = SingleSiteUploadToken.objects.create(requested_by_upload_agent=self.upload_agent)
+		self.token = SingleSiteUploadToken.objects.create(upload_agent=self.upload_agent)
 
 	def test_basic_upload(self):
 		self.log_data_fixture = self.get_raw_log_fixture_for_random_innkeeper_match()

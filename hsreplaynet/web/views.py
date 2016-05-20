@@ -1,7 +1,7 @@
 import json
 import logging
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, HttpResponseForbidden, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, render
 from django.utils.decorators import method_decorator
 from django.views.generic import View
@@ -39,7 +39,7 @@ class ContributeView(View):
 
 		if form.is_valid():
 			api_key = form.save()
-			form = UploadAgentAPIKeyForm(instance = api_key)
+			form = UploadAgentAPIKeyForm(instance=api_key)
 
 		context["form"] = form
 
@@ -84,7 +84,7 @@ class GenerateSingleSiteUploadTokenView(View):
 				response.content = "%s is not a valid API Key." % api_key_header
 				return response
 
-			new_upload_token = SingleSiteUploadToken.objects.create(requested_by_upload_agent=api_key)
+			new_upload_token = SingleSiteUploadToken.objects.create(upload_agent=api_key)
 			response.status_code = 201
 			response.content = json.dumps({"single_site_upload_token": str(new_upload_token.token)})
 			return response
@@ -97,18 +97,16 @@ class AttachSiteUploadTokenView(View):
 
 	def get(self, request, api_key, single_site_upload_token):
 		upload_token = single_site_upload_token
-		response = HttpResponse()
-		upload_agent = None
 		token = None
 
 		try:
-			upload_agent = UploadAgentAPIKey.objects.get(api_key=api_key)
+			agent = UploadAgentAPIKey.objects.get(api_key=api_key)
 		except UploadAgentAPIKey.DoesNotExist:
 			return HttpResponseForbidden("Invalid API key: %r" % (api_key))
 
 		try:
 			token = SingleSiteUploadToken.objects.get(
-				requested_by_upload_agent=upload_agent,
+				upload_agent=agent,
 				token=upload_token
 			)
 		except SingleSiteUploadToken.DoesNotExist:
@@ -120,7 +118,6 @@ class AttachSiteUploadTokenView(View):
 
 
 class UploadTokenDetailsView(View):
-
 	@method_decorator(csrf_exempt)
 	def dispatch(self, *args, **kwargs):
 		return super().dispatch(*args, **kwargs)
@@ -128,18 +125,17 @@ class UploadTokenDetailsView(View):
 	def get(self, request, single_site_upload_token):
 		response = HttpResponse()
 		api_key_header = fetch_header(request, settings.API_KEY_HEADER)
-		upload_agent = None
 		token = None
 
 		try:
-			upload_agent = UploadAgentAPIKey.objects.get(api_key=api_key_header)
+			agent = UploadAgentAPIKey.objects.get(api_key=api_key_header)
 		except UploadAgentAPIKey.DoesNotExist:
 			response.status_code = 403
 			response.content = "%s is not a valid API Key." % api_key_header
 			return response
 
 		try:
-			token = SingleSiteUploadToken.objects.get(requested_by_upload_agent=upload_agent, token=single_site_upload_token)
+			token = SingleSiteUploadToken.objects.get(upload_agent=agent, token=single_site_upload_token)
 		except SingleSiteUploadToken.DoesNotExist:
 			response.status_code = 403
 			response.content = "%s is not a valid upload token or was not assigned to this api kiey." % single_site_upload_token
@@ -157,18 +153,16 @@ class UploadTokenDetailsView(View):
 	def put(self, request, single_site_upload_token):
 		response = HttpResponse()
 		api_key_header = fetch_header(request, settings.API_KEY_HEADER)
-		upload_agent = None
-		token = None
 
 		try:
-			upload_agent = UploadAgentAPIKey.objects.get(api_key=api_key_header)
+			agent = UploadAgentAPIKey.objects.get(api_key=api_key_header)
 		except UploadAgentAPIKey.DoesNotExist:
 			response.status_code = 403
 			response.content = "%s is not a valid API Key." % api_key_header
 			return response
 
 		try:
-			token = SingleSiteUploadToken.objects.get(requested_by_upload_agent=upload_agent, token=single_site_upload_token)
+			token = SingleSiteUploadToken.objects.get(upload_agent=agent, token=single_site_upload_token)
 		except SingleSiteUploadToken.DoesNotExist:
 			response.status_code = 403
 			response.content = "%s is not a valid upload token or was not assigned to this api kiey." % single_site_upload_token
@@ -180,7 +174,7 @@ class UploadTokenDetailsView(View):
 			token.save()
 			response.status_code = 200
 			return response
-		else:
-			response.status_code = 400
-			response.content = "You must include a JSON object with a 'replays_are_public' field when submitting a post request."
-			return response
+
+		response.status_code = 400
+		response.content = "You must include a JSON object with a 'replays_are_public' field when submitting a post request."
+		return response

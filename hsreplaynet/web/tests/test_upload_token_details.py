@@ -12,11 +12,11 @@ class TestUploadTokenDetails(TestCase):
 			email="test@testagent.example.org",
 			website="http://testagent.example.org"
 		)
-		self.token = SingleSiteUploadToken.objects.create(requested_by_upload_agent=self.upload_agent)
+		self.token = SingleSiteUploadToken.objects.create(upload_agent=self.upload_agent)
 		self.headers = {"x-hsreplay-api-key": str(self.upload_agent.api_key)}
 		self.attachment_url = reverse("upload_token_details_view", kwargs={
 			"single_site_upload_token": str(self.token.token)
-			})
+		})
 
 	def test_get_upload_token_details(self):
 		response = self.client.get(self.attachment_url, **self.headers)

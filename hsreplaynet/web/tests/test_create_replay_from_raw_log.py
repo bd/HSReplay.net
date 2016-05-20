@@ -22,7 +22,7 @@ class CreateReplayFromRawLogTests(CardDataBaseTest, TestDataConsumerMixin):
 			email="test@testagent.example.org",
 			website="http://testagent.example.org"
 		)
-		self.token = SingleSiteUploadToken.objects.create(requested_by_upload_agent=self.upload_agent)
+		self.token = SingleSiteUploadToken.objects.create(upload_agent=self.upload_agent)
 
 		# Set the timezone to something other than UTC to make sure it"s being handled correctly
 		self.upload_date = self.log_data_fixture["upload_date"]

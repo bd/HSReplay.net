@@ -12,7 +12,7 @@ class TestAttachUploadTokenToUser(TestCase):
 			email="test@testagent.example.org",
 			website="http://testagent.example.org"
 		)
-		self.token = SingleSiteUploadToken.objects.create(requested_by_upload_agent=self.upload_agent)
+		self.token = SingleSiteUploadToken.objects.create(upload_agent=self.upload_agent)
 		self.user = User.objects.create_user("andrew", email="andrew@example.com", password="password")
 		self.attachment_url = reverse("attach_site_upload_token", kwargs={
 			"single_site_upload_token": str(self.token.token),
