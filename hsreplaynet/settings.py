@@ -5,14 +5,13 @@ Django settings for hsreplay.net project.
 import os
 from django.core.urlresolvers import reverse_lazy
 
-
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 IS_RUNNING_AS_LAMBDA = bool(os.environ.get("IS_RUNNING_AS_LAMBDA", ""))
 IS_RUNNING_LIVE = os.uname()[1] == "hearthsim.net"
 
 
-ROOT_URLCONF = "config.urls"
-WSGI_APPLICATION = "config.wsgi.application"
+ROOT_URLCONF = "hsreplaynet.urls"
+WSGI_APPLICATION = "hsreplaynet.wsgi.application"
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "be8^qa&f2fut7_1%q@x2%nkw5u=-r6-rwj8c^+)5m-6e^!zags"
@@ -64,7 +63,7 @@ MIDDLEWARE_CLASSES = (
 TEMPLATES = [{
 	"BACKEND": "django.template.backends.django.DjangoTemplates",
 	"DIRS": [
-		os.path.join(BASE_DIR, "templates")
+		os.path.join(BASE_DIR, "hsreplaynet", "templates")
 	],
 	"APP_DIRS": True,
 	"OPTIONS": {
@@ -81,13 +80,13 @@ TEMPLATES = [{
 # Tests
 
 TEST_RUNNER = "django_nose.NoseTestSuiteRunner"
-FIXTURE_DIRS = (os.path.join(BASE_DIR, "test", "fixtures"), )
+FIXTURE_DIRS = (os.path.join(BASE_DIR, "hsreplaynet", "test", "fixtures"), )
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
-STATIC_ROOT = os.path.join(BASE_DIR, "static")
+STATIC_ROOT = os.path.join(BASE_DIR, "hsreplaynet", "static")
 if DEBUG:
 	DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 	STATIC_URL = "/static/"
@@ -96,23 +95,27 @@ else:
 	STATICFILES_STORAGE = "whitenoise.django.GzipManifestStaticFilesStorage"
 	STATIC_URL = "//static.hsreplay.net/static/"
 
-# S3
+	# S3
+	S3_RAW_LOG_STORAGE_BUCKET = os.environ.get(
+		"S3_RAW_LOG_STORAGE_BUCKET", "test.raw.replaystorage.hsreplay.net"
+	)
+	S3_REPLAY_STORAGE_BUCKET = os.environ.get(
+		"S3_REPLAY_STORAGE_BUCKET",
+		"test.replaystorage.hsreplay.net"
+	)
+	AWS_STORAGE_BUCKET_NAME = S3_REPLAY_STORAGE_BUCKET
 
-S3_RAW_LOG_STORAGE_BUCKET = os.environ.get("S3_RAW_LOG_STORAGE_BUCKET", "test.raw.replaystorage.hsreplay.net")
-S3_REPLAY_STORAGE_BUCKET = os.environ.get("S3_REPLAY_STORAGE_BUCKET", "test.replaystorage.hsreplay.net")
-AWS_STORAGE_BUCKET_NAME = S3_REPLAY_STORAGE_BUCKET
+	AWS_S3_CUSTOM_DOMAIN = "%s.s3.amazonaws.com" % (AWS_STORAGE_BUCKET_NAME)
+	AWS_S3_USE_SSL = False
+	AWS_DEFAULT_ACL = "private"
 
-AWS_S3_CUSTOM_DOMAIN = "%s.s3.amazonaws.com" % AWS_STORAGE_BUCKET_NAME
-AWS_S3_USE_SSL = False
-AWS_DEFAULT_ACL = 'private'
-
-AWS_IS_GZIPPED = True
-GZIP_CONTENT_TYPES = (
-	"text/xml",
-	"text/plain",
-	"application/xml",
-	"application/octet-stream",
-)
+	AWS_IS_GZIPPED = True
+	GZIP_CONTENT_TYPES = (
+		"text/xml",
+		"text/plain",
+		"application/xml",
+		"application/octet-stream",
+	)
 
 
 # Email
@@ -153,8 +156,9 @@ else:
 # Logging
 
 if not IS_RUNNING_AS_LAMBDA:
-	# When we are running on Lambda the logging is configured by the runtime to write to CloudWatch so this is not needed.
-	LOG_ROOT_DIR = os.environ.get("DJANGO_LOG_ROOT_DIR", os.path.abspath(os.path.join(BASE_DIR, "../log")))
+	# When we are running on Lambda the logging is configured by the runtime
+	# to write to CloudWatch so this is not needed.
+	LOG_ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, "logs"))
 
 	if not os.path.exists(LOG_ROOT_DIR):
 		os.mkdir(LOG_ROOT_DIR)
@@ -164,8 +168,8 @@ if not IS_RUNNING_AS_LAMBDA:
 		"disable_existing_loggers": False,
 		"formatters": {
 			"verbose": {
-				"format" : "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
-				"datefmt" : "%d/%b/%Y %H:%M:%S"
+				"format": "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
+				"datefmt": "%d/%b/%Y %H:%M:%S"
 			},
 		},
 		"handlers": {
@@ -220,14 +224,14 @@ if not IS_RUNNING_AS_LAMBDA:
 		},
 		"loggers": {
 			"django": {
-				"handlers":["django_file", "error_file"],
+				"handlers": ["django_file", "error_file"],
 				"propagate": True,
-				"level":"INFO",
+				"level": "INFO",
 			},
 			"TIMING": {
-				"handlers":["timing"],
+				"handlers": ["timing"],
 				"propagate": True,
-				"level":"INFO",
+				"level": "INFO",
 			},
 			"joust": {
 				"handlers": ["joust", "error_file"],
@@ -287,10 +291,10 @@ UPLOAD_TOKEN_HEADER = "x-hsreplay-upload-token"
 def import_settings(module):
 	"""
 	Imports ``settings`` as a settings file, and:
-	 - Sets any currently unset setting
-	 - Merges any dictionary setting with the one currently set
-	 - Extends any currently set tuple or list setting
-	 - Replaces any other setting
+	- Sets any currently unset setting
+	- Merges any dictionary setting with the one currently set
+	- Extends any currently set tuple or list setting
+	- Replaces any other setting
 	"""
 	settings = __import__(module)
 	if "." in module:
@@ -314,6 +318,6 @@ def import_settings(module):
 			G[var] = setting
 
 try:
-	import_settings("config.local_settings")
+	import_settings("hsreplaynet.local_settings")
 except ImportError:
 	pass
