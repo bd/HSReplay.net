@@ -47,12 +47,12 @@ class CardManager(models.Manager):
 		obj.save()
 		return obj, True
 
-		def get_valid_deck_list_card_set(self):
-			if not hasattr(self, "_usable_cards"):
-				card_list = card.objects.filter(collectible=True, type__not=CardType.HERO)
-				self._usable_cards = set(c[0] for c in card_list.values_list("id"))
+	def get_valid_deck_list_card_set(self):
+		if not hasattr(self, "_usable_cards"):
+			card_list = Card.objects.filter(collectible=True).exclude(type=enums.CardType.HERO)
+			self._usable_cards = set(c[0] for c in card_list.values_list("id"))
 
-			return self._usable_cards
+		return self._usable_cards
 
 
 class Card(models.Model):
