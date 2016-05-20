@@ -10,8 +10,8 @@ from hearthstone.enums import *
 
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
-SCREEN_DUMP_LOCATION = os.path.join(APP_DIR,"screendumps")
-JSON_DATA_LOCATION = os.path.join(APP_DIR,"json")
+SCREEN_DUMP_LOCATION = os.path.join(APP_DIR, "screendumps")
+JSON_DATA_LOCATION = os.path.join(APP_DIR, "json")
 REPLAY_DATA_LOCATION = os.path.join(APP_DIR, "replays")
 FIXTURE_DATA_LOCATION = os.path.join(APP_DIR, "fixtures")
 LOG_DATA_LOCATION = os.path.join(APP_DIR, "logs")
@@ -71,8 +71,11 @@ class FunctionalTest(StaticLiveServerTestCase):
 			timestamp = timestamp
 		)
 
+
 class TestDataConsumerMixin:
-	"""A mixin class for accessing test data."""
+	"""
+	A mixin class for accessing test data.
+	"""
 
 	def get_raw_log_integration_fixtures(self):
 		for test_case_uuid_dir in os.listdir(INTEGRATION_DATA_LOCATION):
@@ -97,7 +100,7 @@ class TestDataConsumerMixin:
 
 		fixture["match_start_timestamp"] = fixture["upload_date"]
 		fixture["match_end_timestamp"] = datetime.combine(date.today(),
-			time(hour=3, minute=0, second=50, microsecond=725690, tzinfo=utc)
+			time(hour=3, minute=0, second=50, microsecond=723960, tzinfo=utc)
 		)
 
 		fixture["num_turns"] = 6

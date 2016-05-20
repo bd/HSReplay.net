@@ -59,9 +59,7 @@ class CreateReplayFromRawLogTests(CardDataBaseTest, TestDataConsumerMixin):
 		self.assertIsNotNone(replay.global_game)
 		global_game = replay.global_game
 		self.assertEqual(global_game.match_start_timestamp, self.log_data_fixture["match_start_timestamp"])
-
-		# There might be an issue with hslog.parser.parse_timestamp() rolling over the match date when it doesn"t need to.
-		# self.assertEqual(global_game.match_end_timestamp, self.log_data_fixture["match_end_timestamp"])
+		self.assertEqual(global_game.match_end_timestamp, self.log_data_fixture["match_end_timestamp"])
 
 		self.assertEqual(global_game.num_turns, self.log_data_fixture["num_turns"])
 		self.assertEqual(global_game.num_entities, self.log_data_fixture["num_entities"])
