@@ -1,16 +1,10 @@
 import pytz
-from unittest.mock import patch, MagicMock
-from django.conf import settings
-from django.core.files.storage import FileSystemStorage
 from django.test import TestCase
 from django.utils.timezone import now
 from test.base import TestDataConsumerMixin
 from web.models import *
 
 
-# We patch S3Storage because we don"t want to be interacting with S3 in unit tests
-# You can temporarily comment out the @patch line to run the test in "integration mode" against S3. It should pass.
-@patch('storages.backends.s3boto3.S3Boto3Storage', FileSystemStorage)
 class ReplayUploadTests(TestCase, TestDataConsumerMixin):
 	def setUp(self):
 		super().setUp()
@@ -22,7 +16,6 @@ class ReplayUploadTests(TestCase, TestDataConsumerMixin):
 			"CS2_161", "CS2_169", "CS2_169", "CS2_181", "CS2_181", "CS2_189", "CS2_189", "CS2_200", "CS2_200", "AT_130",
 			"GVG_081", "CS2_213", "EX1_371", "GVG_002", "NEW1_026", "EX1_405", "CS2_213", "EX1_250", "CS2_222", "AT_130"
 		]
-		Card.objects.get_valid_deck_list_card_set = MagicMock(return_value=self.thirty_card_deck.copy())
 
 		self.upload_agent = UploadAgentAPIKey.objects.create(
 			full_name="Test Upload Agent",
