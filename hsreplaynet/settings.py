@@ -288,36 +288,7 @@ API_KEY_HEADER = "x-hsreplay-api-key"
 UPLOAD_TOKEN_HEADER = "x-hsreplay-upload-token"
 
 
-def import_settings(module):
-	"""
-	Imports ``settings`` as a settings file, and:
-	- Sets any currently unset setting
-	- Merges any dictionary setting with the one currently set
-	- Extends any currently set tuple or list setting
-	- Replaces any other setting
-	"""
-	settings = __import__(module)
-	if "." in module:
-		for pkg in module.split(".")[1:]:
-			settings = getattr(settings, pkg)
-
-	for var in dir(settings):
-		if not var.isupper() or var.startswith("_"):
-			continue
-
-		G = globals()
-		setting = getattr(settings, var)
-
-		if var not in G:
-			G[var] = setting
-		elif isinstance(setting, dict):
-			G[var] = dict(G[var].items() + setting.items())
-		elif isinstance(setting, list) or isinstance(setting, tuple):
-			G[var] += setting
-		else:
-			G[var] = setting
-
 try:
-	import_settings("hsreplaynet.local_settings")
+	from local_settings import *
 except ImportError:
 	pass
