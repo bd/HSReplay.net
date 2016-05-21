@@ -2,6 +2,7 @@ import logging
 from base64 import b64decode
 from dateutil.parser import parse as datetime_parse
 from django.utils.timezone import now
+from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from hsreplaynet.utils import _time_elapsed
 from hsreplaynet.web.models import *
@@ -11,6 +12,35 @@ logging.getLogger("boto").setLevel(logging.WARN)
 logger = logging.getLogger(__file__)
 time_logger = logging.getLogger("TIMING")
 logger.setLevel(logging.INFO)
+
+
+def raw_log_upload_handler(event, context):
+	# If an exception is thrown we must translate it into a string that the API Gateway
+	# can translate into the appropriate HTTP Response code and message.
+	result = None
+	try:
+		result = _raw_log_upload_handler(event, context)
+		logger.info("Handler returned the string: %s" % (result))
+	except ValidationError as e:
+		# TODO: Provide additional detailed messaging for ValidationErrors
+		logger.exception(e)
+		result = {
+			"result": "ERROR",
+			"replay_available": False,
+			"msg": str(e),
+			"replay_uuid": "",
+		}
+
+	except Exception as e:
+		logger.exception(e)
+		result = {
+			"result": "ERROR",
+			"replay_available": False,
+			"msg": str(e),
+			"replay_uuid": "",
+		}
+
+	return result
 
 
 def _raw_log_upload_handler(event, context):
