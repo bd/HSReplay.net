@@ -22,17 +22,13 @@ pymysql.install_as_MySQLdb()
 
 # This block properly bootstraps Django for running inside the AWS Lambda Runtime.
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
-try:
-	import hsreplaynet
-except ImportError:
-	raise Exception("import test 2 failed %r" % (sys.path))
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "hsreplaynet.settings")
 os.environ.setdefault("IS_RUNNING_AS_LAMBDA", "True")
 django.setup()
 
 # Make sure django.setup() has already been invoked to import the following
-from lambdas.authorizer import lambda_handler as _token_authorizer
-from lambdas.uploads import _raw_log_upload_handler
+from hsreplaynet.lambdas.authorizer import lambda_handler as _token_authorizer
+from hsreplaynet.lambdas.uploads import _raw_log_upload_handler
 
 
 def token_authorizer(event, context):

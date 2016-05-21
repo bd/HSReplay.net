@@ -3,7 +3,7 @@ from base64 import b64decode
 from dateutil.parser import parse as datetime_parse
 from django.utils.timezone import now
 from django.core.files.base import ContentFile
-from utils import _time_elapsed
+from hsreplaynet.utils import _time_elapsed
 from hsreplaynet.web.models import *
 
 
