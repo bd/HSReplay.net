@@ -24,6 +24,7 @@ class TestAttachUploadTokenToUser(TestCase):
 		self.assertEqual(response.context["token"], self.token)
 		self.assertEqual(response.templates[0].name, "web/token_attached.html")
 		self.assertEqual(list(self.user.tokens.all()), [self.token])
+		self.assertEqual(list(self.agent.tokens.all()), [self.token])
 		updated_token = SingleSiteUploadToken.objects.get(token=self.token.token)
 		self.assertEqual(updated_token.token, self.token.token)
 		self.assertEqual(updated_token.user, self.user)

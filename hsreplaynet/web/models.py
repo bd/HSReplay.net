@@ -555,20 +555,29 @@ class GameReplayUploadManager(models.Manager):
 
 
 class GameReplayUpload(models.Model):
-	""" Represents a replay as captured from the point of view of a single packet stream sent to a Hearthstone client.
+	"""
+	Represents a replay as captured from the point of view of a single
+	packet stream sent to a Hearthstone client.
 
-	Replays can be uploaded by either of the players or by any number of spectators who watched the match. It is possible
-	that the same game could be uploaded from multiple points of view. When this happens each GameReplayUpload will point
+	Replays can be uploaded by either of the players or by any number
+	of spectators who watched the match. It is possible
+	that the same game could be uploaded from multiple points of view.
+	When this happens each GameReplayUpload will point
 	to the same GlobalGame record via the global_game foreign key.
 
-	It is possible that different uploads of the same game will have different information in them. For example:
-		- If Player A and Player B are Real ID Friends and Player C is Battle.net friends with just Player B, then when
-		Player C spectates a match between Players A and B, his uploaded replay will show the BattleTag as the name of
-		Player A. However if Player B uploads a replay of the same match, his replay will show the real name for Player A.
+	It is possible that different uploads of the same game will have
+	different information in them.
+	For example:
+	- If Player A and Player B are Real ID Friends and Player C is
+	Battle.net friends with just Player B, then when Player C spectates
+	a match between Players A and B, his uploaded replay will show the
+	BattleTag as the name of Player A. However if Player B uploads a
+	replay of the same match, his replay will show the real name for
+	Player A.
 
-		- Likewise, if Player C either starts spectating the game after it has already begun or stops spectating before
-		it ends, then his uploaded replay will have fewer turns of gameplay then Player B's replay.
-
+	- Likewise, if Player C either starts spectating the game after it has
+	already begun or stops spectating before it ends, then his uploaded
+	replay will have fewer turns of gameplay then Player B's replay.
 	"""
 	class Meta:
 		unique_together = ("upload_token", "global_game")
@@ -588,13 +597,16 @@ class GameReplayUpload(models.Model):
 	# raw_log can be null because a user might upload the XML of a replay directly.
 	raw_log = models.ForeignKey(SingleGameRawLogUpload, related_name="replays", null=True)
 
-	# This is useful to know because replays that are spectating both players will have more data then those from a single player.
+	# This is useful to know because replays that are spectating both players
+	# will have more data then those from a single player.
 	# For example, they will have access to the cards that are in each players hand.
-	# This is detectable from the raw logs, although we currently intend to have the client uploading the replay provide it.
+	# This is detectable from the raw logs, although we currently intend to have
+	# the client uploading the replay provide it.
 	is_spectated_game = models.BooleanField(default=False)
 
-	# The "friendly player" is the player whose cards are at the bottom of the screen when watching a game.
-	# For spectators this is determined by which player they started spectating first (if they spectate both).
+	# The "friendly player" is the player whose cards are at the bottom of the
+	# screen when watching a game. For spectators this is determined by which
+	# player they started spectating first (if they spectate both).
 	friendly_player_id = models.IntegerField("Friendly Player ID",
 		null=True,
 		help_text="PlayerID of the friendly player (1 or 2)",
