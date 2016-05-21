@@ -1,8 +1,8 @@
 from datetime import date
 from django.core.management.base import BaseCommand
 from django.utils.timezone import now
-from cards.loader import CardXMLLoader
-from cards.models import CardCollectionAuditLog
+from ...loader import CardXMLLoader
+from ...models import CardCollectionAuditLog
 
 
 class Command(BaseCommand):

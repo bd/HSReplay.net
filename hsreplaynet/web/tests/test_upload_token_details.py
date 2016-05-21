@@ -1,7 +1,7 @@
 import json
 from django.core.urlresolvers import reverse
 from django.test import TestCase
-from web.models import *
+from hsreplaynet.web.models import *
 
 
 class TestUploadTokenDetails(TestCase):

@@ -1,5 +1,6 @@
 from django.conf.urls import url
-from web.views import *
+from ..views import *
+
 
 urlpatterns = [
     url(r'^v1/replay/(?P<id>[\w-]+)$', fetch_replay, name='fetch_replay'),

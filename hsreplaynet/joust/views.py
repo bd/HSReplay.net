@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.generic import View
-from web.models import GameReplayUpload
+from hsreplaynet.web.models import GameReplayUpload
 
 
 class MyReplaysView(View):

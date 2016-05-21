@@ -1,7 +1,7 @@
 from base64 import b64encode
-from lambdas.uploads import _raw_log_upload_handler
-from test.base import CardDataBaseTest, TestDataConsumerMixin
-from web.models import *
+from hsreplaynet.lambdas.uploads import _raw_log_upload_handler
+from hsreplaynet.test.base import CardDataBaseTest, TestDataConsumerMixin
+from hsreplaynet.web.models import *
 
 
 class TestRawLogUploadHandler(CardDataBaseTest, TestDataConsumerMixin):

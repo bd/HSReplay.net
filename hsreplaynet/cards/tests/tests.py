@@ -1,8 +1,8 @@
 import random
 from django.test import TestCase
 from hearthstone import cardxml, enums
-from cards.models import *
-from test.base import CardDataBaseTest
+from hsreplaynet.cards.models import *
+from hsreplaynet.test.base import CardDataBaseTest
 
 
 class DeckTests(CardDataBaseTest):

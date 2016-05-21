@@ -1,6 +1,7 @@
 from django.conf.urls import url
-from web.views import *
+from ..views import ContributeView
+
 
 urlpatterns = [
-    url(r'^contribute/(?P<method>[\w]+)/$', ContributeView.as_view(), name='contribute'),
+	url(r"^contribute/(?P<method>[\w]+)/$", ContributeView.as_view(), name="contribute"),
 ]

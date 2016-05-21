@@ -1,8 +1,8 @@
 import pytz
 from django.test import TestCase
 from django.utils.timezone import now
-from test.base import TestDataConsumerMixin
-from web.models import *
+from hsreplaynet.test.base import TestDataConsumerMixin
+from hsreplaynet.web.models import *
 
 
 class ReplayUploadTests(TestCase, TestDataConsumerMixin):

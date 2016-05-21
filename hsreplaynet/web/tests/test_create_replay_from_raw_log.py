@@ -1,7 +1,7 @@
-from xml.etree import ElementTree
 from unittest import skip
-from test.base import CardDataBaseTest, TestDataConsumerMixin
-from web.models import *
+from xml.etree import ElementTree
+from hsreplaynet.test.base import CardDataBaseTest, TestDataConsumerMixin
+from hsreplaynet.web.models import *
 
 
 class CreateReplayFromRawLogTests(CardDataBaseTest, TestDataConsumerMixin):

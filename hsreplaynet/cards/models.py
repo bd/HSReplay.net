@@ -1,6 +1,5 @@
 import hashlib
 import random
-from datetime import datetime
 from django.db import models
 from hearthstone import enums
 

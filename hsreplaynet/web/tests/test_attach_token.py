@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.test import TestCase
-from web.models import *
+from hsreplaynet.web.models import *
 
 
 class TestAttachUploadTokenToUser(TestCase):

@@ -1,7 +1,7 @@
 from base64 import b64encode
-from handlers import raw_log_upload_handler
-from test.base import TestDataConsumerMixin, CardDataBaseTest
-from web.models import *
+from hsreplaynet.handlers import raw_log_upload_handler
+from hsreplaynet.test.base import TestDataConsumerMixin, CardDataBaseTest
+from hsreplaynet.web.models import *
 
 
 class TestRawLogUploadHandler(CardDataBaseTest, TestDataConsumerMixin):

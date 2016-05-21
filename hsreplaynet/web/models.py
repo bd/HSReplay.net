@@ -14,8 +14,8 @@ from hearthstone.enums import *
 from hsreplay import __version__ as hsreplay_version
 from hsreplay.dumper import parse_log, create_document, game_to_xml
 from hsreplay.utils import toxml
-from cards.models import Card, Deck
-from hsutils.performance import _time_elapsed
+from hsreplaynet.cards.models import Card, Deck
+from hsreplaynet.utils import _time_elapsed
 
 
 logger = logging.getLogger(__name__)

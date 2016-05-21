@@ -3,7 +3,7 @@ Provides a loader for CardXML cards from python-hearthstone database
 """
 
 from hearthstone import cardxml
-from cards.models import Card
+from .models import Card
 
 
 class CardLoadResults:

@@ -2,7 +2,7 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from django.contrib.flatpages.views import flatpage
 from django.views.generic import TemplateView
-from web.urls import api, docs
+from hsreplaynet.web.urls import api, docs
 
 
 urlpatterns = [
@@ -19,5 +19,6 @@ urlpatterns = [
 	),
 	url(r"^account/", include("allauth_battlenet.urls")),
 	url(r"^account/", include("allauth.urls")),
+	# url(r"^api/", include("api.urls")),
 	url(r"^pages/", include("django.contrib.flatpages.urls")),
 ]

@@ -9,7 +9,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 IS_RUNNING_AS_LAMBDA = bool(os.environ.get("IS_RUNNING_AS_LAMBDA", ""))
 IS_RUNNING_LIVE = os.uname()[1] == "hearthsim.net"
 
-
 ROOT_URLCONF = "hsreplaynet.urls"
 WSGI_APPLICATION = "hsreplaynet.wsgi.application"
 
@@ -34,10 +33,11 @@ INSTALLED_APPS = (
 	"django.contrib.staticfiles",
 	"django.contrib.sites",
 	"rest_framework",
-	"web",
-	"joust",
-	"cards",
-	"lambdas",
+	# "hsreplaynet.api",
+	"hsreplaynet.web",
+	"hsreplaynet.joust",
+	"hsreplaynet.cards",
+	"hsreplaynet.lambdas",
 )
 
 if not IS_RUNNING_AS_LAMBDA:
