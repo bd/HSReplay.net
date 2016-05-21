@@ -56,12 +56,12 @@ def _raw_log_upload_handler(event, context):
 
 	api_key = event["x-hsreplay-api-key"]
 	logger.info("Upload submitted with API Key: %s" % api_key)
-	upload_token = event["x-hsreplay-upload-token"]
-	logger.info("Upload submitted with Upload Token: %s" % upload_token)
+	token = event["x-hsreplay-upload-token"]
+	logger.info("Upload submitted with Upload Token: %s" % token)
 
 	raw_log_upload_record = SingleGameRawLogUpload()
 	# Model fileds populated in the following section
-	raw_log_upload_record.upload_token = SingleSiteUploadToken.objects.filter(token=upload_token).first()
+	raw_log_upload_record.upload_token = SingleSiteUploadToken.objects.filter(token=token).first()
 
 	if event.get("game_server_address"):
 		raw_log_upload_record.game_server_address = event.get("game_server_address")

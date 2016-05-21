@@ -13,8 +13,8 @@ def lambda_handler(event, context):
 	api_key = event['authorizationToken']
 	logger.info("API Key: %s" % api_key)
 
-	upload_token = SingleSiteUploadToken.objects.filter(token=api_key).first()
-	if not upload_token:
+	token = SingleSiteUploadToken.objects.filter(token=api_key).first()
+	if not token:
 		raise Exception('Unauthorized')
 	else:
 		tmp = event['methodArn'].split(':')

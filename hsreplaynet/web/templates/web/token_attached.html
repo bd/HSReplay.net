@@ -1,19 +1,11 @@
 {% extends "base.html" %}
-{% load static from staticfiles %}
-
-{% block stylesheets %}
-    {{ block.super }}
-{% endblock stylesheets %}
-
 {% block content %}
-
 <div class="container-fluid">
-
-    <div class="row">
-        <div class="col-xs-12">
-            <p>The upload token {{ token }} has been successfully attached to your account.</p>
-        </div>
-    </div>
+	<div class="row">
+		<h2>Success</h2>
+		<div class="col-xs-12">
+			<p>The token {{ token }} from {{ agent }} has been successfully attached to your account.</p>
+		</div>
+	</div>
 </div>
-
 {% endblock content %}

@@ -50,21 +50,21 @@ class GenerateSingleSiteUploadTokenView(View):
 		if not api_key_header:
 			# Reject for not having included an API token
 			response.status_code = 401
-			response.content = "Missing %s header" % settings.API_KEY_HEADER
+			response.content = "Missing %s header" % (settings.API_KEY_HEADER)
 			return response
-		else:
 
-			try:
-				api_key = UploadAgentAPIKey.objects.get(api_key=api_key_header)
-			except UploadAgentAPIKey.DoesNotExist:
-				response.status_code = 403
-				response.content = "%s is not a valid API Key." % api_key_header
-				return response
-
-			new_upload_token = SingleSiteUploadToken.objects.create(upload_agent=api_key)
-			response.status_code = 201
-			response.content = json.dumps({"single_site_upload_token": str(new_upload_token.token)})
+		try:
+			api_key = UploadAgentAPIKey.objects.get(api_key=api_key_header)
+		except UploadAgentAPIKey.DoesNotExist:
+			response.status_code = 403
+			response.content = "%s is not a valid API Key." % (api_key_header)
 			return response
+
+		token = SingleSiteUploadToken.objects.create()
+		api_key.tokens.add(token)
+		response.status_code = 201
+		response.content = json.dumps({"token": str(token.token)})
+		return response
 
 
 class AttachSiteUploadTokenView(View):
@@ -72,26 +72,21 @@ class AttachSiteUploadTokenView(View):
 	def dispatch(self, *args, **kwargs):
 		return super().dispatch(*args, **kwargs)
 
-	def get(self, request, api_key, single_site_upload_token):
-		upload_token = single_site_upload_token
-		token = None
+	def get(self, request, api_key, token):
+		try:
+			token = SingleSiteUploadToken.objects.get(token=token)
+		except SingleSiteUploadToken.DoesNotExist:
+			return HttpResponseForbidden("Invalid upload token: %r" % (token))
 
 		try:
 			agent = UploadAgentAPIKey.objects.get(api_key=api_key)
 		except UploadAgentAPIKey.DoesNotExist:
 			return HttpResponseForbidden("Invalid API key: %r" % (api_key))
 
-		try:
-			token = SingleSiteUploadToken.objects.get(
-				upload_agent=agent,
-				token=upload_token
-			)
-		except SingleSiteUploadToken.DoesNotExist:
-			return HttpResponseForbidden("Invalid upload token: %r" % (upload_token))
-
 		token.user = request.user
 		token.save()
-		return render(request, "web/token_attached.html", {"token": str(token.token)})
+		context = {"token": token, "agent": agent}
+		return render(request, "web/token_attached.html", context)
 
 
 class UploadTokenDetailsView(View):
@@ -105,14 +100,14 @@ class UploadTokenDetailsView(View):
 		token = None
 
 		try:
-			agent = UploadAgentAPIKey.objects.get(api_key=api_key_header)
+			UploadAgentAPIKey.objects.get(api_key=api_key_header)
 		except UploadAgentAPIKey.DoesNotExist:
 			response.status_code = 403
 			response.content = "%s is not a valid API Key." % api_key_header
 			return response
 
 		try:
-			token = SingleSiteUploadToken.objects.get(upload_agent=agent, token=token)
+			token = SingleSiteUploadToken.objects.get(token=token)
 		except SingleSiteUploadToken.DoesNotExist:
 			response.status_code = 403
 			response.content = "Invalid upload token: %r" % (token)

@@ -7,6 +7,7 @@ from django.core.management import call_command
 from django.test import TestCase
 from selenium import webdriver
 from hearthstone.enums import *
+from hsreplaynet.web.models import SingleSiteUploadToken, UploadAgentAPIKey
 
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -115,3 +116,15 @@ class CardDataBaseTest(TestCase):
 		# Call `manage.py load_cards`
 		call_command("load_cards")
 		super(CardDataBaseTest, cls).setUpClass()
+
+
+def create_agent_and_token():
+	agent = UploadAgentAPIKey.objects.create(
+		full_name="Test Upload Agent",
+		email="test@testagent.example.org",
+		website="http://testagent.example.org"
+	)
+	token = SingleSiteUploadToken.objects.create()
+	agent.tokens.add(token)
+
+	return agent, token

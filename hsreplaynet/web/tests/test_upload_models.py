@@ -1,8 +1,10 @@
 import pytz
+from django.core.exceptions import ValidationError
+from django.core.files.base import ContentFile
 from django.test import TestCase
 from django.utils.timezone import now
-from hsreplaynet.test.base import TestDataConsumerMixin
-from hsreplaynet.web.models import *
+from hsreplaynet.test.base import TestDataConsumerMixin, create_agent_and_token
+from ..models import SingleGameRawLogUpload
 
 
 class ReplayUploadTests(TestCase, TestDataConsumerMixin):
@@ -16,13 +18,7 @@ class ReplayUploadTests(TestCase, TestDataConsumerMixin):
 			"CS2_161", "CS2_169", "CS2_169", "CS2_181", "CS2_181", "CS2_189", "CS2_189", "CS2_200", "CS2_200", "AT_130",
 			"GVG_081", "CS2_213", "EX1_371", "GVG_002", "NEW1_026", "EX1_405", "CS2_213", "EX1_250", "CS2_222", "AT_130"
 		]
-
-		self.upload_agent = UploadAgentAPIKey.objects.create(
-			full_name="Test Upload Agent",
-			email="test@testagent.example.org",
-			website="http://testagent.example.org"
-		)
-		self.token = SingleSiteUploadToken.objects.create(upload_agent=self.upload_agent)
+		self.agent, self.token = create_agent_and_token()
 
 		# Set the timezone to something other than UTC to make sure it's being handled correctly
 		self.upload_date = now().astimezone(pytz.timezone("Europe/Moscow"))

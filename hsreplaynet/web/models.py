@@ -22,11 +22,22 @@ logger = logging.getLogger(__name__)
 time_logger = logging.getLogger("TIMING")
 
 
+class SingleSiteUploadToken(models.Model):
+	token = models.UUIDField(default=uuid.uuid4, editable=False)
+	created = models.DateTimeField(default=timezone.now)
+	user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name="tokens")
+
+	def __str__(self):
+		return str(self.token)
+
+
 class UploadAgentAPIKey(models.Model):
 	full_name = models.CharField(max_length=254)
 	email = models.EmailField()
 	website = models.URLField(blank=True)
 	api_key = models.UUIDField(blank=True)
+
+	tokens = models.ManyToManyField(SingleSiteUploadToken)
 
 	def __str__(self):
 		return self.full_name
@@ -34,16 +45,6 @@ class UploadAgentAPIKey(models.Model):
 	def save(self, *args, **kwargs):
 		self.api_key = uuid.uuid4()
 		return super(UploadAgentAPIKey, self).save(*args, **kwargs)
-
-
-class SingleSiteUploadToken(models.Model):
-	token = models.UUIDField(default=uuid.uuid4, editable=False)
-	upload_agent = models.ForeignKey(UploadAgentAPIKey)
-	created = models.DateTimeField(default=timezone.now)
-	user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name="tokens")
-
-	def __str__(self):
-		return str(self.token)
 
 
 def _generate_raw_log_key(instance, filename):
@@ -70,10 +71,12 @@ def _validate_valid_game_type(value):
 		except ValueError as e:
 			raise ValidationError(e)
 
+
 def _validate_player_rank(value):
 	if value:
 		if value > 26 or value < 1:
 			raise ValidationError("%s is not a valid player rank between 26 and 1." % value)
+
 
 def _validate_player_legend_rank(value):
 	if value:
@@ -89,21 +92,22 @@ def _validate_player_deck_list(value):
 			raise ValidationError("player_deck_lists must contain 30 comma separated card IDs.")
 
 		for cardId in cards:
-			if not cardId in Card.objects.get_valid_deck_list_card_set():
+			if cardId not in Card.objects.get_valid_deck_list_card_set():
 				raise ValidationError("%s is not a valid cardID")
 
-CREATE_GAME_RAW_LOG_TOKEN = re.compile(r"GameState.DebugPrintPower.*?CREATE_GAME")
+
 def _validate_raw_log(value):
+	CREATE_GAME_RAW_LOG_TOKEN = re.compile(r"GameState.DebugPrintPower.*?CREATE_GAME")
 	value.open()
 	log_data = value.read().decode("utf8")
 	create_game_tokens = CREATE_GAME_RAW_LOG_TOKEN.findall(log_data)
 	if len(create_game_tokens) != 1:
-		raise ValidationError("Raw log data must contain a single GameState ... CREATE_GAME token.")
+		raise ValidationError("Raw log data must contain a single GameState CREATE_GAME token.")
+
 
 def _validate_friendly_player_id(value):
-	if value:
-		if value != 1 and value != 2:
-			raise ValidationError("friendly_player_id must be either 1 or 2. %s is not valid." % value)
+	if value not in (1, 2):
+		raise ValidationError("Invalid friendly_player_id: %r" % (value))
 
 
 class SingleGameRawLogUpload(models.Model):
@@ -116,7 +120,9 @@ class SingleGameRawLogUpload(models.Model):
 	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 	upload_token = models.ForeignKey(SingleSiteUploadToken)
 	upload_timestamp = models.DateTimeField()
-	match_start_timestamp = models.DateTimeField() # Required, but we use upload_timestamp as a fallback if missing.
+	match_start_timestamp = models.DateTimeField(
+		help_text="Uses upload_timestamp as a fallback."
+	)
 
 	# This will get transparently gzipped and stored in S3
 	# The data must be utf-8 encoded bytes

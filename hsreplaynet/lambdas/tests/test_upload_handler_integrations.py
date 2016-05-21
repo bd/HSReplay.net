@@ -1,20 +1,15 @@
 from base64 import b64encode
-from hsreplaynet.test.base import TestDataConsumerMixin, CardDataBaseTest
-from hsreplaynet.web.models import (
-	UploadAgentAPIKey, SingleSiteUploadToken, GameReplayUpload
+from hsreplaynet.test.base import (
+	TestDataConsumerMixin, CardDataBaseTest, create_agent_and_token
 )
+from hsreplaynet.web.models import GameReplayUpload
 from ..uploads import raw_log_upload_handler
 
 
 class TestRawLogUploadHandler(CardDataBaseTest, TestDataConsumerMixin):
 	def setUp(self):
 		super(TestRawLogUploadHandler, self).setUp()
-		self.upload_agent = UploadAgentAPIKey.objects.create(
-			full_name="Test Upload Agent",
-			email="test@testagent.example.org",
-			website="http://testagent.example.org"
-		)
-		self.token = SingleSiteUploadToken.objects.create(upload_agent=self.upload_agent)
+		self.agent, self.token = create_agent_and_token()
 
 	def test_all_integrations(self):
 		for descriptor, raw_log, test_uuid in self.get_raw_log_integration_fixtures():
@@ -22,7 +17,7 @@ class TestRawLogUploadHandler(CardDataBaseTest, TestDataConsumerMixin):
 				# Finish preparing the event object...
 				event = descriptor["event"]
 				event["body"] = b64encode(raw_log.encode("utf-8"))
-				event["x-hsreplay-api-key"] = str(self.upload_agent.api_key)
+				event["x-hsreplay-api-key"] = str(self.agent.api_key)
 				event["x-hsreplay-upload-token"] = str(self.token.token)
 				context = descriptor["context"]
 

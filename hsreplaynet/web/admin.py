@@ -47,7 +47,7 @@ class SingleGameRawLogUploadAdmin(admin.ModelAdmin):
 
 @admin.register(SingleSiteUploadToken)
 class SingleSiteUploadTokenAdmin(admin.ModelAdmin):
-	list_display = ("__str__", "user", "created", "upload_agent")
+	list_display = ("__str__", "user", "created")
 	raw_id_fields = ("user", )
 
 

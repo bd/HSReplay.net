@@ -1,6 +1,8 @@
 from unittest import skip
 from xml.etree import ElementTree
-from hsreplaynet.test.base import CardDataBaseTest, TestDataConsumerMixin
+from hsreplaynet.test.base import (
+	CardDataBaseTest, TestDataConsumerMixin, create_agent_and_token
+)
 from hsreplaynet.web.models import *
 
 
@@ -17,14 +19,9 @@ class CreateReplayFromRawLogTests(CardDataBaseTest, TestDataConsumerMixin):
 			"GVG_081", "CS2_213", "EX1_371", "GVG_002", "NEW1_026", "EX1_405", "CS2_213", "EX1_250", "CS2_222", "AT_130"
 		]
 
-		self.upload_agent = UploadAgentAPIKey.objects.create(
-			full_name="Test Upload Agent",
-			email="test@testagent.example.org",
-			website="http://testagent.example.org"
-		)
-		self.token = SingleSiteUploadToken.objects.create(upload_agent=self.upload_agent)
+		self.agent, self.token = create_agent_and_token()
 
-		# Set the timezone to something other than UTC to make sure it"s being handled correctly
+		# Set the timezone to something other than UTC to make sure it's being handled correctly
 		self.upload_date = self.log_data_fixture["upload_date"]
 		self.upload = SingleGameRawLogUpload(
 			upload_timestamp=self.upload_date,
