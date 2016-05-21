@@ -294,6 +294,9 @@ class GlobalGame(models.Model):
 	num_turns = models.IntegerField()
 	num_entities = models.IntegerField()
 
+	def __str__(self):
+		return " vs ".join(str(p) for p in self.players.all())
+
 	@property
 	def duration(self):
 		return self.match_end_timestamp - self.match_start_timestamp

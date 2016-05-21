@@ -63,6 +63,7 @@ class CreateReplayFromRawLogTests(CardDataBaseTest, TestDataConsumerMixin):
 
 		self.assertEqual(global_game.num_turns, self.log_data_fixture["num_turns"])
 		self.assertEqual(global_game.num_entities, self.log_data_fixture["num_entities"])
+		self.assertEqual(str(global_game), "Nicodemus vs The Innkeeper")
 
 	@skip
 	def test_uploading_duplicate_replays_are_rejected(self):
