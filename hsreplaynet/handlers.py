@@ -22,6 +22,10 @@ pymysql.install_as_MySQLdb()
 
 # This block properly bootstraps Django for running inside the AWS Lambda Runtime.
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+try:
+	import hsreplaynet
+except ImportError:
+	raise Exception("import test 2 failed %r" % (sys.path))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
 os.environ.setdefault("IS_RUNNING_AS_LAMBDA", "True")
 django.setup()
