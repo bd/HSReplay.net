@@ -12,6 +12,7 @@
 		<!-- hsreplay-negative, hsreplay-positive, hsreplay-invalid -->
 		<a href="{{ replay.get_absolute_url }}" class="hsreplay-thumbnail {{ replay.css_classes }}">
 			<div class="hsreplay-involved">
+				{% spaceless %}
 				<img src="{% static 'web/images/vs.png' %}" class="hsreplay-versus"/>
 				{% for player in replay.global_game.players.all %}
 				<figure class="{% if player.won %}winner{% else %}loser{% endif %}">
@@ -19,6 +20,7 @@
 					<figcaption>{{ player.name }}</figcaption>
 				</figure>
 				{% endfor %}
+				{% endspaceless %}
 			</div>
 			<div class="hsreplay-details">
 				<dl>
