@@ -98,7 +98,8 @@ else:
 
 	# S3
 	S3_RAW_LOG_STORAGE_BUCKET = os.environ.get(
-		"S3_RAW_LOG_STORAGE_BUCKET", "test.raw.replaystorage.hsreplay.net"
+		"S3_RAW_LOG_STORAGE_BUCKET",
+		"test.raw.replaystorage.hsreplay.net"
 	)
 	S3_REPLAY_STORAGE_BUCKET = os.environ.get(
 		"S3_REPLAY_STORAGE_BUCKET",
@@ -106,7 +107,6 @@ else:
 	)
 	AWS_STORAGE_BUCKET_NAME = S3_REPLAY_STORAGE_BUCKET
 
-	AWS_S3_CUSTOM_DOMAIN = "%s.s3.amazonaws.com" % (AWS_STORAGE_BUCKET_NAME)
 	AWS_S3_USE_SSL = False
 	AWS_DEFAULT_ACL = "private"
 
