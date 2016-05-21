@@ -7,7 +7,6 @@ from django.shortcuts import get_object_or_404, render
 from django.utils.decorators import method_decorator
 from django.views.generic import View
 from django.views.decorators.csrf import csrf_exempt
-from .forms import UploadAgentAPIKeyForm
 from .models import *
 
 
@@ -25,28 +24,6 @@ def fetch_header(request, header):
 	return ""
 
 
-class ContributeView(View):
-	"""This view serves the API docs including the form to generate an API Token."""
-	def get(self, request, method="client"):
-		is_download_client = method != "api"
-		context = {"is_download_client": is_download_client}
-		if not is_download_client:
-			context["form"] = UploadAgentAPIKeyForm()
-		return render(request, "web/contribute.html", context)
-
-	def post(self, request, method="api"):
-		form = UploadAgentAPIKeyForm(request.POST)
-		context = {"is_download_client": False}
-
-		if form.is_valid():
-			api_key = form.save()
-			form = UploadAgentAPIKeyForm(instance=api_key)
-
-		context["form"] = form
-
-		return render(request, "web/contribute.html", {"form": form, "is_download_client": False})
-
-
 def fetch_replay(request, id):
 	logger.info("Replay data requested for UUID: %s" % id)
 	response = HttpResponse()
@@ -62,7 +39,6 @@ def fetch_replay(request, id):
 
 
 class GenerateSingleSiteUploadTokenView(View):
-
 	@method_decorator(csrf_exempt)
 	def dispatch(self, *args, **kwargs):
 		return super().dispatch(*args, **kwargs)

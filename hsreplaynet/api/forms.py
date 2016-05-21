@@ -1,5 +1,5 @@
 from django import forms
-from .models import UploadAgentAPIKey
+from hsreplaynet.web.models import UploadAgentAPIKey
 
 
 class UploadAgentAPIKeyForm(forms.ModelForm):

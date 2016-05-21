@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+{% load static from staticfiles %}
+{% block content %}
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-xs-12">
+
+<div class="row">
+	<div class="col-xs-12">
+		<h3>Request an Agent API Key</h3>
+		<p>To implement your own agent that can upload replays via API, first request an agent API key. Save your key
+		somewhere safe. It will only be displayed to you once. If you loose it, you must request a new one. In order for
+		your application to communicate with the HSReplay.net API you will need to include this key as the
+		<code>x-hsreplay-api-key</code> header value with each request.</p>
+		<form action="" method="post" role="form" class="form-horizontal">
+			{% csrf_token %}
+			<div class="form-group">
+				<label for="id_name" class="col-sm-2 control-label">Full Name (required):</label>
+				<div class="col-sm-6">
+					{% if form.full_name.value %}
+						<input id="id_name" class="form-control" maxlength="250" name="full_name" type="text" value="{{ form.full_name.value }}" />
+					{% else %}
+						<input id="id_name" class="form-control" maxlength="250" name="full_name" type="text" />
+					{% endif %}
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="id_email" class="col-sm-2 control-label">Email (required):</label>
+				<div class="col-sm-6">
+					{% if form.email.value %}
+						<input id="id_email" class="form-control" maxlength="250" name="email" type="text" value="{{ form.email.value }}" />
+					{% else %}
+						<input id="id_email" class="form-control" maxlength="250" name="email" type="text" />
+					{% endif %}
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="id_website" class="col-sm-2 control-label">Website:</label>
+				<div class="col-sm-6">
+					{% if form.website.value %}
+						<input id="id_website" class="form-control" maxlength="250" name="website" type="text" value="{{ form.website.value }}" />
+					{% else %}
+						<input id="id_website" class="form-control" maxlength="250" name="website" type="text" />
+					{% endif %}
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="id_api_key" class="col-sm-2 control-label">API Key:</label>
+				<div class="col-sm-6">
+					{% if form.api_key.value %}
+						<input readonly id="id_api_key" class="form-control" maxlength="250" name="api_key" type="text" value="{{ form.api_key.value }}" />
+					{% else %}
+						<input readonly id="id_api_key" class="form-control" maxlength="250" name="api_key" type="text" />
+					{% endif %}
+				</div>
+			</div>
+			{% if not form.api_key.value %}
+			<div class="form-group">
+				<div class="col-sm-6 col-sm-offset-2">
+					<button class="btn btn-primary btn-lg" type="submit">Request API Key</button>
+				</div>
+			</div>
+			{% endif %}
+		</form>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-xs-12">
+		<h3>Generate A Single Site Upload Token</h3>
+		<p>Once you have an API Key you can have your agent use it to generate a <code>Single Site Upload Token</code> for
+		each user of your application. Each unique user of your application must have their own token in order to identify the
+		replay files that belong to them. Your application can generate a token for a user by submitting the following
+		POST request:
+		</p>
+		<pre>
+		POST /api/v1/agents/generate_single_site_upload_token/ HTTP/1.1
+		Host: hsreplay.net
+		x-hsreplay-api-key: [API_KEY]
+		</pre>
+		<p>If successful, the server will respond with:</p>
+		<pre>
+			HTTP/1.1 201 CREATED
+			Date: Mon, 8 February 2016 22:38:34 GMT
+
+			{
+				"single_site_upload_token": [TOKEN]
+			}
+		</pre>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-xs-12">
+		<h3>Upload Replay Files</h3>
+		<p>Once you have acquired an upload token for your user, you can use it along with your API key to upload HSReplay
+		files on their behalf. In addition to the standard <code>x-hsreplay-api-key</code> header, when you upload a
+		replay for a user you must set their upload token as the <code>x-hsreplay-upload-token</code> header value. The
+		raw replay XML data should be placed in the body of the POST request.</p>
+		<br/>
+		<p>NOTE: When submitting API requests to upload replays you must specifically send the
+		request to the <code>https://upload.hsreplay.net</code> host domain (using HTTPS). This sub-domain sits in front
+		of the highly scalable infrastructure that hsreplay.net uses to handle the volume of concurrent HSReplay uploads.</p>
+		<br/>
+		<p>The raw replay XML data itself must conform to the <a href="https://github.com/HearthSim/HSReplay">HSReplay Specification</a>.
+		The specification Github repository provides an HSReplay python implementation which can be run separately or embedded
+			within your application.</p>
+		<pre>
+			POST /api/v1/replay/upload/ HTTPS/1.1
+			Host: upload.hsreplay.net
+			x-hsreplay-api-key: [API_KEY]
+			x-hsreplay-upload-token: [TOKEN]
+
+			&lt;HSReplay version="1.0"&gt;
+				&lt;Game ts="2016-02-06T04:50:33" type="7"&gt;
+					&lt;GameEntity id="1"&gt;
+						&lt;Tag tag="10" value="85" /&gt;
+						&lt;Tag tag="20" value="1" /&gt;
+						&lt;!-- Additional HSReplay Data --&gt;
+				&lt;/Game&gt;
+			&lt;/HSReplay&gt;
+		</pre>
+		<p>If the replay was successfully uploaded, then the server will respond with the HTTP code 201. All replay files are
+		assigned a UUID on upload that can be used to perform other API operations on the replay. The UUID is available
+		directly in the JSON of the response body.</p>
+		<pre>
+			HTTP/1.1 201 CREATED
+			Date: Mon, 8 February 2016 22:38:34 GMT
+
+			{
+				"replay_uuid": [UUID]
+			}
+		</pre>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-xs-12">
+		<h3>Interact With Uploaded Replay Files</h3>
+		<p>The amount of time for which HSReplay.net keeps uploaded replays available can be configured for each generated upload
+			token. See the API documentation sections on account management for further details. In order to retrieve the
+			status of a previously uploaded replay, a GET request should be sent to <code>/api/v1/replay/[UUID]/</code>. The
+			two standard <code>x-hsrepay-*</code> headers must be included, as in the example below.</p>
+		<pre>
+			GET /api/v1/replay/27258f76-c180-4b4f-99e4-8ad949a17eb7/ HTTP/1.1
+			Host: hsreplay.net
+			x-hsreplay-api-key: [API_KEY]
+			x-hsreplay-upload-token: [TOKEN]
+		</pre>
+		<p>The server will respond with a JSON object that provides further details about the replay. The
+			<code>replay_uuid</code> and <code>status</code> fields are always included. All other fields are only included
+			when the replay status is available.</p>
+		<dl class="dl-horizontal">
+		  <dt>replay_uuid</dt>
+		  <dd><em>Always included in the response.</em> The UUID of the replay.</dd>
+		  <dt>status</dt>
+		  <dd><em>Always included in the response.</em> The status will either be <strong>AVAILABLE</strong> or <strong>ARCHIVED</strong>.
+			  If the replay is available then additional retrieval fields will also be present in the response. If the replay is
+			  archived then the user must first change their account settings to increase the replay availability period on their account.
+			  Once the availability period has been increased the replay will return to the available status.
+		  </dd>
+		  <dt>raw_xml</dt>
+		  <dd>An URL that can be used to retrieve the originally uploaded XML data.</dd>
+		  <dt>view_replay_sharable</dt>
+		  <dd>An URL that can be used by a browser to watch the replay on the HSReplay.net website. Although HSReplay.net provides
+			  functionality for making replays publicly viewable and discoverable, the URL returned by this response should be assumed
+			  to be opaque, as that will often be the case for private replays. However, anyone who knows the opaque URL can
+			  still use it to view the replay. This is intended to allow users to share replays with friends while still
+			  maintaining their privacy.</dd>
+		</dl>
+		<pre>
+			HTTP/1.1 200 OK
+			Date: Mon, 8 February 2016 23:17:52 GMT
+
+			{
+				"replay_uuid": [UUID],
+				"status": ["AVAILABLE" | "ARCHIVED"],
+				"raw_xml": [URL],
+				"view_replay_sharable": [URL]
+			}
+		</pre>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-xs-12">
+		<h3>Fetch Upload Token Status</h3>
+		<p>By default, whenever a new upload token is generated, HSReplay also creates a new anonymous account to which the
+			upload token is attached in the background. At any point in time a user can choose to convert their anonymous
+			account into a registered one in order to access additional features on HSReplay.net. In order to determine the current
+			status of an upload token a GET request can be sent to the following url,
+			<code>/api/[version]/agents/upload_token/[single_site_upload_token]/</code>.</p>
+		<pre>
+			GET /api/v1/agents/upload_token/27258f76-c180-4b4f-99e4-8ad949a17eb7/ HTTP/1.1
+			Host: hsreplay.net
+			x-hsreplay-api-key: [API_KEY]
+		</pre>
+		<p>The server will respond with the following JSON. Note the battle_tag field will be empty for anonymous accounts.</p>
+		<pre>
+			HTTP/1.1 200 OK
+			Date: Mon, 8 February 2016 23:17:52 GMT
+
+			{
+				"upload_token": [TOKEN],
+				"status": ["ANONYMOUS" | "REGISTERED"],
+				"battle_tag": ["" | "TazDingo#1973"],
+				"replays_are_public": [True|False]
+			}
+		</pre>
+		<p>A PUT request sent to the same url with the following JSON body can be used to modify the default replay visibility.</p>
+		<pre>
+			PUT /api/v1/agents/upload_token/27258f76-c180-4b4f-99e4-8ad949a17eb7/ HTTP/1.1
+			Host: hsreplay.net
+			x-hsreplay-api-key: [API_KEY]
+
+			{
+				"replays_are_public": [True|False]
+			}
+		</pre>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-xs-12">
+		<h3>Attach An Upload Token To An Account</h3>
+		<p>The process of attaching an upload token to an account can be initiated by directing the users browser to
+			open to <code>/api/[version]/agents/[api_key]/attach_upload_token/[single_site_upload_token]/</code>. On the
+			HSReplay.net page they will be prompted to login via Battle.net. If they already have an existing account, as is
+			the case when a user plays Hearthstone on multiple computers or sets up a new computer, then this upload token will
+			become associated with their existing account. If they don’t already have an account then the act of authenticating
+			with Battle.net will cause HSReplay.net to automatically create an account for them with their BattleTag as
+			their username.</p>
+		<br/>
+		<p>Once the user has authenticated with Battle.net they will be redirected to a page that shows all of their available
+			replays.</p>
+	</div>
+</div>
+
+		</div>
+	</div>
+</div>
+
+{% endblock content %}
+
