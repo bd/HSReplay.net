@@ -50,17 +50,11 @@ a.hsreplay-thumbnail:link, a.hsreplay-thumbnail:hover {
 
 .hsreplay-involved figure {
 	display: inline-block;
-	width: 50%;
+	width: calc(50% - 1px);
 	position: relative;
 	clip-path: rect(2%, 10%, 2%, 10%);
-}
-
-.hsreplay-involved figure:first-of-type {
-	padding-right: 1px;
-}
-
-.hsreplay-involved figure:last-of-type{
-	padding-left: 1px;
+	margin-right: 2px;
+	font-size: 4vw;
 }
 
 .hsreplay-involved figure img {
@@ -72,7 +66,6 @@ a.hsreplay-thumbnail:link, a.hsreplay-thumbnail:hover {
 	background-color: rgba(0, 0, 0, 0.65);
 	color: white;
 	display: flex;
-	font-size: 4vw;
 	font-weight: bold;
 	margin-top: -25%;
 	position: absolute;
@@ -83,16 +76,17 @@ a.hsreplay-thumbnail:link, a.hsreplay-thumbnail:hover {
 	text-align: center;
 	text-shadow: -1px -1px 0 #000, 1px -1px 0 #000,
 		-1px 1px 0 #000, 1px 1px 0 #000;
+	overflow: hidden;
 }
 
 @media (min-width: 768px) {
-	.hsreplay-involved figcaption {
+	.hsreplay-involved figure {
 		font-size: 2vw;
 	}
 }
 
 @media (min-width: 992px) {
-	.hsreplay-involved figcaption {
+	.hsreplay-involved figure {
 		font-size: 1.5vw;
 	}
 }
@@ -102,20 +96,29 @@ a.hsreplay-thumbnail:link, a.hsreplay-thumbnail:hover {
 		max-width: 80%;
 	}
 
-	.hsreplay-involved figcaption {
+	.hsreplay-involved figure {
 		font-size: 1vw;
 	}
 }
 
-.hsreplay-involved figcaption span {
-	width: 100%;
+.hsreplay-involved figure.winner:before {
+	content: '✔';
+	display: inline-block;
+	position: absolute;
+	line-height: 0.8em;
+	font-size: 3em;
+	color: limegreen;
+	text-shadow: 0 0 0 black;
+	top: 0;
+	z-index: 10;
 }
 
-.hsreplay-involved figure.winner figcaption:before {
-	content: '✔';
-	margin-right: 2px;
-	font-size: 2em;
-	color: green;
+.hsreplay-involved figure.winner:first-of-type:before {
+	left: 0;
+}
+
+.hsreplay-involved figure.winner:last-of-type:before {
+	right: 0;
 }
 
 .hsreplay-invalid .hsreplay-involved figure img {
