@@ -9,7 +9,6 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.core.urlresolvers import reverse
 from django.db import models
-from django.utils import timezone
 from hearthstone.enums import *
 from hsreplay import __version__ as hsreplay_version
 from hsreplay.dumper import parse_log, create_document, game_to_xml
@@ -24,7 +23,7 @@ time_logger = logging.getLogger("TIMING")
 
 class SingleSiteUploadToken(models.Model):
 	token = models.UUIDField(default=uuid.uuid4, editable=False)
-	created = models.DateTimeField(default=timezone.now)
+	created = models.DateTimeField(auto_now_add=True)
 	user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name="tokens")
 
 	def __str__(self):
