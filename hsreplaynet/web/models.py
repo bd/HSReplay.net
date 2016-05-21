@@ -41,7 +41,6 @@ class SingleSiteUploadToken(models.Model):
 	upload_agent = models.ForeignKey(UploadAgentAPIKey)
 	created = models.DateTimeField(default=timezone.now)
 	user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name="tokens")
-	replays_are_public = models.BooleanField(default=False)
 
 	def __str__(self):
 		return str(self.token)

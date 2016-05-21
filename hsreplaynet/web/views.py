@@ -99,7 +99,7 @@ class UploadTokenDetailsView(View):
 	def dispatch(self, *args, **kwargs):
 		return super().dispatch(*args, **kwargs)
 
-	def get(self, request, single_site_upload_token):
+	def get(self, request, token):
 		response = HttpResponse()
 		api_key_header = fetch_header(request, settings.API_KEY_HEADER)
 		token = None
@@ -112,10 +112,10 @@ class UploadTokenDetailsView(View):
 			return response
 
 		try:
-			token = SingleSiteUploadToken.objects.get(upload_agent=agent, token=single_site_upload_token)
+			token = SingleSiteUploadToken.objects.get(upload_agent=agent, token=token)
 		except SingleSiteUploadToken.DoesNotExist:
 			response.status_code = 403
-			response.content = "%s is not a valid upload token or was not assigned to this api kiey." % single_site_upload_token
+			response.content = "Invalid upload token: %r" % (token)
 			return response
 
 		response.status_code = 200
@@ -123,35 +123,5 @@ class UploadTokenDetailsView(View):
 			"upload_token": str(token.token),
 			"status": "ANONYMOUS" if not token.user else "REGISTERED",
 			"battle_tag": token.user.username if token.user else "",
-			"replays_are_public": token.replays_are_public
 		})
-		return response
-
-	def put(self, request, single_site_upload_token):
-		response = HttpResponse()
-		api_key_header = fetch_header(request, settings.API_KEY_HEADER)
-
-		try:
-			agent = UploadAgentAPIKey.objects.get(api_key=api_key_header)
-		except UploadAgentAPIKey.DoesNotExist:
-			response.status_code = 403
-			response.content = "%s is not a valid API Key." % api_key_header
-			return response
-
-		try:
-			token = SingleSiteUploadToken.objects.get(upload_agent=agent, token=single_site_upload_token)
-		except SingleSiteUploadToken.DoesNotExist:
-			response.status_code = 403
-			response.content = "%s is not a valid upload token or was not assigned to this api kiey." % single_site_upload_token
-			return response
-
-		body = json.loads(request.body.decode("utf-8"))
-		if "replays_are_public" in body:
-			token.replays_are_public = body["replays_are_public"]
-			token.save()
-			response.status_code = 200
-			return response
-
-		response.status_code = 400
-		response.content = "You must include a JSON object with a 'replays_are_public' field when submitting a post request."
 		return response

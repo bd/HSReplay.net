@@ -204,17 +204,6 @@
 				"upload_token": [TOKEN],
 				"status": ["ANONYMOUS" | "REGISTERED"],
 				"battle_tag": ["" | "TazDingo#1973"],
-				"replays_are_public": [True|False]
-			}
-		</pre>
-		<p>A PUT request sent to the same url with the following JSON body can be used to modify the default replay visibility.</p>
-		<pre>
-			PUT /api/v1/agents/upload_token/27258f76-c180-4b4f-99e4-8ad949a17eb7/ HTTP/1.1
-			Host: hsreplay.net
-			x-hsreplay-api-key: [API_KEY]
-
-			{
-				"replays_are_public": [True|False]
 			}
 		</pre>
 	</div>
