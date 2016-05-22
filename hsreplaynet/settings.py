@@ -35,7 +35,6 @@ INSTALLED_APPS = (
 	"rest_framework",
 	"hsreplaynet.api",
 	"hsreplaynet.web",
-	"hsreplaynet.joust",
 	"hsreplaynet.cards",
 	"hsreplaynet.lambdas",
 )

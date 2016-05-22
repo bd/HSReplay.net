@@ -19,11 +19,11 @@ class MyReplaysView(View):
 		sorted_replays = sorted(replays, key=lambda r: r.global_game.match_start_timestamp, reverse=True)
 
 		context = {"replays": sorted_replays, "count": len(sorted_replays)}
-		return render(request, "joust/my_replays.html", context)
+		return render(request, "games/my_replays.html", context)
 
 
 class ReplayDetailView(View):
 	def get(self, request, id):
-		return render(request, "joust/replay_detail.html", {
+		return render(request, "games/replay_detail.html", {
 			"replay_data_url": "/api/v1/replay/%s" % (id),
 		})

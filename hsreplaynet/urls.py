@@ -8,7 +8,7 @@ urlpatterns = [
 	url(r"^$", TemplateView.as_view(template_name="home.html"), name="home"),
 	url(r"^admin/", include(admin.site.urls)),
 	url(r"^api/", include("hsreplaynet.api.urls")),
-	url(r"^games/", include("hsreplaynet.joust.urls")),
+	url(r"^games/", include("hsreplaynet.web.urls")),
 	url(r"^about/privacy/$", flatpage, {"url": "/about/privacy/"}, name="privacy_policy"),
 	url(r"^about/tos/$", flatpage, {"url": "/about/tos/"}, name="terms_of_service"),
 	url(r"^account/$",

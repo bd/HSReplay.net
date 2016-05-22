@@ -606,7 +606,7 @@ class GameReplayUpload(models.Model):
 	disconnected = models.BooleanField(default=False)
 
 	def get_absolute_url(self):
-		return reverse("joust_replay_view", kwargs={"id": self.id})
+		return reverse("games_replay_view", kwargs={"id": self.id})
 
 	@property
 	def css_classes(self):

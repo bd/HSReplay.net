@@ -32,3 +32,8 @@ class TestAttachUploadTokenToUser(TestCase):
 	def test_not_logged_in_triggers_redirect(self):
 		response = self.client.get(self.attachment_url)
 		self.assertEqual(response.status_code, 302)
+
+	def test_private_collection(self):
+		self.client.login(username="test", password="password")
+		response = self.client.get(reverse("my_replays"))
+		self.assertEqual(response.templates[0].name, "games/my_replays.html")
