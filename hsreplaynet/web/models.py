@@ -30,22 +30,6 @@ class SingleSiteUploadToken(models.Model):
 		return str(self.token)
 
 
-class UploadAgentAPIKey(models.Model):
-	full_name = models.CharField(max_length=254)
-	email = models.EmailField()
-	website = models.URLField(blank=True)
-	api_key = models.UUIDField(blank=True)
-
-	tokens = models.ManyToManyField(SingleSiteUploadToken)
-
-	def __str__(self):
-		return self.full_name
-
-	def save(self, *args, **kwargs):
-		self.api_key = uuid.uuid4()
-		return super(UploadAgentAPIKey, self).save(*args, **kwargs)
-
-
 def _generate_raw_log_key(instance, filename):
 	return "%slogs/%s.log" % (instance.match_start_timestamp.strftime("%Y/%m/%d/"), str(instance.id))
 

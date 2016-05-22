@@ -12,6 +12,7 @@ import sys
 from django.core.wsgi import get_wsgi_application
 from whitenoise.django import DjangoWhiteNoise
 
+
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "hsreplaynet.settings")
 

@@ -43,15 +43,3 @@ class SingleGameRawLogUploadAdmin(admin.ModelAdmin):
 	)
 	list_filter = ("is_spectated_game", "game_type", "hearthstone_build")
 	raw_id_fields = ("upload_token", )
-
-
-@admin.register(SingleSiteUploadToken)
-class SingleSiteUploadTokenAdmin(admin.ModelAdmin):
-	list_display = ("__str__", "user", "created")
-	raw_id_fields = ("user", )
-
-
-@admin.register(UploadAgentAPIKey)
-class UploadAgentAPIKeyAdmin(admin.ModelAdmin):
-	list_display = ("__str__", "email", "website", "api_key")
-	search_fields = ("full_name", "email", "website")

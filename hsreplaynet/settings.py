@@ -33,7 +33,7 @@ INSTALLED_APPS = (
 	"django.contrib.staticfiles",
 	"django.contrib.sites",
 	"rest_framework",
-	# "hsreplaynet.api",
+	"hsreplaynet.api",
 	"hsreplaynet.web",
 	"hsreplaynet.joust",
 	"hsreplaynet.cards",

@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.test import TestCase
-from ..models import SingleSiteUploadToken
+from hsreplaynet.web.models import SingleSiteUploadToken
 from hsreplaynet.test.base import create_agent_and_token
 
 

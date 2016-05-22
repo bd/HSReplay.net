@@ -7,7 +7,8 @@ from django.core.management import call_command
 from django.test import TestCase
 from selenium import webdriver
 from hearthstone.enums import *
-from hsreplaynet.web.models import SingleSiteUploadToken, UploadAgentAPIKey
+from hsreplaynet.api.models import UploadAgentAPIKey
+from hsreplaynet.web.models import SingleSiteUploadToken
 
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
