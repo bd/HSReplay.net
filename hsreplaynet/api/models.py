@@ -29,6 +29,7 @@ class UploadAgentAPIKey(models.Model):
 	email = models.EmailField()
 	website = models.URLField(blank=True)
 	api_key = models.UUIDField(blank=True)
+	enabled = models.BooleanField(default=True)
 
 	tokens = models.ManyToManyField(AuthToken)
 

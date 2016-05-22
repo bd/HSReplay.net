@@ -11,5 +11,6 @@ class AuthTokenAdmin(admin.ModelAdmin):
 
 @admin.register(UploadAgentAPIKey)
 class UploadAgentAPIKeyAdmin(admin.ModelAdmin):
-	list_display = ("__str__", "email", "website", "api_key")
+	list_display = ("__str__", "email", "website", "api_key", "enabled")
 	search_fields = ("full_name", "email", "website")
+	list_filter = ("enabled", )
