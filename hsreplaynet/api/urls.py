@@ -4,7 +4,8 @@ from . import legacy_views, views
 
 
 router = DefaultRouter()
-router.register(r"tokens", views.UploadTokenViewSet)
+router.register(r"agents", views.UploadAgentViewSet)
+router.register(r"tokens", views.AuthTokenViewSet)
 
 urlpatterns = [
 	url(r"^", include(router.urls)),
