@@ -559,6 +559,7 @@ class GameReplayUpload(models.Model):
 	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 	objects = GameReplayUploadManager()
 	upload_token = models.ForeignKey("api.AuthToken", null=True, blank=True, related_name="replays")
+	user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
 	upload_timestamp = models.DateTimeField()
 	global_game = models.ForeignKey(GlobalGame,
 		related_name="replays",
