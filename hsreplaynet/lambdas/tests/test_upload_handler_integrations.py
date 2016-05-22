@@ -18,7 +18,7 @@ class TestRawLogUploadHandler(CardDataBaseTest, TestDataConsumerMixin):
 				event = descriptor["event"]
 				event["body"] = b64encode(raw_log.encode("utf-8"))
 				event["x-hsreplay-api-key"] = str(self.agent.api_key)
-				event["x-hsreplay-upload-token"] = str(self.token.token)
+				event["x-hsreplay-upload-token"] = str(self.token)
 				context = descriptor["context"]
 
 				# Invoke main handler code

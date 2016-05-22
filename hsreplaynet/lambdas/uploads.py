@@ -5,7 +5,8 @@ from django.utils.timezone import now
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from hsreplaynet.utils import _time_elapsed
-from hsreplaynet.web.models import *
+from hsreplaynet.api.models import AuthToken
+from hsreplaynet.web.models import GameReplayUpload, SingleGameRawLogUpload
 
 
 logging.getLogger("boto").setLevel(logging.WARN)
@@ -61,7 +62,7 @@ def _raw_log_upload_handler(event, context):
 
 	raw_log_upload_record = SingleGameRawLogUpload()
 	# Model fileds populated in the following section
-	raw_log_upload_record.upload_token = SingleSiteUploadToken.objects.filter(token=token).first()
+	raw_log_upload_record.upload_token = AuthToken.objects.filter(key=token).first()
 
 	if event.get("game_server_address"):
 		raw_log_upload_record.game_server_address = event.get("game_server_address")

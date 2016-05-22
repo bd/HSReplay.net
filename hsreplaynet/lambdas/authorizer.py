@@ -1,6 +1,6 @@
 import logging
 import re
-from hsreplaynet.web.models import SingleSiteUploadToken
+from hsreplaynet.api.models import AuthToken
 
 
 logger = logging.getLogger()
@@ -13,7 +13,7 @@ def lambda_handler(event, context):
 	api_key = event['authorizationToken']
 	logger.info("API Key: %s" % api_key)
 
-	token = SingleSiteUploadToken.objects.filter(token=api_key).first()
+	token = AuthToken.objects.filter(key=api_key).first()
 	if not token:
 		raise Exception('Unauthorized')
 	else:

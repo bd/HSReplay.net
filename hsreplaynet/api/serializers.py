@@ -1,8 +1,8 @@
 from rest_framework import serializers
-from hsreplaynet.web.models import SingleSiteUploadToken
+from .models import AuthToken
 
 
 class UploadTokenSerializer(serializers.HyperlinkedModelSerializer):
 	class Meta:
-		model = SingleSiteUploadToken
-		fields = ("token", )
+		model = AuthToken
+		fields = ("key", )

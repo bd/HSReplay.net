@@ -3,7 +3,7 @@ from django.test import TestCase
 from hsreplaynet.test.base import create_agent_and_token
 
 
-class TestSingleSiteTokenRequest(TestCase):
+class TestAuthTokenRequest(TestCase):
 	def setUp(self):
 		super().setUp()
 		self.agent, self.token = create_agent_and_token()

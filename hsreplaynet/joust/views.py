@@ -13,7 +13,7 @@ class MyReplaysView(View):
 	def get(self, request):
 		replays = []
 
-		for token in request.user.tokens.all():
+		for token in request.user.auth_tokens.all():
 			replays.extend(list(GameReplayUpload.objects.filter(upload_token=token).all()))
 
 		sorted_replays = sorted(replays, key=lambda r: r.global_game.match_start_timestamp, reverse=True)

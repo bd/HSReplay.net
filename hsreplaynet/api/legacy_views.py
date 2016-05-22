@@ -45,6 +45,8 @@ def fetch_header(request, header):
 
 
 def fetch_replay(request, id):
+	from hsreplaynet.web.models import GameReplayUpload
+
 	logger.info("Replay data requested for UUID: %s" % id)
 	response = HttpResponse()
 	replay = get_object_or_404(GameReplayUpload, id=id)
@@ -80,10 +82,10 @@ class GenerateAuthTokenView(View):
 			response.content = "%s is not a valid API Key." % (api_key_header)
 			return response
 
-		token = SingleSiteUploadToken.objects.create()
+		token = AuthToken.objects.create()
 		api_key.tokens.add(token)
 		response.status_code = 201
-		response.content = json.dumps({"token": str(token.token)})
+		response.content = json.dumps({"token": str(token)})
 		return response
 
 
@@ -94,8 +96,8 @@ class AttachSiteUploadTokenView(View):
 
 	def get(self, request, api_key, token):
 		try:
-			token = SingleSiteUploadToken.objects.get(token=token)
-		except SingleSiteUploadToken.DoesNotExist:
+			token = AuthToken.objects.get(key=token)
+		except AuthToken.DoesNotExist:
 			return HttpResponseForbidden("Invalid upload token: %r" % (token))
 
 		try:
@@ -127,15 +129,15 @@ class UploadTokenDetailsView(View):
 			return response
 
 		try:
-			token = SingleSiteUploadToken.objects.get(token=token)
-		except SingleSiteUploadToken.DoesNotExist:
+			token = AuthToken.objects.get(key=token)
+		except AuthToken.DoesNotExist:
 			response.status_code = 403
 			response.content = "Invalid upload token: %r" % (token)
 			return response
 
 		response.status_code = 200
 		response.content = json.dumps({
-			"upload_token": str(token.token),
+			"upload_token": str(token),
 			"status": "ANONYMOUS" if not token.user else "REGISTERED",
 			"battle_tag": token.user.username if token.user else "",
 		})

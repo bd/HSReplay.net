@@ -2,8 +2,9 @@ from django.contrib import admin
 from .models import *
 
 
-@admin.register(SingleSiteUploadToken)
-class SingleSiteUploadTokenAdmin(admin.ModelAdmin):
+@admin.register(AuthToken)
+class AuthTokenAdmin(admin.ModelAdmin):
+	date_hierarchy = "created"
 	list_display = ("__str__", "user", "created")
 	raw_id_fields = ("user", )
 

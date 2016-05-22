@@ -1,8 +1,8 @@
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.test import TestCase
-from hsreplaynet.web.models import SingleSiteUploadToken
 from hsreplaynet.test.base import create_agent_and_token
+from ..models import AuthToken
 
 
 class TestAttachUploadTokenToUser(TestCase):
@@ -13,7 +13,7 @@ class TestAttachUploadTokenToUser(TestCase):
 			"test", email="test@example.com", password="password"
 		)
 		self.attachment_url = reverse("attach_site_upload_token", kwargs={
-			"token": str(self.token.token),
+			"token": str(self.token),
 			"api_key": str(self.agent.api_key),
 		})
 
@@ -23,10 +23,10 @@ class TestAttachUploadTokenToUser(TestCase):
 		self.assertEqual(response.status_code, 200)
 		self.assertEqual(response.context["token"], self.token)
 		self.assertEqual(response.templates[0].name, "web/token_attached.html")
-		self.assertEqual(list(self.user.tokens.all()), [self.token])
+		self.assertEqual(list(self.user.auth_tokens.all()), [self.token])
 		self.assertEqual(list(self.agent.tokens.all()), [self.token])
-		updated_token = SingleSiteUploadToken.objects.get(token=self.token.token)
-		self.assertEqual(updated_token.token, self.token.token)
+		updated_token = AuthToken.objects.get(key=self.token.key)
+		self.assertEqual(updated_token.key, self.token.key)
 		self.assertEqual(updated_token.user, self.user)
 
 	def test_not_logged_in_triggers_redirect(self):

@@ -7,8 +7,7 @@ from django.core.management import call_command
 from django.test import TestCase
 from selenium import webdriver
 from hearthstone.enums import *
-from hsreplaynet.api.models import UploadAgentAPIKey
-from hsreplaynet.web.models import SingleSiteUploadToken
+from hsreplaynet.api.models import AuthToken, UploadAgentAPIKey
 
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -125,7 +124,7 @@ def create_agent_and_token():
 		email="test@testagent.example.org",
 		website="http://testagent.example.org"
 	)
-	token = SingleSiteUploadToken.objects.create()
+	token = AuthToken.objects.create()
 	agent.tokens.add(token)
 
 	return agent, token

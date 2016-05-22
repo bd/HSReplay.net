@@ -31,7 +31,7 @@ class TestRawLogUploadHandler(CardDataBaseTest, TestDataConsumerMixin):
 			"player_2_rank": "",
 			"body": b64encode(self.log_data),
 			"x-hsreplay-api-key": str(self.agent.api_key),
-			"x-hsreplay-upload-token": str(self.token.token)
+			"x-hsreplay-upload-token": str(self.token),
 		}
 
 		context = {}

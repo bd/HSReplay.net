@@ -1,8 +1,8 @@
 from rest_framework import viewsets
-from hsreplaynet.web.models import SingleSiteUploadToken
+from .models import AuthToken
 from .serializers import UploadTokenSerializer
 
 
 class UploadTokenViewSet(viewsets.ModelViewSet):
-	queryset = SingleSiteUploadToken.objects.all()
+	queryset = AuthToken.objects.all()
 	serializer_class = UploadTokenSerializer

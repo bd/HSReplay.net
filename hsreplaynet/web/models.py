@@ -21,15 +21,6 @@ logger = logging.getLogger(__name__)
 time_logger = logging.getLogger("TIMING")
 
 
-class SingleSiteUploadToken(models.Model):
-	token = models.UUIDField(default=uuid.uuid4, editable=False)
-	created = models.DateTimeField(auto_now_add=True)
-	user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, related_name="tokens")
-
-	def __str__(self):
-		return str(self.token)
-
-
 def _generate_raw_log_key(instance, filename):
 	return "%slogs/%s.log" % (instance.match_start_timestamp.strftime("%Y/%m/%d/"), str(instance.id))
 
@@ -101,7 +92,7 @@ class SingleGameRawLogUpload(models.Model):
 	The raw logs have not yet been parsed for validity.
 	"""
 	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-	upload_token = models.ForeignKey(SingleSiteUploadToken)
+	upload_token = models.ForeignKey("api.AuthToken", null=True, blank=True)
 	upload_timestamp = models.DateTimeField()
 	match_start_timestamp = models.DateTimeField(
 		help_text="Uses upload_timestamp as a fallback."
@@ -567,10 +558,7 @@ class GameReplayUpload(models.Model):
 
 	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 	objects = GameReplayUploadManager()
-	upload_token = models.ForeignKey(SingleSiteUploadToken,
-		related_name="replays",
-		help_text="The upload token used by the owner of the replay when uploading it."
-	)
+	upload_token = models.ForeignKey("api.AuthToken", null=True, blank=True, related_name="replays")
 	upload_timestamp = models.DateTimeField()
 	global_game = models.ForeignKey(GlobalGame,
 		related_name="replays",
