@@ -10,17 +10,6 @@ from .models import AuthToken, UploadAgentAPIKey
 logger = logging.getLogger(__name__)
 
 
-def fetch_header(request, header):
-	if header in request.META:
-		return request.META[header]
-
-	django_header = "HTTP_" + header.upper().replace("-", "_")
-	if django_header in request.META:
-		return request.META[django_header]
-
-	return ""
-
-
 def fetch_replay(request, id):
 	from hsreplaynet.web.models import GameReplayUpload
 
