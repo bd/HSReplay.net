@@ -9,7 +9,7 @@ router.register(r"agents", views.UploadAgentViewSet)
 router.register(r"tokens", views.AuthTokenViewSet)
 
 urlpatterns = [
-	url(r"^", include(router.urls)),
+	url(r"^v1/", include(router.urls)),
 	url(r"^api-auth/", include("rest_framework.urls", namespace="rest_framework")),
 ]
 

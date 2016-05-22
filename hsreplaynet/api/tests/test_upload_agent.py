@@ -8,7 +8,7 @@ class TestAuthTokenRequest(TestCase):
 	def setUp(self):
 		super().setUp()
 		self.agent, self.token = create_agent_and_token()
-		self.url = "/api/tokens/"
+		self.url = "/api/v1/tokens/"
 
 	def test_request_upload_token(self):
 		data = json.dumps({"api_key": str(self.agent.api_key)})
