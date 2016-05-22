@@ -1,3 +1,4 @@
+import json
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 from hsreplaynet.test.base import create_agent_and_token
@@ -7,17 +8,18 @@ class TestAuthTokenRequest(TestCase):
 	def setUp(self):
 		super().setUp()
 		self.agent, self.token = create_agent_and_token()
+		self.url = "/api/tokens/"
 
 	def test_request_upload_token(self):
-		headers = {"x-hsreplay-api-key": self.agent.api_key}
-		response = self.client.post(reverse("generate_auth_token"), **headers)
+		data = json.dumps({"api_key": str(self.agent.api_key)})
+		print("posting %r" % (data))
+		response = self.client.post(self.url, content_type="application/json", data=data)
 		self.assertEqual(response.status_code, 201)
 
 	def test_get_raises_not_allowed(self):
-		headers = {"x-hsreplay-api-key": self.agent.api_key}
-		response = self.client.get(reverse("generate_auth_token"), **headers)
+		response = self.client.get(self.url)
 		self.assertEqual(response.status_code, 405)
 
-	def test_missing_api_key_raises_401(self):
-		response = self.client.post(reverse("generate_auth_token"))
-		self.assertEqual(response.status_code, 401)
+	def test_missing_api_key_raises_400(self):
+		response = self.client.post(self.url)
+		self.assertEqual(response.status_code, 400)

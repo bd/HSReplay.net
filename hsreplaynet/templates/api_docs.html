@@ -12,56 +12,6 @@
 		somewhere safe. It will only be displayed to you once. If you loose it, you must request a new one. In order for
 		your application to communicate with the HSReplay.net API you will need to include this key as the
 		<code>x-hsreplay-api-key</code> header value with each request.</p>
-		<form action="" method="post" role="form" class="form-horizontal">
-			{% csrf_token %}
-			<div class="form-group">
-				<label for="id_name" class="col-sm-2 control-label">Full Name (required):</label>
-				<div class="col-sm-6">
-					{% if form.full_name.value %}
-						<input id="id_name" class="form-control" maxlength="250" name="full_name" type="text" value="{{ form.full_name.value }}" />
-					{% else %}
-						<input id="id_name" class="form-control" maxlength="250" name="full_name" type="text" />
-					{% endif %}
-				</div>
-			</div>
-			<div class="form-group">
-				<label for="id_email" class="col-sm-2 control-label">Email (required):</label>
-				<div class="col-sm-6">
-					{% if form.email.value %}
-						<input id="id_email" class="form-control" maxlength="250" name="email" type="text" value="{{ form.email.value }}" />
-					{% else %}
-						<input id="id_email" class="form-control" maxlength="250" name="email" type="text" />
-					{% endif %}
-				</div>
-			</div>
-			<div class="form-group">
-				<label for="id_website" class="col-sm-2 control-label">Website:</label>
-				<div class="col-sm-6">
-					{% if form.website.value %}
-						<input id="id_website" class="form-control" maxlength="250" name="website" type="text" value="{{ form.website.value }}" />
-					{% else %}
-						<input id="id_website" class="form-control" maxlength="250" name="website" type="text" />
-					{% endif %}
-				</div>
-			</div>
-			<div class="form-group">
-				<label for="id_api_key" class="col-sm-2 control-label">API Key:</label>
-				<div class="col-sm-6">
-					{% if form.api_key.value %}
-						<input readonly id="id_api_key" class="form-control" maxlength="250" name="api_key" type="text" value="{{ form.api_key.value }}" />
-					{% else %}
-						<input readonly id="id_api_key" class="form-control" maxlength="250" name="api_key" type="text" />
-					{% endif %}
-				</div>
-			</div>
-			{% if not form.api_key.value %}
-			<div class="form-group">
-				<div class="col-sm-6 col-sm-offset-2">
-					<button class="btn btn-primary btn-lg" type="submit">Request API Key</button>
-				</div>
-			</div>
-			{% endif %}
-		</form>
 	</div>
 </div>
 

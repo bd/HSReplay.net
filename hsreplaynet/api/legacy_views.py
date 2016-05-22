@@ -1,36 +1,13 @@
-import json
 import logging
-from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, render
 from django.utils.decorators import method_decorator
 from django.views.generic import View
-from django.views.decorators.csrf import csrf_exempt
-from .forms import UploadAgentAPIKeyForm
-from .models import *
+from .models import AuthToken, UploadAgentAPIKey
 
 
 logger = logging.getLogger(__name__)
-
-
-class APIDocsView(View):
-	"""
-	This view serves the legacy API docs including
-	the form to generate an API Token.
-	"""
-	def get(self, request):
-		context = {"form": UploadAgentAPIKeyForm()}
-		return render(request, "api_docs.html", context)
-
-	def post(self, request):
-		form = UploadAgentAPIKeyForm(request.POST)
-
-		if form.is_valid():
-			api_key = form.save()
-			form = UploadAgentAPIKeyForm(instance=api_key)
-
-		return render(request, "api_docs.html", {"form": form})
 
 
 def fetch_header(request, header):
@@ -60,35 +37,6 @@ def fetch_replay(request, id):
 	return response
 
 
-class GenerateAuthTokenView(View):
-	@method_decorator(csrf_exempt)
-	def dispatch(self, *args, **kwargs):
-		return super().dispatch(*args, **kwargs)
-
-	def post(self, request):
-		response = HttpResponse()
-		api_key_header = fetch_header(request, settings.API_KEY_HEADER)
-
-		if not api_key_header:
-			# Reject for not having included an API token
-			response.status_code = 401
-			response.content = "Missing %s header" % (settings.API_KEY_HEADER)
-			return response
-
-		try:
-			api_key = UploadAgentAPIKey.objects.get(api_key=api_key_header)
-		except UploadAgentAPIKey.DoesNotExist:
-			response.status_code = 403
-			response.content = "%s is not a valid API Key." % (api_key_header)
-			return response
-
-		token = AuthToken.objects.create()
-		api_key.tokens.add(token)
-		response.status_code = 201
-		response.content = json.dumps({"token": str(token)})
-		return response
-
-
 class AttachSiteUploadTokenView(View):
 	@method_decorator(login_required)
 	def dispatch(self, *args, **kwargs):
@@ -109,36 +57,3 @@ class AttachSiteUploadTokenView(View):
 		token.save()
 		context = {"token": token, "agent": agent}
 		return render(request, "web/token_attached.html", context)
-
-
-class UploadTokenDetailsView(View):
-	@method_decorator(csrf_exempt)
-	def dispatch(self, *args, **kwargs):
-		return super().dispatch(*args, **kwargs)
-
-	def get(self, request, token):
-		response = HttpResponse()
-		api_key_header = fetch_header(request, settings.API_KEY_HEADER)
-		token = None
-
-		try:
-			UploadAgentAPIKey.objects.get(api_key=api_key_header)
-		except UploadAgentAPIKey.DoesNotExist:
-			response.status_code = 403
-			response.content = "%s is not a valid API Key." % api_key_header
-			return response
-
-		try:
-			token = AuthToken.objects.get(key=token)
-		except AuthToken.DoesNotExist:
-			response.status_code = 403
-			response.content = "Invalid upload token: %r" % (token)
-			return response
-
-		response.status_code = 200
-		response.content = json.dumps({
-			"upload_token": str(token),
-			"status": "ANONYMOUS" if not token.user else "REGISTERED",
-			"battle_tag": token.user.username if token.user else "",
-		})
-		return response
