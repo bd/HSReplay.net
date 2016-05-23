@@ -2,6 +2,13 @@ from django.contrib import admin
 from .models import *
 
 
+class GlobalGamePlayerInline(admin.TabularInline):
+	model = GlobalGamePlayer
+	raw_id_fields = ("user", "deck_list")
+	max_num = 2
+	show_change_link = True
+
+
 @admin.register(GameReplayUpload)
 class GameReplayUploadAdmin(admin.ModelAdmin):
 	date_hierarchy = "upload_timestamp"
@@ -25,6 +32,7 @@ class GlobalGameAdmin(admin.ModelAdmin):
 	list_filter = (
 		"game_type", "ladder_season", "brawl_season", "hearthstone_build"
 	)
+	inlines = (GlobalGamePlayerInline, )
 
 
 @admin.register(GlobalGamePlayer)
