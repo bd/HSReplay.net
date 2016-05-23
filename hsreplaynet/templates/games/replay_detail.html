@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% load static from staticfiles %}
+{% load web_extras %}
 
 {% block stylesheets %}
 	{{ block.super }}
-	<link href="http://hsreplay.net/static/joust/joust.css" rel="stylesheet">
+	<link rel="stylesheet" type="text/css" href="{% joust_static 'joust.css' %}"/>
 {% endblock stylesheets %}
 
 {% block fullcontent %}
@@ -23,7 +24,7 @@
 	</div>
 </div>
 
-<script src="http://hsreplay.net/static/joust/bundle.js"></script>
+<script src="{% joust_static 'bundle.js' %}"></script>
 <script>
 	$(document).ready(function() {
 		var cb = function (buildNumber, cb) {
@@ -67,8 +68,8 @@
 
 		Joust.viewer("joust-container")
 			.metadata(cb)
-			.assets("//static.hsreplay.net/static/joust/assets/")
-			.cardArt("//static.hsreplay.net/static/joust/card-art/")
+			.assets("{% joust_static 'assets/' %}")
+			.cardArt("{% joust_static 'card-art/' %}")
 			.fromUrl($("#joust-container").data("replayurl"));
 	});
 </script>

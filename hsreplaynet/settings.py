@@ -118,6 +118,8 @@ else:
 		"application/octet-stream",
 	)
 
+JOUST_STATIC_URL = STATIC_URL + "joust/"
+
 
 # Email
 # https://docs.djangoproject.com/en/1.9/ref/settings/#email-backend
