@@ -15,7 +15,6 @@ urlpatterns = [
 
 urlpatterns += [
 	url(r"^docs/$", TemplateView.as_view(template_name="api_docs.html")),
-	url(r"^v1/replay/(?P<id>[\w-]+)$", legacy_views.fetch_replay, name="fetch_replay"),
 	url(r"^v1/agents/(?P<api_key>[\w-]+)/attach_upload_token/(?P<token>[\w-]+)/$",
 		legacy_views.AttachSiteUploadTokenView.as_view(), name="attach_site_upload_token"),
 ]

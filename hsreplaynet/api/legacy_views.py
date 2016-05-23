@@ -1,29 +1,13 @@
 import logging
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, HttpResponseForbidden
-from django.shortcuts import get_object_or_404, render
+from django.http import HttpResponseForbidden
+from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.generic import View
 from .models import AuthToken, UploadAgentAPIKey
 
 
 logger = logging.getLogger(__name__)
-
-
-def fetch_replay(request, id):
-	from hsreplaynet.web.models import GameReplayUpload
-
-	logger.info("Replay data requested for UUID: %s" % id)
-	response = HttpResponse()
-	replay = get_object_or_404(GameReplayUpload, id=id)
-
-	response["Content-Type"] = "application/vnd.hearthsim-hsreplay+xml"
-	response.status_code = 200
-
-	replay.replay_xml.open()
-	response.content = replay.replay_xml.read()
-	logger.info("Fetching replay view is complete.")
-	return response
 
 
 class AttachSiteUploadTokenView(View):
