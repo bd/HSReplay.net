@@ -17,5 +17,6 @@ urlpatterns = [
 	),
 	url(r"^account/", include("allauth_battlenet.urls")),
 	url(r"^account/", include("allauth.urls")),
+	url(r"^account/", include("hsreplaynet.accounts.urls")),
 	url(r"^pages/", include("django.contrib.flatpages.urls")),
 ]
