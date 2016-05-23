@@ -600,7 +600,6 @@ class GameReplayUpload(models.Model):
 		help_text="Indicates user request to delete the upload"
 	)
 	exclude_in_aggregate_stats = models.BooleanField(default=False)
-	is_public = models.BooleanField(default=False)
 
 	won = models.NullBooleanField()
 	disconnected = models.BooleanField(default=False)
