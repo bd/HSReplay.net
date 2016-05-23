@@ -604,6 +604,24 @@ class GameReplayUpload(models.Model):
 	won = models.NullBooleanField()
 	disconnected = models.BooleanField(default=False)
 
+	def __str__(self):
+		players = self.global_game.players.values_list("player_id", "final_state", "name")
+		if len(players) != 2:
+			return "Incomplete game (%i players)" % (len(players))
+		if players[0][0] == self.friendly_player_id:
+			friendly, opponent = players
+		else:
+			opponent, friendly = players
+		if self.disconnected:
+			state = "Disconnected"
+		elif self.won:
+			state = "Won"
+		elif friendly[1] == opponent[1]:
+			state = "Tied"
+		else:
+			state = "Lost"
+		return "%s (%s) vs %s" % (friendly[2], state, opponent[2])
+
 	def get_absolute_url(self):
 		return reverse("games_replay_view", kwargs={"id": self.id})
 

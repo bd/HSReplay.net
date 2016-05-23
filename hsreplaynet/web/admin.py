@@ -17,7 +17,10 @@ class GameReplayUploadAdmin(admin.ModelAdmin):
 		"__str__", "upload_timestamp", urlify("global_game"),
 		"hsreplay_version", "replay_xml", urlify("raw_log")
 	)
-	list_filter = ("is_spectated_game", "hsreplay_version")
+	list_filter = (
+		"hsreplay_version", "is_spectated_game", "won", "disconnected",
+		"is_deleted", "exclude_in_aggregate_stats",
+	)
 	raw_id_fields = (
 		"upload_token", "user", "global_game", "raw_log",
 	)
