@@ -14,7 +14,7 @@ from hsreplay import __version__ as hsreplay_version
 from hsreplay.dumper import parse_log, create_document, game_to_xml
 from hsreplay.utils import toxml
 from hsreplaynet.cards.models import Card, Deck
-from hsreplaynet.utils import _time_elapsed
+from hsreplaynet.utils import _time_elapsed, PlayerIDField
 
 
 logger = logging.getLogger(__name__)
@@ -107,7 +107,7 @@ class SingleGameRawLogUpload(models.Model):
 
 	game_type = models.IntegerField(null=True, blank=True, validators=[_validate_valid_game_type])
 	is_spectated_game = models.BooleanField(default=False)
-	friendly_player_id = models.IntegerField(null=True, blank=True, validators=[_validate_friendly_player_id])
+	friendly_player_id = PlayerIDField(null=True, blank=True)
 	scenario_id = models.IntegerField(null=True, blank=True)
 
 	# Player Info
@@ -289,7 +289,7 @@ class GlobalGamePlayer(models.Model):
 	)
 	user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
 
-	player_id = models.PositiveSmallIntegerField("Player ID")
+	player_id = PlayerIDField(null=True, blank=True)
 	account_hi = models.BigIntegerField("Account Hi",
 		blank=True, null=True,
 		help_text="The region value from account hilo"
@@ -579,7 +579,7 @@ class GameReplayUpload(models.Model):
 	# The "friendly player" is the player whose cards are at the bottom of the
 	# screen when watching a game. For spectators this is determined by which
 	# player they started spectating first (if they spectate both).
-	friendly_player_id = models.IntegerField("Friendly Player ID",
+	friendly_player_id = PlayerIDField("Friendly Player ID",
 		null=True,
 		help_text="PlayerID of the friendly player (1 or 2)",
 	)
