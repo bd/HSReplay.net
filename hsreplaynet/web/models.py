@@ -280,6 +280,14 @@ class GlobalGame(models.Model):
 	def duration(self):
 		return self.match_end_timestamp - self.match_start_timestamp
 
+	@property
+	def is_tavern_brawl(self):
+		return self.game_type in (
+			BnetGameType.BGT_TAVERNBRAWL_PVP,
+			BnetGameType.BGT_TAVERNBRAWL_1P_VERSUS_AI,
+			BnetGameType.BGT_TAVERNBRAWL_2P_COOP,
+		)
+
 
 class GlobalGamePlayer(models.Model):
 	game = models.ForeignKey(GlobalGame, related_name="players")

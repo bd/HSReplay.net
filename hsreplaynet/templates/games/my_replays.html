@@ -31,13 +31,17 @@
 					<dt>Turns</dt>
 					<dd>{{ replay.global_game.num_turns }} turns</dd>
 				</dl><div>
+					{% if replay.disconnected %}
+						<img src="{% static 'web/images/dc.png' %}" class="hsreplay-type" title="Disconnected">
+					{% elif replay.global_game.is_tavern_brawl %}
+						<img src="{% static 'web/images/brawl.png' %}" class="hsreplay-type" title="Tavern Brawl">
+					{% endif %}
 					<!--<img src="assets/brm.png" class="hsreplay-type" title="Blackrock Mountain">
-					<img src="assets/dc.png" class="hsreplay-type" title="Disconnected">
 					<img src="assets/loe.png" class="hsreplay-type" title="League of Explorers">
 					<img src="assets/rank14.png" class="hsreplay-type" title="Rank 14">
 					<img src="assets/arena8.png" class="hsreplay-type" title="Arena">
 					<img src="assets/naxx.png" class="hsreplay-type" title="Curse of Naxxramas">
-					<img src="assets/brawl.png" class="hsreplay-type" title="Brawl"> -->
+					-->
 				</div>
 			</div>
 		</a>
