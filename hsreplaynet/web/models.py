@@ -290,13 +290,13 @@ class GlobalGamePlayer(models.Model):
 	user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
 
 	player_id = models.PositiveSmallIntegerField("Player ID")
-	account_hi = models.BigIntegerField("Account Hi value",
+	account_hi = models.BigIntegerField("Account Hi",
 		blank=True, null=True,
-		help_text="The accountHi value from the Player entity (represents the region)."
+		help_text="The region value from account hilo"
 	)
-	account_lo = models.BigIntegerField("Account Lo value",
+	account_lo = models.BigIntegerField("Account Lo",
 		blank=True, null=True,
-		help_text="The accountLo value from the Player entity. (0 for AI)",
+		help_text="The account ID value from account hilo"
 	)
 	is_ai = models.BooleanField("Is AI",
 		default=False,
