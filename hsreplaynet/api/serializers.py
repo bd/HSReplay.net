@@ -3,6 +3,10 @@ from rest_framework import serializers
 from .models import AuthToken, UploadAgentAPIKey
 
 
+class AccountClaimSerializer(serializers.Serializer):
+	url = serializers.ReadOnlyField(source="get_absolute_url")
+
+
 class UserSerializer(serializers.Serializer):
 	id = serializers.IntegerField(read_only=True)
 	email = serializers.EmailField()

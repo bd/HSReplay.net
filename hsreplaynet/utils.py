@@ -1,3 +1,5 @@
+import binascii
+import os
 import time
 from django.core.urlresolvers import reverse
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -5,6 +7,10 @@ from django.db.models import PositiveSmallIntegerField, SmallIntegerField
 
 
 _module_load_start = time.clock()
+
+
+def generate_key():
+	return binascii.hexlify(os.urandom(20)).decode()
 
 
 class PlayerIDField(PositiveSmallIntegerField):

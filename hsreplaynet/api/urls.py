@@ -10,6 +10,7 @@ router.register(r"tokens", views.AuthTokenViewSet)
 
 urlpatterns = [
 	url(r"^v1/", include(router.urls)),
+	url(r"^v1/claim_account/", views.CreateAccountClaimView.as_view()),
 	url(r"^api-auth/", include("rest_framework.urls", namespace="rest_framework")),
 ]
 

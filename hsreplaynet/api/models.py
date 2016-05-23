@@ -1,8 +1,7 @@
-import binascii
-import os
 import uuid
 from django.conf import settings
 from django.db import models
+from hsreplaynet.utils import generate_key
 
 
 class AuthToken(models.Model):
@@ -14,11 +13,8 @@ class AuthToken(models.Model):
 
 	def save(self, *args, **kwargs):
 		if not self.key:
-			self.key = self.generate_key()
+			self.key = generate_key()
 		return super(AuthToken, self).save(*args, **kwargs)
-
-	def generate_key(self):
-		return binascii.hexlify(os.urandom(20)).decode()
 
 	def __str__(self):
 		return self.key
