@@ -16,7 +16,7 @@
 		<div class="container">
 			<img src="{% static 'web/images/logo.png' %}" id="logo" alt="HSReplay"/>
 			<h1>HSReplay</h1>
-			<p class="tagline">Watch and share your Hearthstone replays</p>
+			<p class="tagline">Share your Hearthstone games</p>
 			{% if user.is_authenticated %}
 				<p>
 					<a href="{% url 'my_replays' %}" class="promo-button">My Replays</a>
@@ -38,10 +38,9 @@
 	<article>
 		<div class="container">
 			<header class="text-center">
-				<h2>Save all your Hearthstone games</h2>
+				<h2>All your replays in one place</h2>
 				<p>
-					Study and improve your own gameplay.<br/>
-					Share your craziest moments.
+					Try out our super slick Hearthstone replayer:
 				</p>
 			</header>
 			<div class="row">
@@ -55,16 +54,22 @@
 					<figure class="front-feature">
 						<img src="{% static 'web/images/front-feat-history.jpg' %}" alt="Match history" height="120" width="190" />
 						<figcaption>
-							<h2>All your matches in one place</h2>
-							<p>Filter your match history per game type, season, deck and more&hellip;</p>
+							<h2>Share your craziest moments</h2>
+							<p>
+								Your games are live on the site as soon as they finish.
+								Find your best play and easily link it to all your friends.
+							</p>
 						</figcaption>
 					</figure>
 
 					<figure class="front-feature flip">
 						<img src="{% static 'web/images/front-feat-stats.jpg' %}" alt="Monthly statistics" height="120" width="190" />
 						<figcaption>
-							<h2>Track your performance every season</h2>
-							<p>Follow your rank progression through the month and save your longest win streaks!</p>
+							<h2>Analyze your gameplay.</h2>
+							<p>
+								A clear game history, filterable per season, game type and more.
+								Follow your progress to legend with wins and losses visible at a glance.
+							</p>
 						</figcaption>
 					</figure>
 				</div>
