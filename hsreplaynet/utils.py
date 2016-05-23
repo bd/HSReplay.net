@@ -1,7 +1,7 @@
 import time
 from django.core.urlresolvers import reverse
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.db.models import PositiveSmallIntegerField
+from django.db.models import PositiveSmallIntegerField, SmallIntegerField
 
 
 _module_load_start = time.clock()
@@ -12,6 +12,32 @@ class PlayerIDField(PositiveSmallIntegerField):
 		kwargs["choices"] = ((1, 1), (2, 2))
 		kwargs["validators"] = [MinValueValidator(1), MaxValueValidator(2)]
 		super(PlayerIDField, self).__init__(*args, **kwargs)
+
+
+def IntEnumValidator(enum):
+	def validator(value):
+		return value in enum._value2member_map_
+	return validator
+
+
+class IntEnumField(SmallIntegerField):
+	def __init__(self, *args, **kwargs):
+		if "enum" in kwargs:
+			# if check required for migrations (apparently)
+			self.enum = kwargs.pop("enum")
+			kwargs["choices"] = tuple((m.value, m.name) for m in self.enum)
+			kwargs["validators"] = [IntEnumValidator(self.enum)]
+			if "default" in kwargs:
+				kwargs["default"] = int(kwargs["default"])
+		super(IntEnumField, self).__init__(*args, **kwargs)
+
+	def from_db_value(self, value, expression, connection, context):
+		if value is not None:
+			try:
+				return self.enum(value)
+			except ValueError:
+				return value
+		return value
 
 
 def admin_urlify(column):

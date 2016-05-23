@@ -2,6 +2,7 @@ import hashlib
 import random
 from django.db import models
 from hearthstone import enums
+from hsreplaynet.utils import IntEnumField
 
 
 class CardManager(models.Manager):
@@ -12,7 +13,7 @@ class CardManager(models.Manager):
 		Keyword arguments:
 		cost: Restrict the set of candidate cards to cards of this mana cost.
 		By default will be in the range 1 through 8 inclusive.
-		collectible: Restrict the set of candidate cards to the set of collectible cards. (Default True)
+		collectible: Restrict the set of candidate cards to the set of collectible cards.
 		card_class: Restrict the set of candidate cards to this class.
 		"""
 		cost = random.randint(1, 8) if cost is None else cost
@@ -65,12 +66,12 @@ class Card(models.Model):
 	how_to_earn_golden = models.TextField(blank=True)
 	artist = models.CharField(max_length=255, blank=True)
 
-	card_class = models.IntegerField(default=0)
-	card_set = models.IntegerField(default=0)
-	faction = models.IntegerField(default=0)
-	race = models.IntegerField(default=0)
-	rarity = models.IntegerField(default=0)
-	type = models.IntegerField(default=0)
+	card_class = IntEnumField(enum=enums.CardClass, default=enums.CardClass.INVALID)
+	card_set = IntEnumField(enum=enums.CardSet, default=enums.CardSet.INVALID)
+	faction = IntEnumField(enum=enums.Faction, default=enums.Faction.INVALID)
+	race = IntEnumField(enum=enums.Race, default=enums.Race.INVALID)
+	rarity = IntEnumField(enum=enums.Rarity, default=enums.Rarity.INVALID)
+	type = IntEnumField(enum=enums.CardType, default=enums.CardType.INVALID)
 
 	collectible = models.BooleanField(default=False)
 	battlecry = models.BooleanField(default=False)
@@ -171,9 +172,9 @@ class Deck(models.Model):
 		return str(self)
 
 	def __iter__(self):
-		#sorted() is stable, so sort alphabetically first and then by mana cost
-		alpha_sorted = sorted(self.cards.all(), key = lambda c: c.name)
-		mana_sorted = sorted(alpha_sorted, key = lambda c: c.cost)
+		# sorted() is stable, so sort alphabetically first and then by mana cost
+		alpha_sorted = sorted(self.cards.all(), key=lambda c: c.name)
+		mana_sorted = sorted(alpha_sorted, key=lambda c: c.cost)
 		return mana_sorted.__iter__()
 
 	def save(self, *args, **kwargs):
@@ -200,17 +201,17 @@ class Deck(models.Model):
 		"""
 		return sum(i.count for i in self.include_set.all())
 
-	def cards_of(self, cost = None, attack = None, health = None):
+	def cards_of(self, cost=None, attack=None, health=None):
 		result = self.cards
 
 		if cost:
-			result = result.filter(cost = cost)
+			result = result.filter(cost=cost)
 
 		if attack:
-			result = result.filter(attack = attack)
+			result = result.filter(attack=attack)
 
 		if health:
-			result = result.filter(health = health)
+			result = result.filter(health=health)
 
 		return result.all()
 

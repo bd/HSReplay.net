@@ -14,7 +14,7 @@ from hsreplay import __version__ as hsreplay_version
 from hsreplay.dumper import parse_log, create_document, game_to_xml
 from hsreplay.utils import toxml
 from hsreplaynet.cards.models import Card, Deck
-from hsreplaynet.utils import _time_elapsed, PlayerIDField
+from hsreplaynet.utils import _time_elapsed, IntEnumField, PlayerIDField
 
 
 logger = logging.getLogger(__name__)
@@ -36,14 +36,6 @@ def find_friendly_player(game_tree):
 		tags = dict(packet.tags)
 		if tags[GameTag.ZONE] == Zone.HAND and not packet.cardid:
 			return tags[GameTag.CONTROLLER] % 2 + 1
-
-
-def _validate_valid_game_type(value):
-	if value:
-		try:
-			BnetGameType(value)
-		except ValueError as e:
-			raise ValidationError(e)
 
 
 def _validate_player_rank(value):
@@ -105,7 +97,7 @@ class SingleGameRawLogUpload(models.Model):
 	# All the remaining fields represent optional meta data the client can provide when uploading a replay.
 	hearthstone_build = models.CharField(max_length=50, null=True, blank=True)
 
-	game_type = models.IntegerField(null=True, blank=True, validators=[_validate_valid_game_type])
+	game_type = IntEnumField(enum=BnetGameType, null=True, blank=True)
 	is_spectated_game = models.BooleanField(default=False)
 	friendly_player_id = PlayerIDField(null=True, blank=True)
 	scenario_id = models.IntegerField(null=True, blank=True)
@@ -245,9 +237,9 @@ class GlobalGame(models.Model):
 	)
 
 	# The BnetGameType enum encodes whether it's ranked or casual as well as standard or wild.
-	game_type = models.IntegerField("Game Type",
+	game_type = IntEnumField("Game Type",
+		enum=BnetGameType,
 		null=True, blank=True,
-		help_text="A value from hearthstone.enums.BnetGameType"
 	)
 
 	# ladder_season is nullable since not all games are ladder games
@@ -326,17 +318,14 @@ class GlobalGamePlayer(models.Model):
 		max_length=50,
 		help_text="CardID representing the player's initial hero.",
 	)
-	hero_card_class = models.SmallIntegerField("Hero CardClass",
-		help_text="The player's initial hero class. Member of enums.CardClass",
-	)
+	hero_card_class = IntEnumField("Hero CardClass", enum=CardClass)
 	hero_premium = models.BooleanField("Hero Premium",
 		default=False,
 		help_text="Whether the player's initial hero is golden."
 	)
 
-	final_state = models.SmallIntegerField("Final State",
-		default=0,
-		help_text="The player's final PLAYSTATE. Member of enums.PlayState",
+	final_state = IntEnumField("Final State",
+		enum=PlayState, default=PlayState.INVALID,
 	)
 
 	deck_list = models.ForeignKey(Deck,
