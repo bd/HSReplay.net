@@ -52,7 +52,7 @@
 				}
 			}
 
-			$.ajax("https://api.hearthstonejson.com/v1/" + bn + "/enUS/cards.json", {
+			$.ajax("{% hearthstonejson replay.global_game.hearthstone_build %}", {
 				type: "GET",
 				dataType: "text",
 				success: function(result) {

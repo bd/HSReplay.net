@@ -119,6 +119,7 @@ else:
 	)
 
 JOUST_STATIC_URL = STATIC_URL + "joust/"
+HEARTHSTONEJSON_URL = "https://api.hearthstonejson.com/v1/%(build)s/%(locale)s/cards.json"
 
 
 # Email
