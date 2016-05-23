@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from django.utils.decorators import method_decorator
 from django.views.generic import View
 from hsreplaynet.web.models import GameReplayUpload
@@ -24,6 +24,5 @@ class MyReplaysView(View):
 
 class ReplayDetailView(View):
 	def get(self, request, id):
-		return render(request, "games/replay_detail.html", {
-			"replay_data_url": "/api/v1/replay/%s" % (id),
-		})
+		replay = get_object_or_404(GameReplayUpload, id=id)
+		return render(request, "games/replay_detail.html", {"replay": replay})

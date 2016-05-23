@@ -2,77 +2,74 @@
 {% load static from staticfiles %}
 
 {% block stylesheets %}
-    {{ block.super }}
+	{{ block.super }}
 	<link href="http://hsreplay.net/static/joust/joust.css" rel="stylesheet">
 {% endblock stylesheets %}
 
 {% block fullcontent %}
+
+<h1>{{ replay }} - {{ replay.duration }}</h1>
+
 <div id="tabletop" class="container-fluid">
-    <div class="row full_height">
-        <div class="col-lg-offset-1 col-lg-10 col-xs-12 full_height">
-            <div id="joust-container" class="full_height"></div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-lg-offset-1 col-lg-10 col-xs-12">
-            <p><a href="{{ replay_data_url }}">Download replay</a></p>
-        </div>
-    </div>
+	<div class="row full_height">
+		<div class="col-lg-offset-1 col-lg-10 col-xs-12 full_height">
+			<div id="joust-container" class="full_height" data-replayurl="{{ replay.replay_xml.url }}"></div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-lg-offset-1 col-lg-10 col-xs-12">
+			<p><a href="{{ replay.replay_xml.url }}">Download replay</a></p>
+		</div>
+	</div>
 </div>
 
 <script src="http://hsreplay.net/static/joust/bundle.js"></script>
 <script>
-    $(document).ready(function() {
+	$(document).ready(function() {
+		var cb = function (buildNumber, cb) {
+			var bn = buildNumber;
+			var store = null;
 
-        var cb = function (buildNumber, cb) {
+			if(typeof buildNumber === "undefined") {
+				bn = "latest";
+			} else {
+				store = "joust-" + bn;
 
-            var bn = buildNumber;
-            var store = null;
+				if (typeof(Storage) !== "undefined") {
+					if (typeof localStorage[store] === "string") {
+						var result = JSON.parse(localStorage[store]);
+						if (typeof result === "object") {
+							console.debug("Loaded card data from local storage (" + result.length + " cards)");
+							cb(result);
+							return;
+						}
+					}
+					if (typeof localStorage[store] !== "undefined") {
+						console.warn("Removing invalid card data in local storage");
+						localStorage.removeItem(store);
+					}
+				}
+			}
 
-            if(typeof buildNumber === 'undefined') {
-                bn = 'latest';
-            } else {
+			$.ajax("https://api.hearthstonejson.com/v1/" + bn + "/enUS/cards.json", {
+				type: "GET",
+				dataType: "text",
+				success: function(result) {
+					if (store != null && typeof(Storage) !== "undefined") {
+						localStorage.setItem(store, result);
+						console.debug("Card data saved to local storage");
+					}
 
+					cb(JSON.parse(result));
+				}
+			});
+		};
 
-                store = 'joust-' + bn;
-
-                if (typeof(Storage) !== "undefined") {
-                    if (typeof localStorage[store] === "string") {
-                        var result = JSON.parse(localStorage[store]);
-                        if (typeof result === "object") {
-                            console.debug("Loaded card data from local storage (" + result.length + " cards)");
-                            cb(result);
-                            return;
-                        }
-                    }
-                    if (typeof localStorage[store] !== "undefined") {
-                        console.warn("Removing invalid card data in local storage");
-                        localStorage.removeItem(store);
-                    }
-                }
-            }
-
-            $.ajax('https://api.hearthstonejson.com/v1/' + bn + '/enUS/cards.json', {
-                type: 'GET',
-                dataType: 'text',
-                success: function(result) {
-
-                    if (store != null && typeof(Storage) !== "undefined") {
-                        localStorage.setItem(store, result);
-                        console.debug("Card data saved to local storage");
-                    }
-
-                    cb(JSON.parse(result));
-                }
-            });
-
-        };
-
-        Joust.viewer('joust-container')
-            .metadata(cb)
-            .assets("//static.hsreplay.net/static/joust/assets/")
-            .cardArt("//static.hsreplay.net/static/joust/card-art/")
-            .fromUrl('{{ replay_data_url }}');
-    });
+		Joust.viewer("joust-container")
+			.metadata(cb)
+			.assets("//static.hsreplay.net/static/joust/assets/")
+			.cardArt("//static.hsreplay.net/static/joust/card-art/")
+			.fromUrl($("#joust-container").data("replayurl"));
+	});
 </script>
 {% endblock fullcontent %}
