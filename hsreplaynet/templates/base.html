@@ -64,6 +64,18 @@
 			{% endif %}
 			</ul>
 		</nav>
+
+		{% if messages %}
+		{% spaceless %}
+		<ul id="site-messages">
+			{% for message in messages %}
+				{% if message.level > DEFAULT_MESSAGE_LEVELS.SUCCESS %}
+					<li>{{ message }}</li>
+				{% endif %}
+			{% endfor %}
+		</ul>
+		{% endspaceless %}
+		{% endif %}
 	{% endblock %}
 	</header>
 
