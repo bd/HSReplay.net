@@ -31,6 +31,9 @@
 			{% else %}
 				<p><a href="{% provider_login_url 'battlenet' %}" class="promo-button hero-button">Sign in</a></p>
 				<p class="promo-help">You don't need a new account&mdash;we'll simply use <img src="{% static 'web/images/bnet.png' %}"/> Battle.net.</p>
+				{% if debug %}
+					<a href="{% url 'account_login' %}">(DEBUG) Log in with password</a>
+				{% endif %}
 			{% endif %}
 		</div>
 	</header>
