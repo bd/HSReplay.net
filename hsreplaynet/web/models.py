@@ -359,7 +359,6 @@ class GameReplayUploadManager(models.Manager):
 		time_logger.info("TIMING: %s - Finished opening raw log. Generating packet tree..." % _time_elapsed())
 		packet_tree = parse_log(log, processor="GameState", date=raw_log.match_start_timestamp)
 		time_logger.info("TIMING: %s - Finished generating packet tree." % _time_elapsed())
-		raw_log.log.close()
 
 		if not len(packet_tree.games):
 			# We were not able to generate a replay
@@ -425,7 +424,9 @@ class GameReplayUploadManager(models.Manager):
 			num_turns = num_turns,
 		)
 
-		replay_upload = GameReplayUpload(
+		user = raw_log.upload_token.user
+
+		replay = GameReplayUpload(
 			friendly_player_id = friendly_player_id,
 			game_server_client_id = raw_log.game_server_client_id,
 			game_server_spectate_key = raw_log.game_server_spectate_key,
@@ -434,8 +435,14 @@ class GameReplayUploadManager(models.Manager):
 			is_spectated_game = raw_log.is_spectated_game,
 			raw_log = raw_log,
 			upload_timestamp = raw_log.upload_timestamp,
-			upload_token = raw_log.upload_token,
+			user = user,
 		)
+
+		if user is None:
+			# If the auth token has not yet been claimed, create
+			# a pending claim for the replay for when it will be.
+			claim = PendingReplayOwnership(replay=replay, token=raw_log.upload_token)
+			claim.save()
 
 		for player in replay_tree.iter("Player"):
 			player_id = player.get("playerID")
@@ -478,25 +485,24 @@ class GameReplayUploadManager(models.Manager):
 				# Record whether the uploader won/lost that game
 				if final_state in (PlayState.PLAYING, PlayState.INVALID):
 					# This means we disconnected during the game
-					replay_upload.disconnected = True
+					replay.disconnected = True
 				elif final_state in (PlayState.WINNING, PlayState.WON):
-					replay_upload.won = True
+					replay.won = True
 				else:
 					# Anything else is a concede/loss/tie
-					replay_upload.won = False
-				replay_upload.save()
+					replay.won = False
 
 		time_logger.info("TIMING: %s - About to generate XML." % _time_elapsed())
 		xml_str = toxml(replay_tree, pretty=False)
 		time_logger.info("TIMING: %s - Generate XML finished." % _time_elapsed())
-		time_logger.info("TIMING: %s - About to call replay_upload.replay_xml.save." % _time_elapsed())
-		replay_upload.replay_xml.save("hsreplay.xml", ContentFile(xml_str), save=False)
-		time_logger.info("TIMING: %s - replay_upload.replay_xml.save finished." % _time_elapsed())
-		time_logger.info("TIMING: %s - About to call replay_upload.save()" % _time_elapsed())
-		replay_upload.save()
-		time_logger.info("TIMING: %s - replay_upload.save() finished." % _time_elapsed())
+		time_logger.info("TIMING: %s - About to call replay.replay_xml.save." % _time_elapsed())
+		replay.replay_xml.save("hsreplay.xml", ContentFile(xml_str), save=False)
+		time_logger.info("TIMING: %s - replay.replay_xml.save finished." % _time_elapsed())
+		time_logger.info("TIMING: %s - About to call replay.save()" % _time_elapsed())
+		replay.save()
+		time_logger.info("TIMING: %s - replay.save() finished." % _time_elapsed())
 
-		return replay_upload, True
+		return replay, True
 
 	def _get_starting_deck_list_for_player(self, num, packet_tree, raw_log):
 		# If the raw_log has a deck_list then the client has uploaded
