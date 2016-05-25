@@ -133,28 +133,16 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
 
-if DEBUG:
-	DATABASES = {
-		"default": {
-			"ENGINE": "django.db.backends.sqlite3",
-			"NAME": os.path.join(BASE_DIR, "hsreplay.db"),
-			"USER": "",
-			"PASSWORD": "",
-			"HOST": "",
-			"PORT": "",
-		}
+DATABASES = {
+	"default": {
+		"ENGINE": "django.db.backends.sqlite3",
+		"NAME": os.path.join(BASE_DIR, "hsreplay.db"),
+		"USER": "",
+		"PASSWORD": "",
+		"HOST": "",
+		"PORT": "",
 	}
-else:
-	DATABASES = {
-		"default": {
-			"ENGINE": "django.db.backends.mysql",
-			"NAME": "hsreplaynet",
-			"USER": os.environ.get("HSREPLAYNET_DB_USER", "django"),
-			"PASSWORD": os.environ.get("HSREPLAYNET_DB_PASSWORD", "db_pass"),
-			"HOST": os.environ.get("HSREPLAYNET_DB_HOST", "localhost"),
-			"PORT": os.environ.get("HSREPLAYNET_DB_PORT", ""),
-		}
-	}
+}
 
 
 # Logging
