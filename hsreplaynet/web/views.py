@@ -11,14 +11,8 @@ class MyReplaysView(View):
 		return super().dispatch(*args, **kwargs)
 
 	def get(self, request):
-		replays = []
-
-		for token in request.user.auth_tokens.all():
-			replays.extend(list(GameReplayUpload.objects.filter(upload_token=token).all()))
-
-		sorted_replays = sorted(replays, key=lambda r: r.global_game.match_start_timestamp, reverse=True)
-
-		context = {"replays": sorted_replays, "count": len(sorted_replays)}
+		replays = GameReplayUpload.objects.filter(user=request.user)
+		context = {"replays": replays}
 		return render(request, "games/my_replays.html", context)
 
 

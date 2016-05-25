@@ -266,6 +266,9 @@ class GlobalGame(models.Model):
 	num_turns = models.IntegerField()
 	num_entities = models.IntegerField()
 
+	class Meta:
+		ordering = ("-match_start_timestamp", )
+
 	def __str__(self):
 		return " vs ".join(str(p) for p in self.players.all())
 
@@ -559,6 +562,7 @@ class GameReplayUpload(models.Model):
 	replay will have fewer turns of gameplay then Player B's replay.
 	"""
 	class Meta:
+		ordering = ("global_game", )
 		unique_together = ("upload_token", "global_game")
 
 	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
