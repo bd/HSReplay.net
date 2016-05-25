@@ -4,42 +4,6 @@
 <div class="container-fluid">
 	<div class="row">
 		<div class="col-xs-12">
-
-<div class="row">
-	<div class="col-xs-12">
-		<h3>Request an Agent API Key</h3>
-		<p>To implement your own agent that can upload replays via API, first request an agent API key. Save your key
-		somewhere safe. It will only be displayed to you once. If you loose it, you must request a new one. In order for
-		your application to communicate with the HSReplay.net API you will need to include this key as the
-		<code>x-hsreplay-api-key</code> header value with each request.</p>
-	</div>
-</div>
-
-<div class="row">
-	<div class="col-xs-12">
-		<h3>Generate A Single Site Upload Token</h3>
-		<p>Once you have an API Key you can have your agent use it to generate a <code>Single Site Upload Token</code> for
-		each user of your application. Each unique user of your application must have their own token in order to identify the
-		replay files that belong to them. Your application can generate a token for a user by submitting the following
-		POST request:
-		</p>
-		<pre>
-		POST /api/v1/agents/generate_single_site_upload_token/ HTTP/1.1
-		Host: hsreplay.net
-		x-hsreplay-api-key: [API_KEY]
-		</pre>
-		<p>If successful, the server will respond with:</p>
-		<pre>
-			HTTP/1.1 201 CREATED
-			Date: Mon, 8 February 2016 22:38:34 GMT
-
-			{
-				"token": [TOKEN]
-			}
-		</pre>
-	</div>
-</div>
-
 <div class="row">
 	<div class="col-xs-12">
 		<h3>Upload Replay Files</h3>
@@ -131,50 +95,6 @@
 		</pre>
 	</div>
 </div>
-
-<div class="row">
-	<div class="col-xs-12">
-		<h3>Fetch Upload Token Status</h3>
-		<p>By default, whenever a new upload token is generated, HSReplay also creates a new anonymous account to which the
-			upload token is attached in the background. At any point in time a user can choose to convert their anonymous
-			account into a registered one in order to access additional features on HSReplay.net. In order to determine the current
-			status of an upload token a GET request can be sent to the following url,
-			<code>/api/[version]/agents/upload_token/[single_site_upload_token]/</code>.</p>
-		<pre>
-			GET /api/v1/agents/upload_token/27258f76-c180-4b4f-99e4-8ad949a17eb7/ HTTP/1.1
-			Host: hsreplay.net
-			x-hsreplay-api-key: [API_KEY]
-		</pre>
-		<p>The server will respond with the following JSON. Note the battle_tag field will be empty for anonymous accounts.</p>
-		<pre>
-			HTTP/1.1 200 OK
-			Date: Mon, 8 February 2016 23:17:52 GMT
-
-			{
-				"upload_token": [TOKEN],
-				"status": ["ANONYMOUS" | "REGISTERED"],
-				"battle_tag": ["" | "TazDingo#1973"],
-			}
-		</pre>
-	</div>
-</div>
-
-<div class="row">
-	<div class="col-xs-12">
-		<h3>Attach An Upload Token To An Account</h3>
-		<p>The process of attaching an upload token to an account can be initiated by directing the users browser to
-			open to <code>/api/[version]/agents/[api_key]/attach_upload_token/[single_site_upload_token]/</code>. On the
-			HSReplay.net page they will be prompted to login via Battle.net. If they already have an existing account, as is
-			the case when a user plays Hearthstone on multiple computers or sets up a new computer, then this upload token will
-			become associated with their existing account. If they don’t already have an account then the act of authenticating
-			with Battle.net will cause HSReplay.net to automatically create an account for them with their BattleTag as
-			their username.</p>
-		<br/>
-		<p>Once the user has authenticated with Battle.net they will be redirected to a page that shows all of their available
-			replays.</p>
-	</div>
-</div>
-
 		</div>
 	</div>
 </div>

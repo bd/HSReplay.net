@@ -1,7 +1,7 @@
 from django.conf.urls import url, include
 from django.views.generic import TemplateView
 from rest_framework.routers import DefaultRouter
-from . import legacy_views, views
+from . import views
 
 
 router = DefaultRouter()
@@ -16,6 +16,4 @@ urlpatterns = [
 
 urlpatterns += [
 	url(r"^docs/$", TemplateView.as_view(template_name="api_docs.html")),
-	url(r"^v1/agents/(?P<api_key>[\w-]+)/attach_upload_token/(?P<token>[\w-]+)/$",
-		legacy_views.AttachSiteUploadTokenView.as_view(), name="attach_site_upload_token"),
 ]
