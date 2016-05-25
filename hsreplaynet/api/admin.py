@@ -1,9 +1,11 @@
 from django.contrib import admin
+from hsreplaynet.utils import set_user
 from .models import *
 
 
 @admin.register(AuthToken)
 class AuthTokenAdmin(admin.ModelAdmin):
+	actions = (set_user, )
 	date_hierarchy = "created"
 	list_display = ("__str__", "user", "created")
 	raw_id_fields = ("user", )

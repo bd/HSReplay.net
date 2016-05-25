@@ -1,5 +1,5 @@
 from django.contrib import admin
-from hsreplaynet.utils import admin_urlify as urlify
+from hsreplaynet.utils import admin_urlify as urlify, set_user
 from .models import *
 
 
@@ -12,9 +12,10 @@ class GlobalGamePlayerInline(admin.TabularInline):
 
 @admin.register(GameReplayUpload)
 class GameReplayUploadAdmin(admin.ModelAdmin):
+	actions = (set_user, )
 	date_hierarchy = "upload_timestamp"
 	list_display = (
-		"__str__", "upload_timestamp", urlify("global_game"),
+		"__str__", urlify("user"), "upload_timestamp", urlify("global_game"),
 		"hsreplay_version", "replay_xml", urlify("raw_log")
 	)
 	list_filter = (
@@ -41,6 +42,7 @@ class GlobalGameAdmin(admin.ModelAdmin):
 
 @admin.register(GlobalGamePlayer)
 class GlobalGamePlayerAdmin(admin.ModelAdmin):
+	actions = (set_user, )
 	list_display = ("__str__", urlify("user"), "player_id", "is_first")
 	list_filter = ("is_ai", "rank", "is_first")
 	raw_id_fields = ("game", "user", "deck_list")
