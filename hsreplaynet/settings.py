@@ -235,11 +235,6 @@ if not IS_RUNNING_AS_LAMBDA:
 				"propagate": False,
 				"level": "DEBUG",
 			},
-			"allauth_battlenet": {
-				"handlers": ["battlenet", "error_file"],
-				"propagate": False,
-				"level": "DEBUG",
-			},
 		}
 	}
 
