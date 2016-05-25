@@ -32,6 +32,7 @@ INSTALLED_APPS = (
 	"django.contrib.messages",
 	"django.contrib.staticfiles",
 	"django.contrib.sites",
+	"loginas",
 	"rest_framework",
 	"hsreplaynet.accounts",
 	"hsreplaynet.api",

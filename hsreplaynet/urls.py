@@ -7,6 +7,7 @@ from django.views.generic import TemplateView
 urlpatterns = [
 	url(r"^$", TemplateView.as_view(template_name="home.html"), name="home"),
 	url(r"^admin/", include(admin.site.urls)),
+	url(r"^admin/", include("loginas.urls")),
 	url(r"^api/", include("hsreplaynet.api.urls")),
 	url(r"^games/", include("hsreplaynet.web.urls")),
 	url(r"^about/privacy/$", flatpage, {"url": "/about/privacy/"}, name="privacy_policy"),
