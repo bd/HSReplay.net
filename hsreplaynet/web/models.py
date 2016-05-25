@@ -634,3 +634,15 @@ class GameReplayUpload(models.Model):
 		if self.disconnected:
 			ret.append("hsreplay-disconnected")
 		return " ".join(ret)
+
+
+class PendingReplayOwnership(models.Model):
+	"""
+	A model associating an AuthKey with a GameReplayUpload, until
+	the AuthKey gains a real user.
+	"""
+	replay = models.OneToOneField(GameReplayUpload)
+	token = models.ForeignKey("api.AuthToken")
+
+	class Meta:
+		unique_together = ("replay", "token")
