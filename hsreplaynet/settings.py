@@ -286,6 +286,6 @@ UPLOAD_TOKEN_HEADER = "x-hsreplay-upload-token"
 
 
 try:
-	from local_settings import *
+	from hsreplaynet.local_settings import *
 except ImportError:
 	pass
