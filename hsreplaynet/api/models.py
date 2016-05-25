@@ -33,5 +33,6 @@ class UploadAgentAPIKey(models.Model):
 		return self.full_name
 
 	def save(self, *args, **kwargs):
-		self.api_key = uuid.uuid4()
+		if not self.api_key:
+			self.api_key = uuid.uuid4()
 		return super(UploadAgentAPIKey, self).save(*args, **kwargs)
