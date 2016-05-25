@@ -397,11 +397,16 @@ class GameReplayUploadManager(models.Manager):
 			# If a global_game already exists then there is a possibility
 			# that this is a duplicate upload, so check for it.
 			existing = GameReplayUpload.objects.filter(
-				upload_token = raw_log.upload_token,
 				global_game = global_game,
+				is_spectated_game = raw_log.is_spectated_game,
+				game_server_client_id = raw_log.game_server_client_id,
 			).first()
 			if existing:
 				return existing, False
+
+		friendly_player_id = raw_log.friendly_player_id or find_friendly_player(game_tree)
+		if not friendly_player_id:
+			raise ValidationError("Friendly player ID not present at upload and could not guess it.")
 
 		num_entities = max(e.id for e in packet_tree.games[0].entities)
 		num_turns = packet_tree.games[0].tags.get(GameTag.TURN)
@@ -419,10 +424,6 @@ class GameReplayUploadManager(models.Manager):
 			num_entities = num_entities,
 			num_turns = num_turns,
 		)
-
-		friendly_player_id = raw_log.friendly_player_id or find_friendly_player(game_tree)
-		if not friendly_player_id:
-			raise ValidationError("Friendly player ID not present at upload and could not guess it.")
 
 		replay_upload = GameReplayUpload(
 			friendly_player_id = friendly_player_id,
