@@ -17,6 +17,14 @@ class ClaimAccountView(View):
 		claim = get_object_or_404(AccountClaim, id=id)
 		claim.token.user = request.user
 		claim.token.save()
+
+		# Claim all of the token's replays and delete the claim
+		replay_claims = claim.token.replay_claims.all()
+		for replay_claim in replay_claims:
+			replay_claim.replay.user = request.user
+			replay_claim.replay.save()
+		replay_claims.delete()
+
 		claim.delete()
 		msg = "You have claimed your account. Yay!"
 		# XXX: using WARNING as a hack to ignore login/logout messages for now

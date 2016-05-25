@@ -649,7 +649,7 @@ class PendingReplayOwnership(models.Model):
 	the AuthKey gains a real user.
 	"""
 	replay = models.OneToOneField(GameReplayUpload)
-	token = models.ForeignKey("api.AuthToken")
+	token = models.ForeignKey("api.AuthToken", related_name="replay_claims")
 
 	class Meta:
 		unique_together = ("replay", "token")
