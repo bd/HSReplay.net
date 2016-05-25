@@ -14,6 +14,8 @@ def generate_key():
 def admin_urlify(column):
 	def inner(obj):
 		_obj = getattr(obj, column)
+		if _obj is None:
+			return "-"
 		try:
 			url = _obj.get_absolute_url()
 		except AttributeError:
