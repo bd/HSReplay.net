@@ -58,13 +58,15 @@ header h2 {
 }
 
 #feat-joust-screenshot {
-	width: 500px;
-	max-width: 100%;
+	width: 100%;
 	margin: 1em 0;
 }
 
 .front-feature {
 	clear: both;
+}
+
+.front-feature + .front-feature {
 	padding-top: 2em;
 }
 
@@ -114,7 +116,7 @@ header h2 {
 
 article + article {
 	padding: 2em;
-	margin: 5em 0;
+	margin: 2em 0;
 }
 
 ul.home-steps {

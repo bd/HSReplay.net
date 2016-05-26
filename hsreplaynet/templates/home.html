@@ -41,47 +41,53 @@
 
 	<article>
 		<div class="container">
-			<header class="text-center">
-				<h2>All your replays in one place</h2>
-				<p>
-					Try out our super slick Hearthstone replayer:
-				</p>
-			</header>
-			<div class="row">
-				<div class="col-lg-6 col-sm-12 text-center">
-					<a href="{% static 'web/images/joust-screenshot.jpg' %}">
-						<img src="{% static 'web/images/joust-screenshot.jpg' %}" id="feat-joust-screenshot" alt="Joust: View your HSReplays"/>
-					</a>
-				</div>
+            <div class="row">
+                <div class="col-md-8 col-md-offset-2 col-xs-12 col-xs-offset-0">
+                    <header class="text-center">
+                        <h2>All your replays in one place</h2>
+                        <p>
+                            Try out our super slick Hearthstone replayer:
+                        </p>
+                    </header>
+                    <a href="{% static 'web/images/joust-screenshot.jpg' %}">
+                        <img src="{% static 'web/images/joust-screenshot.jpg' %}" id="feat-joust-screenshot" alt="Joust: View your HSReplays"/>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </article>
 
-				<div class="col-lg-6 col-sm-12">
-					<figure class="front-feature">
-						<img src="{% static 'web/images/front-feat-history.jpg' %}" alt="Match history" height="120" width="190" />
-						<figcaption>
-							<h2>Share your craziest moments</h2>
-							<p>
-								Your games are live on the site as soon as they finish.
-								Find your best play and easily link it to all your friends.
-							</p>
-						</figcaption>
-					</figure>
+    <article class="promo">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-8 col-md-offset-2 col-xs-12 col-xs-offset-0">
+                    <figure class="front-feature">
+                        <img src="{% static 'web/images/front-feat-history.jpg' %}" alt="Match history" height="120" width="190" />
+                        <figcaption>
+                            <h2>Share your craziest moments</h2>
+                            <p>
+                                Your games are live on the site as soon as they finish.
+                                Find your best play and easily link it to all your friends.
+                            </p>
+                        </figcaption>
+                    </figure>
 
-					<figure class="front-feature flip">
-						<img src="{% static 'web/images/front-feat-stats.jpg' %}" alt="Monthly statistics" height="120" width="190" />
-						<figcaption>
-							<h2>Analyze your gameplay</h2>
-							<p>
-								A clear game history, filterable per season, game type and more.
-								Follow your progress to legend with wins and losses visible at a glance.
-							</p>
-						</figcaption>
-					</figure>
-				</div>
-			</div>
+                    <figure class="front-feature flip">
+                        <img src="{% static 'web/images/front-feat-stats.jpg' %}" alt="Monthly statistics" height="120" width="190" />
+                        <figcaption>
+                            <h2>Analyze your gameplay</h2>
+                            <p>
+                                A clear game history, filterable per season, game type and more.
+                                Follow your progress to legend with wins and losses visible at a glance.
+                            </p>
+                        </figcaption>
+                    </figure>
+                </div>
+            </div>
 		</div>
 	</article>
 
-	<article class="promo">
+	<article>
 		<div class="container">
 			<h2 class="text-center">How it works:</h2>
 			<ul class="row home-steps">
@@ -101,7 +107,7 @@
 		</div>
 	</article>
 
-	<article class="text-center">
+	<article class="text-center promo">
 		{% if user.is_authenticated %}
 			<h2>You're all set!</h2>
 			<p class="front-pad"><a href="{% url 'my_replays' %}" class="promo-button hero-button">View your replays</a></p>
