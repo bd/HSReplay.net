@@ -282,9 +282,6 @@ REST_FRAMEWORK = {
 
 # Custom site settings
 
-API_KEY_HEADER = "x-hsreplay-api-key"
-UPLOAD_TOKEN_HEADER = "x-hsreplay-upload-token"
-
 
 try:
 	from hsreplaynet.local_settings import *
