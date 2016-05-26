@@ -1,5 +1,4 @@
 from django.conf.urls import url, include
-from django.views.generic import TemplateView
 from rest_framework.routers import DefaultRouter
 from . import views
 
@@ -7,6 +6,7 @@ from . import views
 router = DefaultRouter()
 router.register(r"agents", views.UploadAgentViewSet)
 router.register(r"tokens", views.AuthTokenViewSet)
+router.register(r"uploads", views.GameUploadViewSet)
 
 urlpatterns = [
 	url(r"^v1/", include(router.urls)),

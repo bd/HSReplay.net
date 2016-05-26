@@ -1,5 +1,7 @@
 from rest_framework.exceptions import ValidationError
 from rest_framework import serializers
+from hsreplaynet.uploads.models import GameUpload
+from hsreplaynet.utils import get_client_ip
 from .models import AuthToken, UploadAgentAPIKey
 
 
@@ -38,3 +40,15 @@ class UploadAgentSerializer(serializers.HyperlinkedModelSerializer):
 	class Meta:
 		model = UploadAgentAPIKey
 		fields = ("full_name", "email", "website", "api_key")
+
+
+class GameUploadSerializer(serializers.HyperlinkedModelSerializer):
+	failed = serializers.BooleanField(read_only=True)
+
+	class Meta:
+		model = GameUpload
+		fields = ("type", "metadata", "file", "failed")  # , "game"
+
+	def create(self, data):
+		data["upload_ip"] = get_client_ip(self.context["request"])
+		return super(GameUploadSerializer, self).create(data)
