@@ -1,11 +1,13 @@
 {% extends "account/base.html" %}
+{% load static from staticfiles %}
 
 {% block content %}
 
-<p>
-	You are currently logged in as <strong>{{ user }}</strong>.
-</p>
-<p>
-	<a href="{% url 'account_logout' %}">Log out</a>.
-</p>
+	<h1>Your account</h1>
+	<p>
+		Signed in as <img src="{% static 'web/images/bnet.png' %}"/> <strong>{{ user }}</strong>.
+	</p>
+	<p>
+
+	</p>
 {% endblock %}

@@ -2,20 +2,31 @@
 
 {% block content %}
 
-<p style="font-weight: bold;">This page is not functional yet.</p>
+	<p><strong>This page is not functional yet.</strong></p>
 
-<h3>Leaving so soon?</h3>
+	<h1>Leaving so soon?</h1>
 
-<p>
-	Problems with the site? Something you're not happy about?
-	Maybe we can fix it. <a href="mailto:help@hsreplay.net">Shoot us an email</a>!
-</p>
+	<p>
+		Problems with the site? Something you're not happy about?
+		Maybe we can fix it. <a href="mailto:help@hsreplay.net">Shoot us an email</a>!
+	</p>
 
-<p>
-	Once your data is gone, it's irreversible. Are you sure?
-	<form action="#">
-		<label><input type="checkbox"/>I understand. Delete my account.</label>
-		<input type="submit"/>
+	<p>
+		Once your data is gone, it's irreversible. Are you sure?
+	<form action="#" method="Post">
+		<div class="checkbox">
+			<label>
+				<input type="checkbox" required disabled/> <strong>I understand. Delete my account.</strong>
+			</label>
+		</div>
+		<div class="checkbox">
+			<label>
+				<input type="checkbox" disabled/> Also delete my replay data
+			</label>
+		</div>
+		<div class="form-group">
+			<input type="submit" value="Confirm" disabled/>
+		</div>
 	</form>
-</p>
+	</p>
 {% endblock %}
