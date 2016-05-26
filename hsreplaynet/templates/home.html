@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load static from staticfiles %}
 {% load socialaccount %}
+{% load web_extras %}
 
 {% block stylesheets %}
 	{{ block.super }}
@@ -26,7 +27,7 @@
 					</a>
 				</p>
 				<p>
-					<a href="https://hsdecktracker.net/" class="promo-link">Download Hearthstone Deck Tracker</a>
+					<a href="{% setting 'HDT_DOWNLOAD_URL' %}" class="promo-link">Download Hearthstone Deck Tracker</a>
 				</p>
 			{% else %}
 				<p><a href="{% provider_login_url 'battlenet' %}" class="promo-button hero-button">Sign in</a></p>
@@ -86,7 +87,7 @@
 			<ul class="row home-steps">
 				<li class="col-sm-6">
 					<h3>Step 1</h3>
-					<p><a href="https://hsdecktracker.net/" class="promo-button">Download HDT</a></p>
+					<p><a href="{% setting 'HDT_DOWNLOAD_URL' %}" class="promo-button">Download HDT</a></p>
 					<p>Hearthstone Deck Tracker runs while you're in Hearthstone.<br />
 					It will automatically upload your matches as you play them.</p>
 				</li>

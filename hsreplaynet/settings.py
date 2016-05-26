@@ -282,6 +282,8 @@ REST_FRAMEWORK = {
 
 # Custom site settings
 
+HDT_DOWNLOAD_URL = "https://hsdecktracker.net"
+
 
 try:
 	from hsreplaynet.local_settings import *

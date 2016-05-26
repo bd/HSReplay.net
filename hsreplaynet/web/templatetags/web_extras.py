@@ -27,3 +27,8 @@ def hearthstonejson(context, build=None, locale="enUS"):
 	if not build:
 		build = "latest"
 	return settings.HEARTHSTONEJSON_URL % {"build": build, "locale": locale}
+
+
+@register.simple_tag
+def setting(name):
+	return getattr(settings, name, "")
