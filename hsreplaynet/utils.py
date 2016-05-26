@@ -70,5 +70,15 @@ def admin_urlify(column):
 	return inner
 
 
+def get_client_ip(request):
+	"""
+	Get the IP of a client from the request
+	"""
+	x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+	if x_forwarded_for:
+		return x_forwarded_for.split(",")[0]
+	return request.META.get("REMOTE_ADDR")
+
+
 def _time_elapsed():
 	return time.clock() - _module_load_start
