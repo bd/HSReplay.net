@@ -318,11 +318,7 @@ class GlobalGamePlayer(models.Model):
 		null=True, blank=True,
 	)
 
-	hero_card_id = models.CharField("Hero CardID",
-		max_length=50,
-		help_text="CardID representing the player's initial hero.",
-	)
-	hero_card_class = IntEnumField("Hero CardClass", enum=CardClass)
+	hero = models.ForeignKey(Card)
 	hero_premium = models.BooleanField("Hero Premium",
 		default=False,
 		help_text="Whether the player's initial hero is golden."
@@ -473,8 +469,7 @@ class GameReplayUploadManager(models.Manager):
 				account_hi = account_hi,
 				account_lo = account_lo,
 				is_ai = account_lo == 0,
-				hero_card_id = hero.card_id,
-				hero_card_class = hero.tags.get(GameTag.CLASS, 0),
+				hero_id = hero.card_id,
 				hero_premium = hero.tags.get(GameTag.PREMIUM, False),
 				rank = player_meta[idx].get("rank"),
 				legend_rank = player_meta[idx].get("legendRank", 0),
