@@ -88,6 +88,7 @@ FIXTURE_DIRS = (os.path.join(BASE_DIR, "hsreplaynet", "test", "fixtures"), )
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 STATIC_ROOT = os.path.join(BASE_DIR, "hsreplaynet", "static")
 if DEBUG:
 	DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
