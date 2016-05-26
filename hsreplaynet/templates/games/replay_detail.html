@@ -5,6 +5,13 @@
 {% block stylesheets %}
 	{{ block.super }}
 	<link rel="stylesheet" type="text/css" href="{% joust_static 'joust.css' %}"/>
+
+	{% comment %} The following shim fixes card texture clipping in Firefox.
+	See bug: https://news.ycombinator.com/item?id=10316872 {% endcomment %}
+	<style type="text/css">
+		{% include "games/svg-paths-shim.css" with svg="/static/web/svg-paths.svg" %}
+	</style>
+
 {% endblock stylesheets %}
 
 {% block fullcontent %}

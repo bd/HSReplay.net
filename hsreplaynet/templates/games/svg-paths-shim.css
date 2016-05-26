@@ -1,0 +1,18 @@
+.card div.visuals .inhand-minion {
+	clip-path: url({{svg}}#inhand-minion-clip);
+}
+.card div.visuals .inhand-spell {
+	clip-path: url({{svg}}#inhand-spell-clip);
+}
+.card div.visuals .inhand-weapon {
+	clip-path: url({{svg}}#inhand-weapon-clip);
+}
+.minion div.visuals .inplay-portrait {
+	clip-path: url({{svg}}#inplay-minion-clip);
+}
+.hero div.visuals .hero-portrait {
+	clip-path: url({{svg}}#hero-clip);
+}
+.heroPower div.visuals .hero-power-portrait {
+	clip-path: url({{svg}}#hero-power-clip);
+}
