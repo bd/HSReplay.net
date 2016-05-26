@@ -39,7 +39,7 @@ def set_field_admin_action(qs, field_name):
 
 		context = {"objects": queryset, "form": form, "action_name": "set_field"}
 		return render(request, "admin/set_field.html", context)
-	set_field.short_description = "Set %s to…" % (field_name)
+	set_field.short_description = "Set %s to..." % (field_name)
 
 	return set_field
 
