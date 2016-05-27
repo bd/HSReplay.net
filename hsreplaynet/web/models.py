@@ -428,9 +428,9 @@ class GameReplayUploadManager(models.Manager):
 			)
 
 			if dupes:
-				if len(dupes) > 2:
+				if len(dupes) > 1:
 					# clearly something's up. invalidate the upload, look into it manually.
-					raise ValidationError("Found too many duplicate games. Mumble mumble...")
+					raise ValidationError("Found too many global games. Mumble mumble...")
 				global_game = dupes.first()
 				deduplicating = True
 
@@ -440,8 +440,10 @@ class GameReplayUploadManager(models.Manager):
 					is_spectated_game = raw_log.is_spectated_game,
 					game_server_client_id = raw_log.game_server_client_id,
 				)
-				if existing:
-					return existing, False
+				if len(existing) > 1:
+					raise ValidationError("Found too many player games... What happened?")
+				elif existing:
+					return existing.first(), False
 
 		if deduplicating:
 			# If a global_game already exists then there is a possibility
