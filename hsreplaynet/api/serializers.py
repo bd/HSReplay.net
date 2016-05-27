@@ -42,12 +42,18 @@ class UploadAgentSerializer(serializers.HyperlinkedModelSerializer):
 		fields = ("full_name", "email", "website", "api_key")
 
 
+class GameSerializer(serializers.Serializer):
+	url = serializers.ReadOnlyField(source="get_absolute_url")
+
+
 class GameUploadSerializer(serializers.HyperlinkedModelSerializer):
-	failed = serializers.BooleanField(read_only=True)
+	status = serializers.IntegerField(read_only=True)
+	tainted = serializers.BooleanField(read_only=True)
+	game = GameSerializer(read_only=True)
 
 	class Meta:
 		model = GameUpload
-		fields = ("type", "metadata", "file", "failed")  # , "game"
+		fields = ("type", "metadata", "file", "status", "tainted", "game")
 
 	def create(self, data):
 		data["upload_ip"] = get_client_ip(self.context["request"])

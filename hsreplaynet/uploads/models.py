@@ -1,5 +1,6 @@
 import uuid
 from enum import IntEnum
+from django.core.urlresolvers import reverse
 from django.db import models
 from hsreplaynet.fields import IntEnumField
 
@@ -20,6 +21,14 @@ class GameUploadType(IntEnum):
 		return ".txt"
 
 
+class GameUploadStatus(IntEnum):
+	UNKNOWN = 0
+	PROCESSING = 1
+	SERVER_ERROR = 2
+	PARSING_ERROR = 3
+	SUCCESS = 4
+
+
 def _generate_key(instance, filename):
 	timestamp = instance.created.strftime("%Y/%m/%d")
 	extension = GameUploadType(instance.type).extension
@@ -36,10 +45,14 @@ class GameUpload(models.Model):
 	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 	token = models.ForeignKey("api.AuthToken", null=True, blank=True)
 	type = IntEnumField(enum=GameUploadType)
-	game = models.ForeignKey("web.GameReplayUpload", null=True)
+	game = models.ForeignKey("web.GameReplayUpload", null=True, blank=True)
 	created = models.DateTimeField(auto_now_add=True)
 	upload_ip = models.GenericIPAddressField()
-	failed = models.BooleanField(default=False)
+	status = IntEnumField(enum=GameUploadStatus)
+	tainted = models.BooleanField(default=False)
 
 	metadata = models.TextField()
 	file = models.FileField(upload_to=_generate_key)
+
+	def get_absolute_url(self):
+		return reverse("upload_detail", kwargs={"id": str(self.id)})

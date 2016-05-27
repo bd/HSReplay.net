@@ -20,4 +20,5 @@ urlpatterns = [
 	url(r"^account/", include("allauth.urls")),
 	url(r"^account/", include("hsreplaynet.accounts.urls")),
 	url(r"^pages/", include("django.contrib.flatpages.urls")),
+	url(r"^uploads/", include("hsreplaynet.uploads.urls")),
 ]
