@@ -469,12 +469,6 @@ class GameReplayUploadManager(models.Manager):
 			user = user,
 		)
 
-		if user is None:
-			# If the auth token has not yet been claimed, create
-			# a pending claim for the replay for when it will be.
-			claim = PendingReplayOwnership(replay=replay, token=raw_log.upload_token)
-			claim.save()
-
 		for player in replay_tree.iter("Player"):
 			player_id = player.get("playerID")
 			if player_id not in ("1", "2"):
@@ -531,6 +525,12 @@ class GameReplayUploadManager(models.Manager):
 		time_logger.info("TIMING: %s - About to call replay.save()" % _time_elapsed())
 		replay.save()
 		time_logger.info("TIMING: %s - replay.save() finished." % _time_elapsed())
+
+		if user is None:
+			# If the auth token has not yet been claimed, create
+			# a pending claim for the replay for when it will be.
+			claim = PendingReplayOwnership(replay=replay, token=raw_log.upload_token)
+			claim.save()
 
 		return replay, True
 
