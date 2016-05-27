@@ -194,3 +194,13 @@ header nav h1 {
 	text-align: center;
 	width: 300px;
 }
+
+/* Status message for uploads in progress */
+.upload-status-message {
+	background-color: #3A79A0;
+	color: white;
+	font-size: 1.8em;
+	margin-top: 10%;
+	padding: 3em;
+	text-align: center;
+}
