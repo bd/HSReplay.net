@@ -301,6 +301,12 @@ class GlobalGame(models.Model):
 		return ceil(self.num_turns / 2)
 
 
+class GlobalGamePlayerManager(models.Manager):
+	def get_query_set(self):
+		# exclude duplicate players (from dupe uploads) by default
+		return super(GlobalGamePlayerManager, self).get_query_set().filter(duplicated=False)
+
+
 class GlobalGamePlayer(models.Model):
 	game = models.ForeignKey(GlobalGame, related_name="players")
 
@@ -347,6 +353,13 @@ class GlobalGamePlayer(models.Model):
 	deck_list = models.ForeignKey(Deck,
 		help_text="As much as is known of the player's starting deck list."
 	)
+
+	duplicated = models.BooleanField("Duplicated",
+		default=False,
+		help_text="Set to true if the player was created from a deduplicated upload."
+	)
+
+	objects = GlobalGamePlayerManager()
 
 	def __str__(self):
 		return self.name
@@ -403,7 +416,7 @@ class GameReplayUploadManager(models.Manager):
 		if not friendly_player_id:
 			raise ValidationError("Friendly player ID not present at upload and could not guess it.")
 
-		global_game = None
+		deduplicating = False
 		if raw_log.eligible_for_deduplication:
 			dupes = GlobalGame.objects.filter(
 				hearthstone_build = raw_log.hearthstone_build,
@@ -419,6 +432,7 @@ class GameReplayUploadManager(models.Manager):
 					# clearly something's up. invalidate the upload, look into it manually.
 					raise ValidationError("Found too many duplicate games. Mumble mumble...")
 				global_game = dupes.first()
+				deduplicating = True
 
 				# Check for duplicate uploads of the same game (eg. from same POV)
 				existing = GameReplayUpload.objects.filter(
@@ -426,8 +440,10 @@ class GameReplayUploadManager(models.Manager):
 					is_spectated_game = raw_log.is_spectated_game,
 					game_server_client_id = raw_log.game_server_client_id,
 				)
+				if existing:
+					return existing, False
 
-		if global_game:
+		if deduplicating:
 			# If a global_game already exists then there is a possibility
 			# that this is a duplicate upload, so check for it.
 			existing = GameReplayUpload.objects.filter(
@@ -502,6 +518,7 @@ class GameReplayUploadManager(models.Manager):
 				is_first = player_obj.tags.get(GameTag.FIRST_PLAYER, False),
 				final_state = final_state,
 				deck_list = deck_list,
+				duplicated = deduplicating,
 			)
 			game_player.save()
 
@@ -643,7 +660,7 @@ class GameReplayUpload(models.Model):
 	def __str__(self):
 		players = self.global_game.players.values_list("player_id", "final_state", "name")
 		if len(players) != 2:
-			return "Incomplete game (%i players)" % (len(players))
+			return "Broken game (%i players)" % (len(players))
 		if players[0][0] == self.friendly_player_id:
 			friendly, opponent = players
 		else:
