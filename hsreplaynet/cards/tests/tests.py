@@ -78,6 +78,8 @@ class ModelsTest(TestCase):
 		self.assertEqual(obj.taunt, True)
 		self.assertEqual(obj.windfury, 1)
 		self.assertEqual(obj.card_class, enums.CardClass.SHAMAN)
+		self.assertEqual(obj.card_set, enums.CardSet.EXPERT1)
+		self.assertEqual(obj.spell_damage, 0)
 
 	def test_savannah_highmane(self):
 		id = "EX1_534"
@@ -91,6 +93,8 @@ class ModelsTest(TestCase):
 		self.assertEqual(obj.health, 5)
 		self.assertEqual(obj.race, enums.Race.BEAST)
 		self.assertEqual(obj.card_class, enums.CardClass.HUNTER)
+		self.assertEqual(obj.card_set, enums.CardSet.EXPERT1)
+		self.assertEqual(obj.spell_damage, 0)
 
 	def test_velens_chosen(self):
 		id = "GVG_010"
@@ -101,3 +105,5 @@ class ModelsTest(TestCase):
 		self.assertEqual(obj.name, "Velen's Chosen")
 		self.assertEqual(obj.type, enums.CardType.SPELL)
 		self.assertEqual(obj.card_class, enums.CardClass.PRIEST)
+		self.assertEqual(obj.card_set, enums.CardSet.GVG)
+		self.assertEqual(obj.spell_damage, 0)
