@@ -638,7 +638,7 @@ class GameReplayUpload(models.Model):
 			else:
 				ret.append("hsreplay-negative")
 		if self.disconnected:
-			ret.append("hsreplay-disconnected")
+			ret.append("hsreplay-invalid")
 		return " ".join(ret)
 
 
