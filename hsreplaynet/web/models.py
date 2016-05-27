@@ -3,6 +3,7 @@ import re
 import uuid
 from datetime import datetime
 from io import StringIO
+from math import ceil
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.files.storage import default_storage
@@ -283,6 +284,10 @@ class GlobalGame(models.Model):
 			BnetGameType.BGT_TAVERNBRAWL_1P_VERSUS_AI,
 			BnetGameType.BGT_TAVERNBRAWL_2P_COOP,
 		)
+
+	@property
+	def num_own_turns(self):
+		return ceil(self.num_turns / 2)
 
 
 class GlobalGamePlayer(models.Model):

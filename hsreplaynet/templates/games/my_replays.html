@@ -29,7 +29,7 @@
 					<dt>Duration</dt>
 					<dd>{{ replay.global_game.duration|human_duration }}</dd>
 					<dt>Turns</dt>
-					<dd>{{ replay.global_game.num_turns }} turns</dd>
+					<dd>{{ replay.global_game.num_own_turns }} turns</dd>
 				</dl><div>
 					{% if replay.disconnected %}
 						<img src="{% static 'web/images/dc.png' %}" class="hsreplay-type" title="Disconnected">
