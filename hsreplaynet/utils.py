@@ -1,3 +1,4 @@
+import datetime
 import binascii
 import os
 import time
@@ -78,6 +79,15 @@ def get_client_ip(request):
 	if x_forwarded_for:
 		return x_forwarded_for.split(",")[0]
 	return request.META.get("REMOTE_ADDR")
+
+
+def deduplication_time_range(ts):
+	"""
+	From a datetime, return a tuple of (datetime_min, datetime_max)
+	of the range margin around that datetime allowed for deduplication.
+	"""
+	margin = datetime.timedelta(hours=6)
+	return ts - margin, ts + margin
 
 
 def _time_elapsed():

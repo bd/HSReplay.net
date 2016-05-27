@@ -16,7 +16,7 @@ from hsreplay.dumper import parse_log, create_document, game_to_xml
 from hsreplay.utils import toxml
 from hsreplaynet.cards.models import Card, Deck
 from hsreplaynet.fields import IntEnumField, PlayerIDField
-from hsreplaynet.utils import _time_elapsed
+from hsreplaynet.utils import deduplication_time_range, _time_elapsed
 
 
 logger = logging.getLogger(__name__)
@@ -119,6 +119,17 @@ class SingleGameRawLogUpload(models.Model):
 	game_server_game_id = models.IntegerField(null=True, blank=True)
 	game_server_client_id = models.IntegerField(null=True, blank=True)
 	game_server_spectate_key = models.CharField(max_length=50, null=True, blank=True)
+
+	@property
+	def eligible_for_deduplication(self):
+		fields = (
+			"hearthstone_build", "game_type", "game_server_address",
+			"game_server_port", "game_server_game_id", "game_server_client_id"
+		)
+		for field in fields:
+			if not getattr(self, field):
+				return False
+		return True
 
 	def delete(self, using=None):
 		# We must cleanup the S3 object ourselves (It is not handled by django-storages)
@@ -385,16 +396,36 @@ class GameReplayUploadManager(models.Manager):
 
 		replay_tree.append(game)
 
-		match_start_timestamp = game_tree.start_time
-		match_end_timestamp = game_tree.end_time
+		start_time = game_tree.start_time
+		end_time = game_tree.end_time
 
-		global_game = GlobalGame.objects.filter(
-			game_server_address = raw_log.game_server_address,
-			game_server_port = raw_log.game_server_port,
-			game_server_game_id = raw_log.game_server_game_id,
-			match_start_timestamp = match_start_timestamp,
-			match_end_timestamp = match_end_timestamp,
-		).first()
+		friendly_player_id = raw_log.friendly_player_id or find_friendly_player(game_tree)
+		if not friendly_player_id:
+			raise ValidationError("Friendly player ID not present at upload and could not guess it.")
+
+		global_game = None
+		if raw_log.eligible_for_deduplication:
+			dupes = GlobalGame.objects.filter(
+				hearthstone_build = raw_log.hearthstone_build,
+				game_type = raw_log.game_type,
+				game_server_address = raw_log.game_server_address,
+				game_server_port = raw_log.game_server_port,
+				game_server_game_id = raw_log.game_server_game_id,
+				match_start_timestamp__range = deduplication_time_range(start_time),
+			)
+
+			if dupes:
+				if len(dupes) > 2:
+					# clearly something's up. invalidate the upload, look into it manually.
+					raise ValidationError("Found too many duplicate games. Mumble mumble...")
+				global_game = dupes.first()
+
+				# Check for duplicate uploads of the same game (eg. from same POV)
+				existing = GameReplayUpload.objects.filter(
+					global_game = global_game,
+					is_spectated_game = raw_log.is_spectated_game,
+					game_server_client_id = raw_log.game_server_client_id,
+				)
 
 		if global_game:
 			# If a global_game already exists then there is a possibility
@@ -406,27 +437,23 @@ class GameReplayUploadManager(models.Manager):
 			).first()
 			if existing:
 				return existing, False
+		else:
+			num_entities = max(e.id for e in packet_tree.games[0].entities)
+			num_turns = packet_tree.games[0].tags.get(GameTag.TURN)
 
-		friendly_player_id = raw_log.friendly_player_id or find_friendly_player(game_tree)
-		if not friendly_player_id:
-			raise ValidationError("Friendly player ID not present at upload and could not guess it.")
-
-		num_entities = max(e.id for e in packet_tree.games[0].entities)
-		num_turns = packet_tree.games[0].tags.get(GameTag.TURN)
-
-		global_game = GlobalGame.objects.create(
-			game_server_game_id = raw_log.game_server_game_id,
-			game_server_address = raw_log.game_server_address,
-			game_server_port = raw_log.game_server_port,
-			game_type = raw_log.game_type,
-			hearthstone_build = raw_log.hearthstone_build,
-			match_start_timestamp = match_start_timestamp,
-			match_end_timestamp = match_end_timestamp,
-			ladder_season = self._current_season_number(match_start_timestamp),
-			scenario_id = raw_log.scenario_id,
-			num_entities = num_entities,
-			num_turns = num_turns,
-		)
+			global_game = GlobalGame.objects.create(
+				game_server_game_id = raw_log.game_server_game_id,
+				game_server_address = raw_log.game_server_address,
+				game_server_port = raw_log.game_server_port,
+				game_type = raw_log.game_type,
+				hearthstone_build = raw_log.hearthstone_build,
+				match_start_timestamp = start_time,
+				match_end_timestamp = end_time,
+				ladder_season = self._current_season_number(start_time),
+				scenario_id = raw_log.scenario_id,
+				num_entities = num_entities,
+				num_turns = num_turns,
+			)
 
 		user = raw_log.upload_token.user
 
