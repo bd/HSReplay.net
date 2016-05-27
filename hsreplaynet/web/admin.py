@@ -1,6 +1,7 @@
 from django.contrib import admin
+from django.db.models import Count
 from hsreplaynet.utils import admin_urlify as urlify, set_user
-from .models import *
+from .models import GameReplayUpload, GlobalGame, GlobalGamePlayer, SingleGameRawLogUpload
 
 
 class GlobalGamePlayerInline(admin.TabularInline):
@@ -27,6 +28,27 @@ class GameReplayUploadAdmin(admin.ModelAdmin):
 	)
 
 
+class ReplaySidesFilter(admin.SimpleListFilter):
+	"""
+	A filter to look up the amount of uploads on a GlobalGame
+	"""
+	title = "replay sides"
+	parameter_name = "sides"
+
+	def lookups(self, request, model_admin):
+		return (0, "0 (broken)"), (1, "1 (normal)"), (2, "2 (both sides)"), (3, "3+ (?)")
+
+	def queryset(self, request, queryset):
+		queryset = queryset.annotate(sides=Count("replays"))
+		value = self.value()
+		if value is not None and value.isdigit():
+			value = int(value)
+			if value > 2:
+				return queryset.filter(sides__gt=2)
+			return queryset.filter(sides__exact=value)
+		return queryset
+
+
 @admin.register(GlobalGame)
 class GlobalGameAdmin(admin.ModelAdmin):
 	date_hierarchy = "match_start_timestamp"
@@ -35,7 +57,7 @@ class GlobalGameAdmin(admin.ModelAdmin):
 		"brawl_season", "scenario_id", "num_turns", "num_entities",
 	)
 	list_filter = (
-		"game_type", "ladder_season", "brawl_season", "hearthstone_build"
+		"game_type", "ladder_season", "brawl_season", "hearthstone_build", ReplaySidesFilter
 	)
 	inlines = (GlobalGamePlayerInline, )
 
