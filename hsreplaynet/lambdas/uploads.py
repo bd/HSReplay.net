@@ -243,6 +243,7 @@ def _raw_log_upload_handler(event, context):
 	except ValidationError as e:
 		# If we have a validation error we don't continue because it's most likely
 		# the result of malformed client requests.
+		client.captureException()
 		logger.exception(e)
 		raise e
 
@@ -258,6 +259,7 @@ def _raw_log_upload_handler(event, context):
 	except Exception as e:
 		# Even if parsing fails we don't return an error to the user because it's likely a problem that we can solve and
 		# then reprocess the raw log file afterwords.
+		client.captureException()
 		logger.exception(e)
 
 	result = {
