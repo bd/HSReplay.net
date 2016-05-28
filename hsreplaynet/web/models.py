@@ -1,6 +1,7 @@
 import logging
 import re
 import uuid
+import json
 from datetime import datetime
 from io import StringIO
 from math import ceil
@@ -17,6 +18,7 @@ from hsreplay.utils import toxml
 from hsreplaynet.cards.models import Card, Deck
 from hsreplaynet.fields import IntEnumField, PlayerIDField
 from hsreplaynet.utils import deduplication_time_range, _time_elapsed
+from hsreplaynet.uploads.models import GameUpload, GameUploadType, GameUploadStatus
 
 
 logger = logging.getLogger(__name__)
@@ -370,6 +372,22 @@ class GlobalGamePlayer(models.Model):
 
 
 class GameReplayUploadManager(models.Manager):
+
+	def get_or_create_from_game_upload_event(self, game_upload_event):
+		meta_data = json.loads(game_upload_event.meta_data)
+		# TODO: Use the metadata to generate the GameReplayUpload record.
+
+		#...
+		#...
+		#...
+
+		# NOTE: This method should update the status Enum on this object based on what happens inside this method.
+		game_upload_event.status = GameUploadStatus.SUCCESS
+		game_upload_event.save()
+
+		# Callers of this method expect a tuple of the GameReplayUpload and a Boolean to indicate whether it was created
+		return (None, False)
+
 	def get_or_create_from_raw_log_upload(self, raw_log):
 		"""
 		Returns a tuple of the record and boolean indicating

@@ -35,6 +35,13 @@ def _generate_key(instance, filename):
 	return "uploads/%s/%s%s" % (timestamp, str(instance.id), extension)
 
 
+class GameUploadManager(models.Manager):
+	def get_by_bucket_and_key(self, bucket, key):
+		if key.endswith(GameUploadType.POWER_LOG.extension):
+			db_id = key[19:-10]
+			return self.objects.get(id=db_id)
+
+
 class GameUpload(models.Model):
 	"""
 	Represents a game upload, before the creation of the game itself.
@@ -53,6 +60,8 @@ class GameUpload(models.Model):
 
 	metadata = models.TextField()
 	file = models.FileField(upload_to=_generate_key)
+
+	objects = GameUploadManager()
 
 	def get_absolute_url(self):
 		return reverse("upload_detail", kwargs={"id": str(self.id)})

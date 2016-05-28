@@ -1,4 +1,4 @@
-import logging
+import logging, json
 from base64 import b64decode
 from dateutil.parser import parse as datetime_parse
 from django.utils.timezone import now
@@ -7,7 +7,8 @@ from django.core.files.base import ContentFile
 from hsreplaynet.utils import _time_elapsed, _reset_time_elapsed
 from hsreplaynet.api.models import AuthToken
 from hsreplaynet.web.models import GameReplayUpload, SingleGameRawLogUpload
-
+from hsreplaynet.uploads.models import GameUpload, GameUploadType, GameUploadStatus
+from raven.contrib.django.raven_compat.models import client
 
 logging.getLogger("boto").setLevel(logging.WARN)
 logger = logging.getLogger(__file__)
@@ -25,6 +26,7 @@ def raw_log_upload_handler(event, context):
 	except ValidationError as e:
 		# TODO: Provide additional detailed messaging for ValidationErrors
 		logger.exception(e)
+		client.captureException()
 		result = {
 			"result": "ERROR",
 			"replay_available": False,
@@ -34,6 +36,7 @@ def raw_log_upload_handler(event, context):
 
 	except Exception as e:
 		logger.exception(e)
+		client.captureException()
 		result = {
 			"result": "ERROR",
 			"replay_available": False,
@@ -42,6 +45,107 @@ def raw_log_upload_handler(event, context):
 		}
 
 	return result
+
+
+def create_game_replay_from_game_upload_event(event, context):
+	"""This handler is triggered by S3 whenever a raw file is saved to S3 as part of creating an UploadEvent."""
+	_reset_time_elapsed() # To cleanly reset when the same lambda runtime is used to process multiple uploads.
+	time_logger.info("TIMING: %s - create_upload_event_for_raw_power_log start." % _time_elapsed())
+	logger.info("*** Event Data (excluding the body content) ***")
+	for k, v in event.items():
+		logger.info("%s: %s" % (k, v))
+
+	for record in event['Records']:
+		bucket = record['s3']['bucket']['name']
+		key = record['s3']['object']['key']
+		logger.info(">>> Start S3 Record - Bucket: %s Key: %s" % (bucket, key))
+		time_logger.info("TIMING: %s - Start S3 Record" % _time_elapsed())
+
+		try:
+			game_upload = GameUpload.objects.get_by_bucket_and_key(bucket, key)
+		except GameUpload.DoesNotExist as e:
+			client.captureException()
+			logger.exception(e)
+			raise Exception("Failed to find a GameUpload for Bucket: %s Key: %s" % (bucket, key))
+		else:
+
+			try:
+				# Attempt processing...
+				time_logger.info("TIMING: %s - Before GameReplayUpload.objects.get_or_create_from_game_upload_event" % _time_elapsed())
+				replay, created = GameReplayUpload.objects.get_or_create_from_game_upload_event(game_upload)
+				time_logger.info("TIMING: %s - After GameReplayUpload.objects.get_or_create_from_game_upload_event" % _time_elapsed())
+			except Exception as e:
+				client.captureException()
+				# This method is usually triggered asynchronously by S3 so nobody is listening for a response.
+				time_logger.info("TIMING: %s - Exception raised from GameReplayUpload.objects.get_or_create_from_game_upload_event" % _time_elapsed())
+				logger.exception(e)
+			else:
+				if replay:
+					logger.info("Processing Succeeded! Replay is %i turns, and has ID %r" % (
+						replay.global_game.num_turns, replay.id)
+								)
+
+				if not created:
+					logger.warn("This replay was determined to be a duplicate of an earlier upload. A new replay record did not need to be created.")
+
+
+		logger.info(">>> End S3 Record")
+		time_logger.info("TIMING: %s - End S3 Record" % _time_elapsed())
+
+	time_logger.info("TIMING: %s - Handler Finished." % _time_elapsed())
+
+
+def create_upload_event_handler(event, context):
+	"""A handler for creating UploadEvents via Lambda."""
+	_reset_time_elapsed() # To cleanly reset when the same lambda runtime is used to process multiple uploads.
+	time_logger.info("TIMING: %s - create_upload_event_handler start." % _time_elapsed())
+	logger.info("*** Event Data (excluding the body content) ***")
+
+	meta_data = {}
+	# Note: How the event is unpacked will likely change due to how the metadata is sent form_encoded(?) for DRF
+	for k, v in event.items():
+		if k != "body":
+			logger.info("%s: %s" % (k, v))
+			meta_data[k] = v
+
+	# TODO: Port validators from RawLogUpload and run them in case we need to return a validation error.
+	try:
+		b64encoded_log = event["body"]
+		body_data = b64decode(b64encoded_log)
+		time_logger.info("TIMING: %s - After Base64 decoding." % _time_elapsed())
+
+		api_key = event["x-hsreplay-api-key"]
+		logger.info("Upload submitted with API Key: %s" % api_key)
+		token = event["x-hsreplay-upload-token"]
+		logger.info("Upload submitted with Upload Token: %s" % token)
+
+		upload_event_type = GameUploadType.POWER_LOG
+		#TODO: We need to extract the clients intended upload type from the event metadata.
+
+		upload_event = GameUpload.objects.create(
+			token = AuthToken.objects.filter(key=token).first(),
+			type = upload_event_type,
+			upload_up = event.get("source_ip"),
+			status = GameUploadStatus.PROCESSING,
+			meta_data = json.dumps(meta_data),
+			file = ContentFile(body_data, name=upload_event_type.name)
+		)
+
+	except Exception as e:
+		client.captureException()
+		time_logger.info("TIMING: %s - Exception raised" % _time_elapsed())
+		logger.exception(e)
+
+		time_logger.info("TIMING: %s - create_upload_event_handler Finished. Returning FAILURE." % _time_elapsed())
+		return {"result": "FAILURE",
+				 "upload_event_id": ""
+				}
+	else:
+
+		time_logger.info("TIMING: %s - create_upload_event_handler Finished. Returning SUCCESS." % _time_elapsed())
+		return { "result": "SUCCESS",
+				 "upload_event_id": str(upload_event.id)
+				}
 
 
 def _raw_log_upload_handler(event, context):
