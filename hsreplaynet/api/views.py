@@ -22,6 +22,7 @@ class AuthTokenViewSet(WriteOnlyOnceViewSet):
 
 
 class UploadAgentViewSet(WriteOnlyOnceViewSet):
+	permission_classes = (AllowAny, )
 	queryset = UploadAgentAPIKey.objects.all()
 	serializer_class = serializers.UploadAgentSerializer
 
