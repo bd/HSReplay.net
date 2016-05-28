@@ -91,4 +91,4 @@ def deduplication_time_range(ts):
 
 
 def _time_elapsed():
-	return time.clock() - _module_load_start
+	return (time.clock() - _module_load_start) * 1000
