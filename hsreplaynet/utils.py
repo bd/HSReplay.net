@@ -9,8 +9,16 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
+_timing_start = time.clock()
 
-_module_load_start = time.clock()
+
+def _time_elapsed():
+	return (time.clock() - _timing_start) * 10000
+
+
+def _reset_time_elapsed():
+	global _timing_start
+	_timing_start = time.clock()
 
 
 def set_field_admin_action(qs, field_name):
@@ -90,5 +98,3 @@ def deduplication_time_range(ts):
 	return ts - margin, ts + margin
 
 
-def _time_elapsed():
-	return (time.clock() - _module_load_start) * 1000

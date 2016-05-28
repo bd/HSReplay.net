@@ -4,7 +4,7 @@ from dateutil.parser import parse as datetime_parse
 from django.utils.timezone import now
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
-from hsreplaynet.utils import _time_elapsed
+from hsreplaynet.utils import _time_elapsed, _reset_time_elapsed
 from hsreplaynet.api.models import AuthToken
 from hsreplaynet.web.models import GameReplayUpload, SingleGameRawLogUpload
 
@@ -45,6 +45,7 @@ def raw_log_upload_handler(event, context):
 
 
 def _raw_log_upload_handler(event, context):
+	_reset_time_elapsed() # To cleanly reset when the same lambda runtime is used to process multiple uploads.
 	time_logger.info("TIMING: %s - Upload handler start." % _time_elapsed())
 	logger.info("*** Event Data (excluding the body content) ***")
 	for k, v in event.items():
