@@ -10,7 +10,7 @@ IS_RUNNING_AS_LAMBDA = bool(os.environ.get("IS_RUNNING_AS_LAMBDA", ""))
 IS_RUNNING_LIVE = os.uname()[1] == "hearthsim.net"
 
 ROOT_URLCONF = "hsreplaynet.urls"
-WSGI_APPLICATION = "hsreplaynet.wsgi.application"
+WSGI_APPLICATION = "wsgi.application"
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "be8^qa&f2fut7_1%q@x2%nkw5u=-r6-rwj8c^+)5m-6e^!zags"
