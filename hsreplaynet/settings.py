@@ -16,15 +16,15 @@ WSGI_APPLICATION = "wsgi.application"
 SECRET_KEY = "be8^qa&f2fut7_1%q@x2%nkw5u=-r6-rwj8c^+)5m-6e^!zags"
 
 if IS_RUNNING_LIVE or IS_RUNNING_AS_LAMBDA:
-	ALLOWED_HOSTS = ["hsreplay.net", "www.hsreplay.net"]
 	DEBUG = False
+	ALLOWED_HOSTS = ["hsreplay.net", "www.hsreplay.net"]
 else:
 	# SECURITY WARNING: don't run with debug turned on in production!
 	DEBUG = True
 	ALLOWED_HOSTS = []
 
 
-INSTALLED_APPS = (
+INSTALLED_APPS = [
 	"django.contrib.admin",
 	"django.contrib.auth",
 	"django.contrib.contenttypes",
@@ -40,16 +40,22 @@ INSTALLED_APPS = (
 	"hsreplaynet.cards",
 	"hsreplaynet.lambdas",
 	"hsreplaynet.uploads",
-)
+]
 
 if not IS_RUNNING_AS_LAMBDA:
-	INSTALLED_APPS += (
+	INSTALLED_APPS += [
 		"django.contrib.flatpages",
 		"allauth",
 		"allauth.account",
 		"allauth.socialaccount",
 		"allauth_battlenet",
-	)
+	]
+
+if not DEBUG:
+	INSTALLED_APPS += [
+		"raven.contrib.django.raven_compat",
+	]
+
 
 MIDDLEWARE_CLASSES = (
 	"django.contrib.sessions.middleware.SessionMiddleware",
