@@ -292,6 +292,12 @@ REST_FRAMEWORK = {
 
 HDT_DOWNLOAD_URL = "https://hsdecktracker.net"
 
+# Influx Metrics Settings
+INFLUX_DB_NAME = 'hsreplaynet'
+INFLUX_DB_ADDRESS = ''
+INFLUX_DB_PORT = 8086
+INFLUX_DB_USER = ''
+INFLUX_DB_PASSWORD = ''
 
 try:
 	from hsreplaynet.local_settings import *

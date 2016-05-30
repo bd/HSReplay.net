@@ -4,7 +4,8 @@ from dateutil.parser import parse as datetime_parse
 from django.utils.timezone import now
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
-from hsreplaynet.utils import _time_elapsed, _reset_time_elapsed
+from django.conf import settings
+from hsreplaynet.utils import _time_elapsed, _reset_time_elapsed, influx_metric, influx_timer
 from hsreplaynet.api.models import AuthToken
 from hsreplaynet.web.models import GameReplayUpload, SingleGameRawLogUpload
 from hsreplaynet.uploads.models import GameUpload, GameUploadType, GameUploadStatus
@@ -19,32 +20,35 @@ logger.setLevel(logging.INFO)
 def raw_log_upload_handler(event, context):
 	# If an exception is thrown we must translate it into a string that the API Gateway
 	# can translate into the appropriate HTTP Response code and message.
-	result = None
-	try:
-		result = _raw_log_upload_handler(event, context)
-		logger.info("Handler returned the string: %s" % (result))
-	except ValidationError as e:
-		# TODO: Provide additional detailed messaging for ValidationErrors
-		logger.exception(e)
-		client.captureException()
-		result = {
-			"result": "ERROR",
-			"replay_available": False,
-			"msg": str(e),
-			"replay_uuid": "",
-		}
+	handler_start = now()
+	with influx_timer("raw_log_upload_handler_duration_ms", timestamp = handler_start, is_running_as_lambda=settings.IS_RUNNING_AS_LAMBDA):
+		event['_handler_start'] = handler_start
+		result = None
+		try:
+			result = _raw_log_upload_handler(event, context)
+			logger.info("Handler returned the string: %s" % (result))
+		except ValidationError as e:
+			# TODO: Provide additional detailed messaging for ValidationErrors
+			logger.exception(e)
+			client.captureException()
+			result = {
+				"result": "ERROR",
+				"replay_available": False,
+				"msg": str(e),
+				"replay_uuid": "",
+			}
 
-	except Exception as e:
-		logger.exception(e)
-		client.captureException()
-		result = {
-			"result": "ERROR",
-			"replay_available": False,
-			"msg": str(e),
-			"replay_uuid": "",
-		}
+		except Exception as e:
+			logger.exception(e)
+			client.captureException()
+			result = {
+				"result": "ERROR",
+				"replay_available": False,
+				"msg": str(e),
+				"replay_uuid": "",
+			}
 
-	return result
+		return result
 
 
 def create_game_replay_from_game_upload_event(event, context):
@@ -160,6 +164,7 @@ def _raw_log_upload_handler(event, context):
 	raw_log = b64decode(b64encoded_log)
 	time_logger.info("TIMING: %s - After Base64 decoding." % _time_elapsed())
 
+
 	api_key = event["x-hsreplay-api-key"]
 	logger.info("Upload submitted with API Key: %s" % api_key)
 	token = event["x-hsreplay-upload-token"]
@@ -189,7 +194,15 @@ def _raw_log_upload_handler(event, context):
 	if event.get("game_server_spectate_key"):
 		raw_log_upload_record.game_server_spectate_key = event.get("game_server_spectate_key")
 
-	raw_log_upload_record.upload_timestamp = now()
+	if '_handler_start' in event:
+		raw_log_upload_record.upload_timestamp = event['_handler_start']
+	else:
+		raw_log_upload_record.upload_timestamp = now()
+
+	influx_metric("raw_log_num_bytes",
+				  fields={"value":len(raw_log)},
+				  timestamp = raw_log_upload_record.upload_timestamp,
+				  tags={"is_running_as_lambda": settings.IS_RUNNING_AS_LAMBDA})
 
 	if event.get("match_start_timestamp"):
 		match_start_timestamp_str = event.get("match_start_timestamp")

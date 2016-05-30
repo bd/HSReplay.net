@@ -1,11 +1,13 @@
 allauth_battlenet==0.9.4
 Django==1.9.6
 django-allauth==0.25.2
+django-loginas==0.1.9
 django-nose==1.4.3
 # boto3 compatible fork
 git+https://github.com/mbarrien/django-storages.git@boto3-new#egg=django-storages
 djangorestframework==3.3.3
 gunicorn==19.5.0
+influxdb==2.12.0
 requests==2.10.0
 wheel==0.29.0
 nosexcover==1.0.10
@@ -24,4 +26,3 @@ raven==5.19.0
 humanize==0.5.1
 lxml==3.6.0
 mock==2.0.0
-django-loginas==0.1.9

@@ -17,7 +17,7 @@ from hsreplay.dumper import parse_log, create_document, game_to_xml
 from hsreplay.utils import toxml
 from hsreplaynet.cards.models import Card, Deck
 from hsreplaynet.fields import IntEnumField, PlayerIDField
-from hsreplaynet.utils import deduplication_time_range, _time_elapsed
+from hsreplaynet.utils import deduplication_time_range, _time_elapsed, influx_timer
 from hsreplaynet.uploads.models import GameUpload, GameUploadType, GameUploadStatus
 
 
@@ -402,9 +402,15 @@ class GameReplayUploadManager(models.Manager):
 		raw_log.log.open(mode="rb")
 		log = StringIO(raw_log.log.read().decode("utf-8"))
 		raw_log.log.close()
-		time_logger.info("TIMING: %s - Finished opening raw log. Generating packet tree..." % _time_elapsed())
-		packet_tree = parse_log(log, processor="GameState", date=raw_log.match_start_timestamp)
-		time_logger.info("TIMING: %s - Finished generating packet tree." % _time_elapsed())
+
+		with influx_timer('parse_log_duration_ms',
+						  timestamp = raw_log.upload_timestamp,
+						  is_running_as_lambda=settings.IS_RUNNING_AS_LAMBDA,
+						  hsreplay_version=hsreplay_version):
+
+			time_logger.info("TIMING: %s - Finished opening raw log. Generating packet tree..." % _time_elapsed())
+			packet_tree = parse_log(log, processor="GameState", date=raw_log.match_start_timestamp)
+			time_logger.info("TIMING: %s - Finished generating packet tree." % _time_elapsed())
 
 		if not len(packet_tree.games):
 			# We were not able to generate a replay
