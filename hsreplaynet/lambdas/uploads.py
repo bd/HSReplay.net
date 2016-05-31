@@ -1,15 +1,18 @@
-import logging, json
+import json
+import logging
 from base64 import b64decode
 from dateutil.parser import parse as datetime_parse
-from django.utils.timezone import now
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
-from django.conf import settings
-from hsreplaynet.utils import _time_elapsed, _reset_time_elapsed, influx_metric, influx_timer
-from hsreplaynet.api.models import AuthToken
-from hsreplaynet.web.models import GameReplayUpload, SingleGameRawLogUpload
-from hsreplaynet.uploads.models import GameUpload, GameUploadType, GameUploadStatus
+from django.utils.timezone import now
 from raven.contrib.django.raven_compat.models import client
+from hsreplaynet.api.models import AuthToken
+from hsreplaynet.uploads.models import GameUpload, GameUploadType, GameUploadStatus
+from hsreplaynet.utils import _time_elapsed, _reset_time_elapsed, influx_metric, influx_timer
+from hsreplaynet.web.models import GameReplayUpload, SingleGameRawLogUpload
+from hsreplaynet.uploads.processing import queue_upload_event_for_processing
+
 
 logging.getLogger("boto").setLevel(logging.WARN)
 logger = logging.getLogger(__file__)
@@ -21,7 +24,7 @@ def raw_log_upload_handler(event, context):
 	# If an exception is thrown we must translate it into a string that the API Gateway
 	# can translate into the appropriate HTTP Response code and message.
 	handler_start = now()
-	with influx_timer("raw_log_upload_handler_duration_ms", timestamp = handler_start, is_running_as_lambda=settings.IS_RUNNING_AS_LAMBDA):
+	with influx_timer("raw_log_upload_handler_duration_ms", timestamp=handler_start, is_running_as_lambda=settings.IS_RUNNING_AS_LAMBDA):
 		event['_handler_start'] = handler_start
 		result = None
 		try:
@@ -51,10 +54,16 @@ def raw_log_upload_handler(event, context):
 		return result
 
 
-def create_game_replay_from_game_upload_event(event, context):
-	"""This handler is triggered by S3 whenever a raw file is saved to S3 as part of creating an UploadEvent."""
-	_reset_time_elapsed() # To cleanly reset when the same lambda runtime is used to process multiple uploads.
-	time_logger.info("TIMING: %s - create_upload_event_for_raw_power_log start." % _time_elapsed())
+def process_upload_event_handler(event, context):
+	"""
+	This handler is triggered by SNS whenever someone
+	publishes a message to the SNS_PROCESS_UPLOAD_EVENT_TOPIC.
+	"""
+
+	# To cleanly reset when the same lambda runtime is processes multiple uploads.
+	_reset_time_elapsed()
+	time_logger.info("TIMING: %s - create_upload_event_for_raw_power_log start.", _time_elapsed())
+
 	logger.info("*** Event Data (excluding the body content) ***")
 	for k, v in event.items():
 		logger.info("%s: %s" % (k, v))
@@ -80,14 +89,15 @@ def create_game_replay_from_game_upload_event(event, context):
 				time_logger.info("TIMING: %s - After GameReplayUpload.objects.get_or_create_from_game_upload_event" % _time_elapsed())
 			except Exception as e:
 				client.captureException()
-				# This method is usually triggered asynchronously by S3 so nobody is listening for a response.
+				# This method is usually triggered asynchronously
+				# by S3 so nobody is listening for a response.
 				time_logger.info("TIMING: %s - Exception raised from GameReplayUpload.objects.get_or_create_from_game_upload_event" % _time_elapsed())
 				logger.exception(e)
 			else:
 				if replay:
 					logger.info("Processing Succeeded! Replay is %i turns, and has ID %r" % (
 						replay.global_game.num_turns, replay.id)
-								)
+					)
 
 				if not created:
 					logger.warn("This replay was determined to be a duplicate of an earlier upload. A new replay record did not need to be created.")
@@ -100,13 +110,14 @@ def create_game_replay_from_game_upload_event(event, context):
 
 
 def create_upload_event_handler(event, context):
-	"""A handler for creating UploadEvents via Lambda."""
-	_reset_time_elapsed() # To cleanly reset when the same lambda runtime is used to process multiple uploads.
+	"""
+	A handler for creating UploadEvents via Lambda.
+	"""
+	_reset_time_elapsed()
 	time_logger.info("TIMING: %s - create_upload_event_handler start." % _time_elapsed())
 	logger.info("*** Event Data (excluding the body content) ***")
 
 	meta_data = {}
-	# Note: How the event is unpacked will likely change due to how the metadata is sent form_encoded(?) for DRF
 	for k, v in event.items():
 		if k != "body":
 			logger.info("%s: %s" % (k, v))
@@ -135,21 +146,20 @@ def create_upload_event_handler(event, context):
 			file = ContentFile(body_data, name=upload_event_type.name)
 		)
 
+		# Publish a message to SNS to queue the upload_event for downstream processing.
+		queue_upload_event_for_processing(upload_event)
+
 	except Exception as e:
 		client.captureException()
 		time_logger.info("TIMING: %s - Exception raised" % _time_elapsed())
 		logger.exception(e)
 
 		time_logger.info("TIMING: %s - create_upload_event_handler Finished. Returning FAILURE." % _time_elapsed())
-		return {"result": "FAILURE",
-				 "upload_event_id": ""
-				}
+		return {"result": "FAILURE", "upload_event_id": ""}
 	else:
 
 		time_logger.info("TIMING: %s - create_upload_event_handler Finished. Returning SUCCESS." % _time_elapsed())
-		return { "result": "SUCCESS",
-				 "upload_event_id": str(upload_event.id)
-				}
+		return {"result": "SUCCESS", "upload_event_id": str(upload_event.id)}
 
 
 def _raw_log_upload_handler(event, context):

@@ -299,6 +299,11 @@ INFLUX_DB_PORT = 8086
 INFLUX_DB_USER = ''
 INFLUX_DB_PASSWORD = ''
 
+
+# AWS SNS Settings
+SNS_PROCESS_UPLOAD_EVENT_TOPIC = ""
+
+
 try:
 	from hsreplaynet.local_settings import *
 except ImportError:

@@ -65,3 +65,15 @@ class GameUpload(models.Model):
 
 	def get_absolute_url(self):
 		return reverse("upload_detail", kwargs={"id": str(self.id)})
+
+
+class UploadEventProcessingRequest(models.Model):
+	"""
+	Represents a message published to an SNS Topic to schedule
+	an UploadEvent for Processing.
+	"""
+	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+	created = models.DateTimeField(auto_now_add=True)
+	upload_event = models.ForeignKey(GameUpload)
+	sns_topic_arn = models.CharField(max_length=100)
+	sns_message_id = models.CharField(max_length=100)
