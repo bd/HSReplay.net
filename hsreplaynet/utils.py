@@ -4,15 +4,12 @@ import os
 import time
 import logging
 from django import forms
-from django.conf import settings
-from django.utils.timezone import now
 from django.contrib.admin import ACTION_CHECKBOX_NAME
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from contextlib import contextmanager
-from influxdb import InfluxDBClient
+
 
 _timing_start = time.clock()
 logger = logging.getLogger(__file__)
@@ -102,53 +99,3 @@ def deduplication_time_range(ts):
 	"""
 	margin = datetime.timedelta(hours=6)
 	return ts - margin, ts + margin
-
-
-_influx_client = InfluxDBClient(settings.INFLUX_DB_ADDRESS, 8086,
-								username=settings.INFLUX_DB_USER,
-								password=settings.INFLUX_DB_PASSWORD,
-								database=settings.INFLUX_DB_NAME)
-
-
-def influx_metric(measure, fields, timestamp = None, tags={}):
-	if settings.IS_RUNNING_LIVE or settings.IS_RUNNING_AS_LAMBDA:
-
-		payload = {
-				"measurement": measure,
-				"tags": tags,
-				"fields": fields
-			}
-
-		payload["time"] = timestamp.isoformat() if timestamp else now().isoformat()
-		logger.info("About To Send Metric To InfluxDB: %s" % str(payload))
-		_influx_client.write_points([payload])
-
-
-@contextmanager
-def influx_timer(measure, timestamp = None, **kwargs):
-	"""Reports the duration of the context manager. Additional kwargs are passed to InfluxDB as tags."""
-	start_time = time.clock()
-	exception_raised_in_with_block = False
-	try:
-		yield
-	except Exception as e:
-		exception_raised_in_with_block = True
-		raise e
-	finally:
-		stop_time = time.clock()
-		duration = (stop_time - start_time) * 10000
-
-		if settings.IS_RUNNING_LIVE or settings.IS_RUNNING_AS_LAMBDA:
-			tags = kwargs
-			tags["exception_thrown"] = exception_raised_in_with_block
-			payload = {
-						"measurement": measure,
-						"tags": tags,
-						"fields": {
-							"value": duration
-						}
-					}
-
-			payload["time"] = timestamp.isoformat() if timestamp else now().isoformat()
-			logger.info("About To Send Metric To InfluxDB: %s" % str(payload))
-			_influx_client.write_points([payload])

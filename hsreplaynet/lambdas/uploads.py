@@ -7,11 +7,12 @@ from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.utils.timezone import now
 from raven.contrib.django.raven_compat.models import client
+from hsreplaynet.analytics import influx_metric, influx_timer
 from hsreplaynet.api.models import AuthToken
 from hsreplaynet.uploads.models import GameUpload, GameUploadType, GameUploadStatus
-from hsreplaynet.utils import _time_elapsed, _reset_time_elapsed, influx_metric, influx_timer
 from hsreplaynet.web.models import GameReplayUpload, SingleGameRawLogUpload
 from hsreplaynet.uploads.processing import queue_upload_event_for_processing
+from hsreplaynet.utils import _time_elapsed, _reset_time_elapsed
 
 
 logging.getLogger("boto").setLevel(logging.WARN)

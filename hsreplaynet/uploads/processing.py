@@ -9,8 +9,8 @@ import boto3
 from django.conf import settings
 from django.utils.timezone import now
 from raven.contrib.django.raven_compat.models import client as sentry_client
+from hsreplaynet.analytics import influx_metric
 from hsreplaynet.uploads.models import UploadEventProcessingRequest
-from hsreplaynet.utils import influx_metric
 
 
 _sns_client = boto3.client("sns")
