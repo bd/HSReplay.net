@@ -5,6 +5,18 @@ from django.utils.timezone import now
 from influxdb import InfluxDBClient
 from .utils import logger
 
+if "raven.contrib.django.raven_compat" in settings.INSTALLED_APPS:
+	from raven.contrib.django.raven_compat.models import client as sentry
+else:
+	sentry = None
+
+
+def error_handler(e):
+	if sentry is not None:
+		sentry.captureException()
+	else:
+		logger.exception(e)
+
 
 influx = InfluxDBClient(
 	settings.INFLUX_DB_ADDRESS,
@@ -13,7 +25,6 @@ influx = InfluxDBClient(
 	password=settings.INFLUX_DB_PASSWORD,
 	database=settings.INFLUX_DB_NAME
 )
-
 
 def influx_metric(measure, fields, timestamp=None, tags={}):
 	if timestamp is None:

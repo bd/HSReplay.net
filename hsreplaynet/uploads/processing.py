@@ -8,8 +8,7 @@ import logging
 import boto3
 from django.conf import settings
 from django.utils.timezone import now
-from raven.contrib.django.raven_compat.models import client as sentry_client
-from hsreplaynet.analytics import influx_metric
+from hsreplaynet.instrumentation import error_handler, influx_metric
 from hsreplaynet.uploads.models import UploadEventProcessingRequest
 
 
@@ -33,8 +32,7 @@ def queue_upload_event_for_processing(upload_event):
 			MessageStructure="json"
 		)
 	except Exception as e:
-		logger.exception(e)
-		sentry_client.captureException()
+		error_handler(e)
 		success = False
 	else:
 		message_id = response["MessageId"]
@@ -46,8 +44,7 @@ def queue_upload_event_for_processing(upload_event):
 				sns_message_id = message_id
 			)
 		except Exception as e:
-			logger.exception(e)
-			sentry_client.captureException()
+			error_handler(e)
 			success = False
 
 		return message_id

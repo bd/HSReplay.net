@@ -6,8 +6,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.utils.timezone import now
-from raven.contrib.django.raven_compat.models import client
-from hsreplaynet.analytics import influx_metric, influx_timer
+from hsreplaynet.instrumentation import error_handler, influx_metric, influx_timer
 from hsreplaynet.api.models import AuthToken
 from hsreplaynet.uploads.models import GameUpload, GameUploadType, GameUploadStatus
 from hsreplaynet.web.models import GameReplayUpload, SingleGameRawLogUpload
@@ -33,8 +32,7 @@ def raw_log_upload_handler(event, context):
 			logger.info("Handler returned the string: %s" % (result))
 		except ValidationError as e:
 			# TODO: Provide additional detailed messaging for ValidationErrors
-			logger.exception(e)
-			client.captureException()
+			error_handler(e)
 			result = {
 				"result": "ERROR",
 				"replay_available": False,
@@ -43,8 +41,7 @@ def raw_log_upload_handler(event, context):
 			}
 
 		except Exception as e:
-			logger.exception(e)
-			client.captureException()
+			error_handler(e)
 			result = {
 				"result": "ERROR",
 				"replay_available": False,
@@ -78,8 +75,7 @@ def process_upload_event_handler(event, context):
 		try:
 			game_upload = GameUpload.objects.get_by_bucket_and_key(bucket, key)
 		except GameUpload.DoesNotExist as e:
-			client.captureException()
-			logger.exception(e)
+			error_handler(e)
 			raise Exception("Failed to find a GameUpload for Bucket: %s Key: %s" % (bucket, key))
 		else:
 
@@ -89,11 +85,7 @@ def process_upload_event_handler(event, context):
 				replay, created = GameReplayUpload.objects.get_or_create_from_game_upload_event(game_upload)
 				time_logger.info("TIMING: %s - After GameReplayUpload.objects.get_or_create_from_game_upload_event" % _time_elapsed())
 			except Exception as e:
-				client.captureException()
-				# This method is usually triggered asynchronously
-				# by S3 so nobody is listening for a response.
-				time_logger.info("TIMING: %s - Exception raised from GameReplayUpload.objects.get_or_create_from_game_upload_event" % _time_elapsed())
-				logger.exception(e)
+				error_handler(e)
 			else:
 				if replay:
 					logger.info("Processing Succeeded! Replay is %i turns, and has ID %r" % (
@@ -151,14 +143,10 @@ def create_upload_event_handler(event, context):
 		queue_upload_event_for_processing(upload_event)
 
 	except Exception as e:
-		client.captureException()
-		time_logger.info("TIMING: %s - Exception raised" % _time_elapsed())
-		logger.exception(e)
-
+		error_handler(e)
 		time_logger.info("TIMING: %s - create_upload_event_handler Finished. Returning FAILURE." % _time_elapsed())
 		return {"result": "FAILURE", "upload_event_id": ""}
 	else:
-
 		time_logger.info("TIMING: %s - create_upload_event_handler Finished. Returning SUCCESS." % _time_elapsed())
 		return {"result": "SUCCESS", "upload_event_id": str(upload_event.id)}
 
@@ -267,8 +255,7 @@ def _raw_log_upload_handler(event, context):
 	except ValidationError as e:
 		# If we have a validation error we don't continue because it's most likely
 		# the result of malformed client requests.
-		client.captureException()
-		logger.exception(e)
+		error_handler(e)
 		raise e
 
 	logger.info("**** RAW LOG SUCCESSFULLY SAVED ****")
@@ -281,10 +268,10 @@ def _raw_log_upload_handler(event, context):
 		replay, created = GameReplayUpload.objects.get_or_create_from_raw_log_upload(raw_log_upload_record)
 		time_logger.info("TIMING: %s - After GameReplayUpload.objects.get_or_create_from_raw_log_upload" % _time_elapsed())
 	except Exception as e:
-		# Even if parsing fails we don't return an error to the user because it's likely a problem that we can solve and
-		# then reprocess the raw log file afterwords.
-		client.captureException()
-		logger.exception(e)
+		# Even if parsing fails we don't return an error to the user
+		# because it's likely a problem that we can solve and then
+		# reprocess the raw log file afterwords.
+		error_handler(e)
 
 	result = {
 		"result": "SUCCESS",

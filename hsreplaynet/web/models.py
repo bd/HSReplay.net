@@ -15,7 +15,7 @@ from hearthstone.enums import *
 from hsreplay import __version__ as hsreplay_version
 from hsreplay.dumper import parse_log, create_document, game_to_xml
 from hsreplay.utils import toxml
-from hsreplaynet.analytics import influx_timer
+from hsreplaynet.instrumentation import influx_timer
 from hsreplaynet.cards.models import Card, Deck
 from hsreplaynet.fields import IntEnumField, PlayerIDField
 from hsreplaynet.utils import deduplication_time_range, _time_elapsed
