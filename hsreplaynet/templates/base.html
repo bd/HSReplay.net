@@ -16,18 +16,13 @@
 
 	{% block stylesheets %}
 		<link href="https://fonts.googleapis.com/css?family=Noto+Sans:400,700" rel="stylesheet">
-		<link href="{% static 'web/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+		<link href="{% static 'bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
 		<!-- base.css should come after all Bootstrap CSS -->
 		<link href="{% static 'web/base.css' %}" rel="stylesheet"/>
 		<link href="{% static 'web/my_replays.css' %}" rel="stylesheet"/>
 	{% endblock stylesheets %}
 
 	<link rel="shortcut icon" type="image/png" href="{% static  'web/images/favicon.ico' %}"/>
-
-	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-	<script src="{% static 'web/jquery.min.js' %} "></script>
-	<!-- Include all compiled plugins (below), or include individual files as needed -->
-	<script src="{% static 'web/bootstrap/js/bootstrap.min.js' %}"></script>
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/react/15.0.2/react.min.js"></script>
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/react/15.0.2/react-dom.min.js"></script>
 	<!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
