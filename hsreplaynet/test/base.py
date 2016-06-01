@@ -1,5 +1,6 @@
-import os
 import json
+import os
+import subprocess
 import pytz
 from datetime import datetime, date, time
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
@@ -11,12 +12,18 @@ from hsreplaynet.api.models import AuthToken, UploadAgentAPIKey
 
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
-SCREEN_DUMP_LOCATION = os.path.join(APP_DIR, "screendumps")
-JSON_DATA_LOCATION = os.path.join(APP_DIR, "json")
-REPLAY_DATA_LOCATION = os.path.join(APP_DIR, "replays")
-FIXTURE_DATA_LOCATION = os.path.join(APP_DIR, "fixtures")
-LOG_DATA_LOCATION = os.path.join(APP_DIR, "logs")
-INTEGRATION_DATA_LOCATION = os.path.join(APP_DIR, "integration_data")
+TEST_DATA_GIT = "https://github.com/HearthSim/hsreplay-test-data.git"
+TEST_DATA_REPO = os.path.join(APP_DIR, "hsreplay-test-data")
+TEST_DATA_LOCATION = os.path.join(TEST_DATA_REPO, "hsreplaynet-tests")
+SCREEN_DUMP_LOCATION = os.path.join(TEST_DATA_LOCATION, "screendumps")
+JSON_DATA_LOCATION = os.path.join(TEST_DATA_LOCATION, "json")
+REPLAY_DATA_LOCATION = os.path.join(TEST_DATA_LOCATION, "replays")
+FIXTURE_DATA_LOCATION = os.path.join(TEST_DATA_LOCATION, "fixtures")
+LOG_DATA_LOCATION = os.path.join(TEST_DATA_LOCATION, "logs")
+INTEGRATION_DATA_LOCATION = os.path.join(TEST_DATA_LOCATION, "integration_data")
+
+if not os.path.exists(TEST_DATA_LOCATION):
+	subprocess.call(["git", "clone", TEST_DATA_GIT, TEST_DATA_REPO])
 
 
 class FunctionalTest(StaticLiveServerTestCase):
