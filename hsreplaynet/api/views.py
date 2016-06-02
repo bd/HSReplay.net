@@ -46,3 +46,9 @@ class GameUploadViewSet(WriteOnlyOnceViewSet):
 	#permission_classes = (RequireAuthToken, )
 	queryset = GameUpload.objects.all()
 	serializer_class = serializers.GameUploadSerializer
+
+
+class CreateStatsSnapshotView(CreateAPIView):
+	authentication_classes = (AuthTokenAuthentication, )
+	permission_classes = (RequireAuthToken, )
+	serializer_class = serializers.SnapshotStatsSerializer
