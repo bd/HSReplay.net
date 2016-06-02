@@ -80,18 +80,38 @@ class GameSerializer(serializers.Serializer):
 	url = serializers.ReadOnlyField(source="get_absolute_url")
 
 
-class GameUploadSerializer(serializers.HyperlinkedModelSerializer):
+class GameUploadSerializer(serializers.Serializer):
 	status = serializers.IntegerField(read_only=True)
 	tainted = serializers.BooleanField(read_only=True)
 	game = GameSerializer(read_only=True)
 	stats = SnapshotStatsSerializer(required=False)
 
-	class Meta:
-		model = GameUpload
-		fields = (
-			"type", "metadata", "file", "status", "tainted",
-			"game", "stats"
-		)
+	game_type = serializers.IntegerField()
+	file = serializers.FileField()
+	match_start_timestamp = serializers.DateTimeField()
+	# hearthstone_build = serializers.IntegerField(min_value=3140, required=False)
+	friendly_player = serializers.IntegerField(min_value=1, max_value=2)
+
+	queue_time = serializers.IntegerField(default=0, min_value=1)
+	spectator_mode = serializers.BooleanField(default=False)
+	reconnecting = serializers.BooleanField(default=False)
+	server_ip = serializers.IPAddressField(required=False)
+	server_port = serializers.IntegerField(default=0, min_value=1, max_value=65535)
+	client_id = serializers.IntegerField(default=0, min_value=1)
+	game_id = serializers.IntegerField(default=0, min_value=1)
+
+	scenario_id = serializers.IntegerField(default=0, min_value=0)
+	# brawl_season = serializers.IntegerField(default=0, min_value=1)
+	# ladder_season = serializers.IntegerField(default=0, min_value=1)
+
+	player1_rank = serializers.IntegerField(required=False, min_value=0, max_value=25)
+	player2_rank = serializers.IntegerField(required=False, min_value=0, max_value=25)
+	player1_legend_rank = serializers.IntegerField(default=0, min_value=1)
+	player2_legend_rank = serializers.IntegerField(default=0, min_value=1)
+	player1_deck = serializers.CharField(required=False)
+	player2_deck = serializers.CharField(required=False)
+	player1_cardback = serializers.IntegerField(default=0, min_value=1)
+	player2_cardback = serializers.IntegerField(default=0, min_value=1)
 
 	def create(self, data):
 		data["upload_ip"] = get_client_ip(self.context["request"])
