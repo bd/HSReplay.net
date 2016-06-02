@@ -55,7 +55,7 @@ class GameUpload(models.Model):
 	game = models.ForeignKey("web.GameReplayUpload", null=True, blank=True)
 	created = models.DateTimeField(auto_now_add=True)
 	upload_ip = models.GenericIPAddressField()
-	status = IntEnumField(enum=GameUploadStatus)
+	status = IntEnumField(enum=GameUploadStatus, default=GameUploadStatus.UNKNOWN)
 	tainted = models.BooleanField(default=False)
 
 	metadata = models.TextField()

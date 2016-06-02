@@ -1,3 +1,4 @@
+import json
 from rest_framework.exceptions import ValidationError
 from rest_framework import serializers
 from hsreplaynet.stats import models as stats_models
@@ -81,38 +82,47 @@ class GameSerializer(serializers.Serializer):
 
 
 class GameUploadSerializer(serializers.Serializer):
+	type = serializers.IntegerField()
 	status = serializers.IntegerField(read_only=True)
 	tainted = serializers.BooleanField(read_only=True)
 	game = GameSerializer(read_only=True)
 	stats = SnapshotStatsSerializer(required=False)
 
-	game_type = serializers.IntegerField()
+	game_type = serializers.IntegerField(write_only=True)
 	file = serializers.FileField()
-	match_start_timestamp = serializers.DateTimeField()
+	match_start_timestamp = serializers.DateTimeField(write_only=True)
 	# hearthstone_build = serializers.IntegerField(min_value=3140, required=False)
-	friendly_player = serializers.IntegerField(min_value=1, max_value=2)
+	friendly_player = serializers.IntegerField(min_value=1, max_value=2, write_only=True)
 
-	queue_time = serializers.IntegerField(default=0, min_value=1)
-	spectator_mode = serializers.BooleanField(default=False)
-	reconnecting = serializers.BooleanField(default=False)
-	server_ip = serializers.IPAddressField(required=False)
-	server_port = serializers.IntegerField(default=0, min_value=1, max_value=65535)
-	client_id = serializers.IntegerField(default=0, min_value=1)
-	game_id = serializers.IntegerField(default=0, min_value=1)
+	queue_time = serializers.IntegerField(default=0, min_value=1, write_only=True)
+	spectator_mode = serializers.BooleanField(default=False, write_only=True)
+	reconnecting = serializers.BooleanField(default=False, write_only=True)
+	server_ip = serializers.IPAddressField(required=False, write_only=True)
+	server_port = serializers.IntegerField(default=0, min_value=1, max_value=65535, write_only=True)
+	client_id = serializers.IntegerField(default=0, min_value=1, write_only=True)
+	game_id = serializers.IntegerField(default=0, min_value=1, write_only=True)
 
-	scenario_id = serializers.IntegerField(default=0, min_value=0)
+	scenario_id = serializers.IntegerField(default=0, min_value=0, write_only=True)
 	# brawl_season = serializers.IntegerField(default=0, min_value=1)
 	# ladder_season = serializers.IntegerField(default=0, min_value=1)
 
-	player1_rank = serializers.IntegerField(required=False, min_value=0, max_value=25)
-	player2_rank = serializers.IntegerField(required=False, min_value=0, max_value=25)
-	player1_legend_rank = serializers.IntegerField(default=0, min_value=1)
-	player2_legend_rank = serializers.IntegerField(default=0, min_value=1)
-	player1_deck = serializers.CharField(required=False)
-	player2_deck = serializers.CharField(required=False)
-	player1_cardback = serializers.IntegerField(default=0, min_value=1)
-	player2_cardback = serializers.IntegerField(default=0, min_value=1)
+	player1_rank = serializers.IntegerField(required=False, min_value=0, max_value=25, write_only=True)
+	player2_rank = serializers.IntegerField(required=False, min_value=0, max_value=25, write_only=True)
+	player1_legend_rank = serializers.IntegerField(default=0, min_value=1, write_only=True)
+	player2_legend_rank = serializers.IntegerField(default=0, min_value=1, write_only=True)
+	player1_deck = serializers.CharField(required=False, write_only=True)
+	player2_deck = serializers.CharField(required=False, write_only=True)
+	player1_cardback = serializers.IntegerField(default=0, min_value=1, write_only=True)
+	player2_cardback = serializers.IntegerField(default=0, min_value=1, write_only=True)
 
 	def create(self, data):
-		data["upload_ip"] = get_client_ip(self.context["request"])
-		return super(GameUploadSerializer, self).create(data)
+		request = self.context["request"]
+		data["match_start_timestamp"] = data["match_start_timestamp"].isoformat()
+		ret = GameUpload(
+			file = data.pop("file"),
+			token_id = request.session["auth_token"],
+			type = data.pop("type"),
+			upload_ip = get_client_ip(request),
+		)
+		ret.metadata = json.dumps(data)
+		return ret

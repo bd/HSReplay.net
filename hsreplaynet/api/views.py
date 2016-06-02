@@ -42,8 +42,8 @@ class CreateAccountClaimView(CreateAPIView):
 
 
 class GameUploadViewSet(WriteOnlyOnceViewSet):
-	#authentication_classes = (AuthTokenAuthentication, )
-	#permission_classes = (RequireAuthToken, )
+	authentication_classes = (AuthTokenAuthentication, )
+	permission_classes = (RequireAuthToken, )
 	queryset = GameUpload.objects.all()
 	serializer_class = serializers.GameUploadSerializer
 
