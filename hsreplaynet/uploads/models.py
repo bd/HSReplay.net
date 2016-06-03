@@ -1,6 +1,7 @@
 import uuid
 from enum import IntEnum
 from django.core.urlresolvers import reverse
+from django.utils.timezone import now
 from django.db import models
 from hsreplaynet.fields import IntEnumField
 
@@ -30,7 +31,7 @@ class GameUploadStatus(IntEnum):
 
 
 def _generate_key(instance, filename):
-	timestamp = instance.created.strftime("%Y/%m/%d")
+	timestamp = now().strftime("%Y/%m/%d")
 	extension = GameUploadType(instance.type).extension
 	return "uploads/%s/%s%s" % (timestamp, str(instance.id), extension)
 

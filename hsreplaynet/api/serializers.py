@@ -82,6 +82,7 @@ class GameSerializer(serializers.Serializer):
 
 
 class GameUploadSerializer(serializers.Serializer):
+	id = serializers.UUIDField(read_only=True)
 	type = serializers.IntegerField()
 	status = serializers.IntegerField(read_only=True)
 	tainted = serializers.BooleanField(read_only=True)
@@ -118,11 +119,14 @@ class GameUploadSerializer(serializers.Serializer):
 	def create(self, data):
 		request = self.context["request"]
 		data["match_start_timestamp"] = data["match_start_timestamp"].isoformat()
+
 		ret = GameUpload(
-			file = data.pop("file"),
+			file=data.pop("file"),
 			token_id = request.session["auth_token"],
 			type = data.pop("type"),
 			upload_ip = get_client_ip(request),
 		)
 		ret.metadata = json.dumps(data)
+		ret.save()
+
 		return ret

@@ -1,5 +1,6 @@
 import json
 import logging
+import tempfile
 from base64 import b64decode
 from dateutil.parser import parse as datetime_parse
 from django.conf import settings
@@ -12,12 +13,84 @@ from hsreplaynet.uploads.models import GameUpload, GameUploadType, GameUploadSta
 from hsreplaynet.web.models import GameReplayUpload, SingleGameRawLogUpload
 from hsreplaynet.uploads.processing import queue_upload_event_for_processing
 from hsreplaynet.utils import _time_elapsed, _reset_time_elapsed
-
+from rest_framework.test import APIRequestFactory
+from hsreplaynet.api.views import GameUploadViewSet
+from django.contrib.sessions.middleware import SessionMiddleware
 
 logging.getLogger("boto").setLevel(logging.WARN)
 logger = logging.getLogger(__file__)
 time_logger = logging.getLogger("TIMING")
 logger.setLevel(logging.INFO)
+
+
+def create_power_log_upload_event_handler(event, context):
+	"""
+	A handler for creating UploadEvents via Lambda.
+	"""
+	handler_start = now()
+	with influx_timer("raw_log_upload_handler_duration_ms",
+					  timestamp=handler_start,
+					  is_running_as_lambda=settings.IS_RUNNING_AS_LAMBDA):
+
+		try:
+			logger.info("*** Event Data (excluding the body content) ***")
+			for k, v in event.items():
+				if k != "body":
+					logger.info("%s: %s" % (k, v))
+
+			body = b64decode(event.get("body"))
+			power_log_file = tempfile.NamedTemporaryFile(mode="r+b",suffix='.log')
+			power_log_file.write(body)
+			power_log_file.flush()
+			power_log_file.seek(0)
+
+			path = event.get("path")
+
+			headers = event.get("headers")
+			headers["HTTP_X_FORWARDED_FOR"] = event.get("source_ip")
+
+			query_params = event.get("query")
+			query_params["file"] = power_log_file
+			query_params["type"] = int(GameUploadType.POWER_LOG)
+
+			factory = APIRequestFactory()
+			request = factory.post(path, query_params, **headers)
+			middleware = SessionMiddleware()
+			middleware.process_request(request)
+
+			view = GameUploadViewSet.as_view({'post': 'create'})
+			response = view(request)
+			response.render()
+
+			if response.status_code == 400:
+				return {
+					"result_type": "VALIDATION_ERROR",
+					"body": response.content
+				}
+
+			elif response.status_code == 201:
+
+				# Extract the upload_event from the response, and queue it for downstream processing.
+				upload_event_id = response.data["id"]
+				queue_upload_event_for_processing(upload_event_id)
+
+				return {
+					"result_type" : "SUCCESS",
+					"body" : response.content
+				}
+
+			else:
+				# We should never reach this block
+				return {
+					"result_type": "SERVER_ERROR"
+				}
+
+		except Exception as e:
+			logger.exception(e)
+			error_handler(e)
+			return {
+				"result_type" : "SERVER_ERROR"
+			}
 
 
 def raw_log_upload_handler(event, context):
