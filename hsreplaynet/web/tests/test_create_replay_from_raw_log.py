@@ -44,7 +44,6 @@ class CreateReplayFromRawLogTests(CardDataBaseTest, TestDataConsumerMixin):
 
 		replay, previously_existed = GameReplayUpload.objects.get_or_create_from_raw_log_upload(self.upload)
 		self.assertEqual(replay.user, self.token.user)
-		self.assertEqual(replay.upload_timestamp, self.upload_date)
 		self.assertEqual(replay.raw_log, self.upload)
 
 		replay_xml = replay.replay_xml.read()

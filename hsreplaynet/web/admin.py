@@ -14,9 +14,8 @@ class GlobalGamePlayerInline(admin.TabularInline):
 @admin.register(GameReplayUpload)
 class GameReplayUploadAdmin(admin.ModelAdmin):
 	actions = (set_user, )
-	date_hierarchy = "upload_timestamp"
 	list_display = (
-		"__str__", urlify("user"), "upload_timestamp", urlify("global_game"),
+		"__str__", urlify("user"), urlify("global_game"),
 		"hsreplay_version", "replay_xml", urlify("raw_log")
 	)
 	list_filter = (

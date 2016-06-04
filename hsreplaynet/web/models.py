@@ -508,7 +508,6 @@ class GameReplayUploadManager(models.Manager):
 			hsreplay_version = hsreplay_version,
 			is_spectated_game = raw_log.is_spectated_game,
 			raw_log = raw_log,
-			upload_timestamp = raw_log.upload_timestamp,
 			user = user,
 		)
 
@@ -640,7 +639,6 @@ class GameReplayUpload(models.Model):
 	objects = GameReplayUploadManager()
 	upload_token = models.ForeignKey("api.AuthToken", null=True, blank=True, related_name="replays")
 	user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
-	upload_timestamp = models.DateTimeField()
 	global_game = models.ForeignKey(GlobalGame,
 		related_name="replays",
 		help_text="References the single global game that this replay shows."
