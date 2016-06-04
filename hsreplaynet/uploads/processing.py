@@ -23,7 +23,7 @@ def queue_upload_event_for_processing(upload_event_id):
 	"""
 
 	if settings.IS_RUNNING_LIVE or settings.IS_RUNNING_AS_LAMBDA:
-		logger.info("We on Lambda or in production so GameUpload %s will be submitted to SNS." % upload_event_id)
+		logger.info("We are on Lambda or in production so GameUpload %s will be submitted to SNS." % upload_event_id)
 
 		topic_arn = settings.SNS_PROCESS_UPLOAD_EVENT_TOPIC
 		message = {"upload_event_id": upload_event_id}

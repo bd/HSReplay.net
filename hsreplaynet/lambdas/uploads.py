@@ -142,7 +142,7 @@ def process_upload_event_handler(event, context):
 
 		logger.info("Received event: " + json.dumps(event, indent=2))
 		message = json.loads(event['Records'][0]['Sns']['Message'])
-		logger.info("From SNS: " + message)
+		logger.info("From SNS: " + str(message))
 		upload_event_id = message["upload_event_id"]
 		logger.info("Upload Event ID: %s" % upload_event_id)
 
