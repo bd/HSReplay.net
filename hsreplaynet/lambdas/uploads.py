@@ -28,7 +28,7 @@ def create_power_log_upload_event_handler(event, context):
 	A handler for creating UploadEvents via Lambda.
 	"""
 	handler_start = now()
-	with influx_timer("raw_log_upload_handler_duration_ms",
+	with influx_timer("create_power_log_upload_event_handler_duration_ms",
 					  timestamp=handler_start,
 					  is_running_as_lambda=settings.IS_RUNNING_AS_LAMBDA):
 
@@ -61,6 +61,7 @@ def create_power_log_upload_event_handler(event, context):
 			view = GameUploadViewSet.as_view({'post': 'create'})
 			response = view(request)
 			response.render()
+			logger.info("Response Code: %s Response Content: %s" % (response.status_code, response.content))
 
 			if response.status_code == 400:
 				return {
@@ -82,7 +83,9 @@ def create_power_log_upload_event_handler(event, context):
 			else:
 				# We should never reach this block
 				return {
-					"result_type": "SERVER_ERROR"
+					"result_type": "SERVER_ERROR",
+					"response_code": response.status_code,
+					"response_content": response.content
 				}
 
 		except Exception as e:
