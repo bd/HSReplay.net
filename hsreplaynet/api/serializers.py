@@ -7,6 +7,10 @@ from hsreplaynet.utils import get_client_ip
 from .models import AuthToken, UploadAgentAPIKey
 
 
+class DeckListField(serializers.ListField):
+	child = serializers.CharField()
+
+
 class AccountClaimSerializer(serializers.Serializer):
 	url = serializers.ReadOnlyField(source="get_absolute_url")
 
@@ -111,8 +115,8 @@ class GameUploadSerializer(serializers.Serializer):
 	player2_rank = serializers.IntegerField(required=False, min_value=0, max_value=25, write_only=True)
 	player1_legend_rank = serializers.IntegerField(default=0, min_value=1, write_only=True)
 	player2_legend_rank = serializers.IntegerField(default=0, min_value=1, write_only=True)
-	player1_deck = serializers.CharField(required=False, write_only=True)
-	player2_deck = serializers.CharField(required=False, write_only=True)
+	player1_deck = DeckListField(required=False, write_only=True)
+	player2_deck = DeckListField(required=False, write_only=True)
 	player1_cardback = serializers.IntegerField(default=0, min_value=1, write_only=True)
 	player2_cardback = serializers.IntegerField(default=0, min_value=1, write_only=True)
 
