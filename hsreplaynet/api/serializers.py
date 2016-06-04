@@ -96,7 +96,6 @@ class GameUploadSerializer(serializers.Serializer):
 	game_type = serializers.IntegerField(write_only=True)
 	file = serializers.FileField()
 	match_start_timestamp = serializers.DateTimeField(write_only=True)
-	# hearthstone_build = serializers.IntegerField(min_value=3140, required=False)
 	friendly_player = serializers.IntegerField(min_value=1, max_value=2, write_only=True)
 
 	queue_time = serializers.IntegerField(default=0, min_value=1, write_only=True)
@@ -106,10 +105,9 @@ class GameUploadSerializer(serializers.Serializer):
 	server_port = serializers.IntegerField(default=0, min_value=1, max_value=65535, write_only=True)
 	client_id = serializers.IntegerField(default=0, min_value=1, write_only=True)
 	game_id = serializers.IntegerField(default=0, min_value=1, write_only=True)
+	spectate_key = serializers.CharField(default="", write_only=True)
 
 	scenario_id = serializers.IntegerField(default=0, min_value=0, write_only=True)
-	# brawl_season = serializers.IntegerField(default=0, min_value=1)
-	# ladder_season = serializers.IntegerField(default=0, min_value=1)
 
 	player1_rank = serializers.IntegerField(required=False, min_value=0, max_value=25, write_only=True)
 	player2_rank = serializers.IntegerField(required=False, min_value=0, max_value=25, write_only=True)
