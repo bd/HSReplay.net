@@ -8,9 +8,9 @@ from ..uploads import raw_log_upload_handler, create_power_log_upload_event_hand
 from hsreplaynet.uploads.models import GameUpload
 
 
-class TestRawLogUploadHandler(CardDataBaseTest, TestDataConsumerMixin):
+class TestLogUploadHandlers(CardDataBaseTest, TestDataConsumerMixin):
 	def setUp(self):
-		super(TestRawLogUploadHandler, self).setUp()
+		super(TestLogUploadHandlers, self).setUp()
 		self.agent, self.token = create_agent_and_token()
 
 	def test_all_upload_event_handler(self):
@@ -19,7 +19,7 @@ class TestRawLogUploadHandler(CardDataBaseTest, TestDataConsumerMixin):
 				# Finish preparing the event object...
 				event = descriptor["event"]
 				event["body"] = b64encode(raw_log.encode("utf-8"))
-				event["headers"]["HTTP_AUTHORIZATION"] = "Token %s" % str(self.token)
+				event["headers"]["Authorization"] = "Token %s" % str(self.token)
 				context = descriptor["context"]
 
 				result = create_power_log_upload_event_handler(event, context)

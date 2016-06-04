@@ -48,6 +48,7 @@ def create_power_log_upload_event_handler(event, context):
 
 			headers = event.get("headers")
 			headers["HTTP_X_FORWARDED_FOR"] = event.get("source_ip")
+			headers["HTTP_AUTHORIZATION"] = headers["Authorization"]
 
 			query_params = event.get("query")
 			query_params["file"] = power_log_file
