@@ -16,6 +16,7 @@ from hsreplaynet.utils import _time_elapsed, _reset_time_elapsed
 from rest_framework.test import APIRequestFactory
 from hsreplaynet.api.views import GameUploadViewSet
 from django.contrib.sessions.middleware import SessionMiddleware
+from hsreplaynet.games.models import process_upload_event
 
 logging.getLogger("boto").setLevel(logging.WARN)
 logger = logging.getLogger(__file__)
@@ -153,7 +154,8 @@ def process_upload_event_handler(event, context):
 		else:
 			# TODO: Invoke downstream processing here.
 			logger.info("GameUpload's initial status is: %s" % str(game_upload.status))
-			pass
+			process_upload_event(game_upload)
+			logger.info("GameUpload's status after processing is: %s" % str(game_upload.status))
 
 
 def create_upload_event_handler(event, context):
