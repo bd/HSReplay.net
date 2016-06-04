@@ -10,10 +10,15 @@ logger.setLevel(logging.INFO)
 def lambda_handler(event, context):
 	logger.info('Client token: ' + event['authorizationToken'])
 	logger.info('Method ARN: ' + event['methodArn'])
-	api_key = event['authorizationToken']
-	logger.info("API Key: %s" % api_key)
+	token_str = event['authorizationToken']
+	logger.info("Authorization Header: %s" % token_str)
 
-	token = AuthToken.objects.filter(key=api_key).first()
+	if 'Token' in token_str:
+		auth_algo, token = token_str.split()
+	else:
+		token = token_str
+
+	token = AuthToken.objects.filter(key=token).first()
 	if not token:
 		raise Exception('Unauthorized')
 	else:
