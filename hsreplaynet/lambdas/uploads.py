@@ -64,7 +64,7 @@ def create_power_log_upload_event_handler(event, context):
 			response.render()
 			logger.info("Response Code: %s Response Content: %s" % (response.status_code, response.content))
 
-			if response.status_code == 400:
+			if str(response.status_code).startswith("4"):
 				return {
 					"result_type": "VALIDATION_ERROR",
 					"body": response.content
@@ -135,48 +135,24 @@ def process_upload_event_handler(event, context):
 	publishes a message to the SNS_PROCESS_UPLOAD_EVENT_TOPIC.
 	"""
 
-	# To cleanly reset when the same lambda runtime is processes multiple uploads.
-	_reset_time_elapsed()
-	time_logger.info("TIMING: %s - create_upload_event_for_raw_power_log start.", _time_elapsed())
+	handler_start = now()
+	with influx_timer("process_upload_event_handler_duration_ms",
+					  timestamp=handler_start,
+					  is_running_as_lambda=settings.IS_RUNNING_AS_LAMBDA):
 
-	logger.info("*** Event Data (excluding the body content) ***")
-	for k, v in event.items():
-		logger.info("%s: %s" % (k, v))
-
-	for record in event['Records']:
-		bucket = record['s3']['bucket']['name']
-		key = record['s3']['object']['key']
-		logger.info(">>> Start S3 Record - Bucket: %s Key: %s" % (bucket, key))
-		time_logger.info("TIMING: %s - Start S3 Record" % _time_elapsed())
+		logger.info("Received event: " + json.dumps(event, indent=2))
+		message = event['Records'][0]['Sns']['Message']
+		logger.info("From SNS: " + message)
+		upload_event_id = message["upload_event_id"]
+		logger.info("Upload Event ID: %s" % upload_event_id)
 
 		try:
-			game_upload = GameUpload.objects.get_by_bucket_and_key(bucket, key)
+			game_upload = GameUpload.objects.get(id=upload_event_id)
 		except GameUpload.DoesNotExist as e:
 			error_handler(e)
-			raise Exception("Failed to find a GameUpload for Bucket: %s Key: %s" % (bucket, key))
 		else:
-
-			try:
-				# Attempt processing...
-				time_logger.info("TIMING: %s - Before GameReplayUpload.objects.get_or_create_from_game_upload_event" % _time_elapsed())
-				replay, created = GameReplayUpload.objects.get_or_create_from_game_upload_event(game_upload)
-				time_logger.info("TIMING: %s - After GameReplayUpload.objects.get_or_create_from_game_upload_event" % _time_elapsed())
-			except Exception as e:
-				error_handler(e)
-			else:
-				if replay:
-					logger.info("Processing Succeeded! Replay is %i turns, and has ID %r" % (
-						replay.global_game.num_turns, replay.id)
-					)
-
-				if not created:
-					logger.warn("This replay was determined to be a duplicate of an earlier upload. A new replay record did not need to be created.")
-
-
-		logger.info(">>> End S3 Record")
-		time_logger.info("TIMING: %s - End S3 Record" % _time_elapsed())
-
-	time_logger.info("TIMING: %s - Handler Finished." % _time_elapsed())
+			# TODO: Invoke downstream processing here.
+			pass
 
 
 def create_upload_event_handler(event, context):
