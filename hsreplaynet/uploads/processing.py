@@ -23,10 +23,12 @@ def queue_upload_event_for_processing(upload_event_id):
 	"""
 
 	if settings.IS_RUNNING_LIVE or settings.IS_RUNNING_AS_LAMBDA:
+		logger.info("We on Lambda or in production so GameUpload %s will be submitted to SNS." % upload_event_id)
 
 		topic_arn = settings.SNS_PROCESS_UPLOAD_EVENT_TOPIC
 		message = {"upload_event_id": upload_event_id}
 
+		logger.info("The TopicARN is %s" % topic_arn)
 		success = True
 		try:
 			response = _sns_client.publish(
@@ -34,12 +36,14 @@ def queue_upload_event_for_processing(upload_event_id):
 				Message=json.dumps({"default": json.dumps(message)}),
 				MessageStructure="json"
 			)
+			logger.info("SNS Response: %s" % str(response))
 		except Exception as e:
+			logger.error("Exception raised.")
 			error_handler(e)
 			success = False
 		else:
 			message_id = response["MessageId"]
-
+			logger.info("The submitted message ID is: %s" % message_id)
 			try:
 				UploadEventProcessingRequest.objects.create(
 					upload_event_id = upload_event_id,
@@ -61,3 +65,5 @@ def queue_upload_event_for_processing(upload_event_id):
 					"is_running_as_lambda": settings.IS_RUNNING_AS_LAMBDA,
 				}
 			)
+	else:
+		logger.info("Not running on Lambda or Production so submission to SNS will be skipped.")

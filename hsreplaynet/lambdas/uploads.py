@@ -152,6 +152,7 @@ def process_upload_event_handler(event, context):
 			error_handler(e)
 		else:
 			# TODO: Invoke downstream processing here.
+			logger.info("GameUpload's initial status is: %s" % str(game_upload.status))
 			pass
 
 
