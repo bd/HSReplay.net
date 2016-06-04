@@ -141,7 +141,7 @@ def process_upload_event_handler(event, context):
 					  is_running_as_lambda=settings.IS_RUNNING_AS_LAMBDA):
 
 		logger.info("Received event: " + json.dumps(event, indent=2))
-		message = event['Records'][0]['Sns']['Message']
+		message = json.loads(event['Records'][0]['Sns']['Message'])
 		logger.info("From SNS: " + message)
 		upload_event_id = message["upload_event_id"]
 		logger.info("Upload Event ID: %s" % upload_event_id)
