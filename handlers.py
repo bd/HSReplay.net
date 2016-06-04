@@ -25,4 +25,4 @@ django.setup()
 
 # Make sure django.setup() has already been invoked to import handlers
 from hsreplaynet.lambdas.authorizer import lambda_handler as token_authorizer
-from hsreplaynet.lambdas.uploads import raw_log_upload_handler, create_upload_event_handler
+from hsreplaynet.lambdas.uploads import raw_log_upload_handler, create_power_log_upload_event_handler
