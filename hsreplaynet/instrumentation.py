@@ -4,6 +4,7 @@ from django.conf import settings
 from django.utils.timezone import now
 from influxdb import InfluxDBClient
 from .utils import logger
+from functools import wraps
 
 if "raven.contrib.django.raven_compat" in settings.INSTALLED_APPS:
 	from raven.contrib.django.raven_compat.models import client as sentry
@@ -16,6 +17,34 @@ def error_handler(e):
 		sentry.captureException()
 	else:
 		logger.exception(e)
+
+
+def sentry_aware_handler(func):
+	"""A wrapper which should be used around all handlers in the lambdas module to ensure sentry reporting."""
+	@wraps(func)
+	def wrapper(*args, **kwargs):
+		if len(args) != 2:
+			msg = "@sentry_aware_handler must wrap functions with two arguments. E.g. handler(event, context)"
+			raise ValueError(msg)
+
+		context = args[1]
+		if not hasattr(context, "log_group_name"):
+			msg = "@sentry_aware_handler has been used with a function whose second argument is not a context object."
+			raise ValueError(msg)
+
+		if sentry:
+			# Provide additional metadata to sentry in case the exception gets trapped and reported within the function.
+			sentry.user_context({
+				"aws_log_group_name": getattr(context, "log_group_name"),
+				"aws_log_stream_name": getattr(context, "log_stream_name"),
+				"aws_function_name": getattr(context, "function_name")
+			})
+
+		try:
+			return func(*args, **kwargs)
+		except Exception as e:
+			error_handler(e)
+	return wrapper
 
 
 influx = InfluxDBClient(

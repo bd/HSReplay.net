@@ -9,6 +9,7 @@ from django.test import TestCase
 from selenium import webdriver
 from hearthstone.enums import *
 from hsreplaynet.api.models import AuthToken, UploadAgentAPIKey
+from mock import MagicMock
 
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -90,6 +91,13 @@ class TestDataConsumerMixin:
 			descriptor = json.load(open(os.path.join(INTEGRATION_DATA_LOCATION, test_case_uuid_dir, "descriptor.json")))
 			raw_log = open(os.path.join(INTEGRATION_DATA_LOCATION, test_case_uuid_dir, "power.log")).read()
 			yield (descriptor, raw_log, test_case_uuid_dir)
+
+	def get_mock_context(self):
+		context = MagicMock()
+		context.log_group_name = MagicMock(return_value="mock_log_group_name")
+		context.log_stream_name = MagicMock(return_value="mock_log_stream_name")
+		context.function_name = MagicMock(return_value="mock_aws_function_name")
+		return context
 
 	def replay_file_path(self, replay_name):
 		return os.path.join(REPLAY_DATA_LOCATION, replay_name)

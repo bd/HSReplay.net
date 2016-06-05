@@ -11,6 +11,7 @@ class TestRawLogUploadHandler(CardDataBaseTest, TestDataConsumerMixin):
 		super().setUp()
 		self.agent, self.token = create_agent_and_token()
 
+
 	def test_basic_upload(self):
 		self.log_data_fixture = self.get_raw_log_fixture_for_random_innkeeper_match()
 		self.log_data = self.log_data_fixture["raw_log"]
@@ -34,9 +35,7 @@ class TestRawLogUploadHandler(CardDataBaseTest, TestDataConsumerMixin):
 			"x-hsreplay-upload-token": str(self.token),
 		}
 
-		context = {}
-
-		result = _raw_log_upload_handler(event, context)
+		result = _raw_log_upload_handler(event, self.get_mock_context())
 		print(result["replay_uuid"])
 		replay = GameReplayUpload.objects.get(id=result["replay_uuid"])
 		self.assertIsNotNone(replay)

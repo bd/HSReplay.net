@@ -22,7 +22,7 @@ class TestLogUploadHandlers(CardDataBaseTest, TestDataConsumerMixin):
 				event["headers"]["Authorization"] = "Token %s" % str(self.token)
 				context = descriptor["context"]
 
-				result = create_power_log_upload_event_handler(event, context)
+				result = create_power_log_upload_event_handler(event, self.get_mock_context())
 
 				if descriptor["expected_response_is_replay_id"].lower() == "true":
 					self.assertEqual(result["result_type"], "SUCCESS")
@@ -41,7 +41,7 @@ class TestLogUploadHandlers(CardDataBaseTest, TestDataConsumerMixin):
 				context = descriptor["context"]
 
 				# Invoke main handler code
-				result = raw_log_upload_handler(event, context)
+				result = raw_log_upload_handler(event, self.get_mock_context())
 
 				# Begin verification process...
 				if descriptor["expected_response_is_replay_id"].lower() == "true":

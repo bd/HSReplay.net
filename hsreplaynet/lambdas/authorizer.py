@@ -1,12 +1,13 @@
 import logging
 import re
 from hsreplaynet.api.models import AuthToken
-
+from hsreplaynet.instrumentation import sentry_aware_handler
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
+@sentry_aware_handler
 def lambda_handler(event, context):
 	logger.info('Client token: ' + event['authorizationToken'])
 	logger.info('Method ARN: ' + event['methodArn'])

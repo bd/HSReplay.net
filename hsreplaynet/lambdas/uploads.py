@@ -17,6 +17,7 @@ from rest_framework.test import APIRequestFactory
 from hsreplaynet.api.views import GameUploadViewSet
 from django.contrib.sessions.middleware import SessionMiddleware
 from hsreplaynet.games.models import process_upload_event
+from hsreplaynet.instrumentation import sentry_aware_handler
 
 logging.getLogger("boto").setLevel(logging.WARN)
 logger = logging.getLogger(__file__)
@@ -24,6 +25,7 @@ time_logger = logging.getLogger("TIMING")
 logger.setLevel(logging.INFO)
 
 
+@sentry_aware_handler
 def create_power_log_upload_event_handler(event, context):
 	"""
 	A handler for creating UploadEvents via Lambda.
@@ -97,7 +99,7 @@ def create_power_log_upload_event_handler(event, context):
 				"result_type" : "SERVER_ERROR"
 			}
 
-
+@sentry_aware_handler
 def raw_log_upload_handler(event, context):
 	# If an exception is thrown we must translate it into a string that the API Gateway
 	# can translate into the appropriate HTTP Response code and message.
@@ -129,7 +131,7 @@ def raw_log_upload_handler(event, context):
 
 		return result
 
-
+@sentry_aware_handler
 def process_upload_event_handler(event, context):
 	"""
 	This handler is triggered by SNS whenever someone
@@ -158,6 +160,7 @@ def process_upload_event_handler(event, context):
 			logger.info("GameUpload's status after processing is: %s" % str(game_upload.status))
 
 
+@sentry_aware_handler
 def create_upload_event_handler(event, context):
 	"""
 	A handler for creating UploadEvents via Lambda.
@@ -207,6 +210,7 @@ def create_upload_event_handler(event, context):
 		return {"result": "SUCCESS", "upload_event_id": str(upload_event.id)}
 
 
+@sentry_aware_handler
 def _raw_log_upload_handler(event, context):
 	_reset_time_elapsed() # To cleanly reset when the same lambda runtime is used to process multiple uploads.
 	time_logger.info("TIMING: %s - Upload handler start." % _time_elapsed())

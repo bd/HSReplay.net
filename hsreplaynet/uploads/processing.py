@@ -12,7 +12,14 @@ from hsreplaynet.instrumentation import error_handler, influx_metric
 from hsreplaynet.uploads.models import UploadEventProcessingRequest
 
 
-_sns_client = boto3.client("sns")
+_sns_client = None
+
+def sns_client():
+	global _sns_client
+	if not _sns_client:
+		_sns_client = boto3.client("sns")
+	return _sns_client
+
 logger = logging.getLogger(__file__)
 
 
@@ -31,7 +38,7 @@ def queue_upload_event_for_processing(upload_event_id):
 		logger.info("The TopicARN is %s" % topic_arn)
 		success = True
 		try:
-			response = _sns_client.publish(
+			response = sns_client().publish(
 				TopicArn=topic_arn,
 				Message=json.dumps({"default": json.dumps(message)}),
 				MessageStructure="json"
