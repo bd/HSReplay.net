@@ -42,6 +42,7 @@ INSTALLED_APPS = [
 	"hsreplaynet.lambdas",
 	"hsreplaynet.stats",
 	"hsreplaynet.uploads",
+	"hsreplaynet.utils",
 ]
 
 if not IS_RUNNING_AS_LAMBDA:
