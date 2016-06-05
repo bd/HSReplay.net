@@ -76,9 +76,9 @@ class RankedSeasonStatsSerializer(serializers.HyperlinkedModelSerializer):
 class SnapshotStatsSerializer(serializers.Serializer):
 	meta = StatsMetaSerializer()
 	player_stats = PlayerStatsSerializer()
-	arena_draft_stats = ArenaDraftStatsSerializer()
-	brawl_season_stats = BrawlSeasonStatsSerializer()
-	ranked_season_stats = RankedSeasonStatsSerializer()
+	arena_draft_stats = ArenaDraftStatsSerializer(required=False)
+	brawl_season_stats = BrawlSeasonStatsSerializer(required=False)
+	ranked_season_stats = RankedSeasonStatsSerializer(required=False)
 
 
 class GameSerializer(serializers.Serializer):
