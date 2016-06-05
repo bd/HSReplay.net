@@ -6,6 +6,8 @@ from .models import AuthToken
 
 class RequireAuthToken(BasePermission):
 	def has_permission(self, request, view):
+		if request.user and request.user.is_staff:
+			return True
 		return bool(request.session.get("auth_token"))
 
 
