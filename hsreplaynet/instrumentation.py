@@ -41,9 +41,15 @@ def sentry_aware_handler(func):
 			})
 
 		try:
+			logger.info("*** Inside @sentry_aware_handler")
 			return func(*args, **kwargs)
 		except Exception as e:
-			error_handler(e)
+			logger.exception("Got an exception: %r", e)
+			if sentry:
+				logger.info("Inside sentry capture block.")
+				sentry.captureException()
+			else:
+				logger.info("Sentry is not available.")
 	return wrapper
 
 
@@ -84,7 +90,7 @@ def influx_timer(measure, timestamp=None, **kwargs):
 		yield
 	except Exception as e:
 		exception_raised_in_with_block = True
-		raise e
+		raise
 	finally:
 		stop_time = time.clock()
 		duration = (stop_time - start_time) * 10000
