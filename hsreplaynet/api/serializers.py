@@ -1,4 +1,5 @@
 import json
+from django.core.serializers.json import DjangoJSONEncoder
 from rest_framework.exceptions import ValidationError
 from rest_framework import serializers
 from hsreplaynet.stats import models as stats_models
@@ -128,7 +129,6 @@ class GameUploadSerializer(serializers.Serializer):
 
 	def create(self, data):
 		request = self.context["request"]
-		data["match_start_timestamp"] = data["match_start_timestamp"].isoformat()
 
 		ret = GameUpload(
 			file=data.pop("file"),
@@ -136,7 +136,7 @@ class GameUploadSerializer(serializers.Serializer):
 			type = data.pop("type"),
 			upload_ip = get_client_ip(request),
 		)
-		ret.metadata = json.dumps(data)
+		ret.metadata = json.dumps(data, cls=DjangoJSONEncoder)
 		ret.save()
 
 		return ret
