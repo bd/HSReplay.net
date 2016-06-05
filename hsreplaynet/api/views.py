@@ -1,3 +1,4 @@
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import AllowAny
@@ -42,7 +43,7 @@ class CreateAccountClaimView(CreateAPIView):
 
 
 class GameUploadViewSet(WriteOnlyOnceViewSet):
-	authentication_classes = (AuthTokenAuthentication, )
+	authentication_classes = (AuthTokenAuthentication, SessionAuthentication)
 	permission_classes = (RequireAuthToken, )
 	queryset = GameUpload.objects.all()
 	serializer_class = serializers.GameUploadSerializer
