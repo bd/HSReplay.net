@@ -5,7 +5,7 @@ class StatsMeta(models.Model):
 	hearthstone_build = models.PositiveIntegerField()
 	platform = models.PositiveIntegerField(default=1)
 	battlenet_id = models.BigIntegerField()
-	region = models.PositiveSmallIntegerField()
+	region = models.CharField(max_length=4)
 
 
 class PlayerStats(models.Model):
