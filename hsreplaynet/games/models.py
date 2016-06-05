@@ -205,7 +205,7 @@ def process_upload_event(upload_event):
 	if user is None:
 		# If the auth token has not yet been claimed, create
 		# a pending claim for the replay for when it will be.
-		claim = PendingReplayOwnership(replay=replay, token=raw_log.upload_token)
+		claim = PendingReplayOwnership(replay=replay, token=upload_event.token)
 		claim.save()
 
 	upload_event.status = GameUploadStatus.SUCCESS
