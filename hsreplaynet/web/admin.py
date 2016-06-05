@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.db.models import Count
-from hsreplaynet.utils import admin_urlify as urlify, set_user
+from hsreplaynet.utils.admin import admin_urlify as urlify, set_user
 from .models import GameReplayUpload, GlobalGame, GlobalGamePlayer, SingleGameRawLogUpload
 
 

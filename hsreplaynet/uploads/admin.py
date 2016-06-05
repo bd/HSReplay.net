@@ -1,5 +1,5 @@
 from django.contrib import admin
-from hsreplaynet.utils import admin_urlify as urlify
+from hsreplaynet.utils.admin import admin_urlify as urlify
 from .models import GameUpload
 
 

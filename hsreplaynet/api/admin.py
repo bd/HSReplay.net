@@ -1,5 +1,5 @@
 from django.contrib import admin
-from hsreplaynet.utils import set_user
+from hsreplaynet.utils.admin import set_user
 from .models import *
 
 
