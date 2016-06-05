@@ -54,21 +54,29 @@ class StatsMetaSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class PlayerStatsSerializer(serializers.HyperlinkedModelSerializer):
+	meta = serializers.ReadOnlyField()
+
 	class Meta:
 		model = stats_models.PlayerStats
 
 
 class ArenaDraftStatsSerializer(serializers.HyperlinkedModelSerializer):
+	meta = serializers.ReadOnlyField()
+
 	class Meta:
 		model = stats_models.ArenaDraftStats
 
 
 class BrawlSeasonStatsSerializer(serializers.HyperlinkedModelSerializer):
+	meta = serializers.ReadOnlyField()
+
 	class Meta:
 		model = stats_models.BrawlSeasonStats
 
 
 class RankedSeasonStatsSerializer(serializers.HyperlinkedModelSerializer):
+	meta = serializers.ReadOnlyField()
+
 	class Meta:
 		model = stats_models.RankedSeasonStats
 
