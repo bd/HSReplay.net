@@ -9,6 +9,10 @@ logger.setLevel(logging.INFO)
 
 @sentry_aware_handler
 def lambda_handler(event, context):
+	logger.info("*** Event Data ***")
+	for k, v in event.items():
+		logger.info("%s: %s" % (k, v))
+
 	logger.info('Client token: ' + event['authorizationToken'])
 	logger.info('Method ARN: ' + event['methodArn'])
 	token_str = event['authorizationToken']
