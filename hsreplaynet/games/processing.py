@@ -133,6 +133,8 @@ def process_upload_event(upload_event):
 			num_turns = num_turns,
 		)
 
+	if not upload_event.token:
+		raise ValidationError("No token attached to upload event %r" % (upload_event))
 	user = upload_event.token.user
 
 	replay = GameReplay(
