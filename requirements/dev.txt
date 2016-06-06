@@ -1,0 +1,4 @@
+-r web.txt
+-r testing.txt
+
+q

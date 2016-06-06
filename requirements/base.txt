@@ -1,0 +1,10 @@
+wheel==0.29.0
+Django==1.9.6
+djangorestframework==3.3.3
+requests==2.10.0
+hearthstone
+hsreplay==1.2.2
+pytz==2016.4
+python-dateutil
+humanize==0.5.1
+lxml==3.6.0

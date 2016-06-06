@@ -14,7 +14,7 @@ def deploy():
 	sudo("mkdir -p %s" % (source_folder), user="www-data")
 
 	_get_latest_source(source_folder)
-	_update_virtualenv(venv, source_folder + "/requirements.txt")
+	_update_virtualenv(venv, source_folder + "/requirements/live.txt")
 	_update_static_files(venv, source_folder)
 	_update_database(venv, source_folder)
 

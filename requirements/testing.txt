@@ -1,0 +1,6 @@
+# testing libs
+django-nose==1.4.3
+mock==2.0.0
+nosexcover==1.0.10
+pylint==1.5.5
+selenium==2.53.2
