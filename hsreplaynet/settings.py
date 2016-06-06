@@ -32,7 +32,6 @@ INSTALLED_APPS = [
 	"django.contrib.messages",
 	"django.contrib.staticfiles",
 	"django.contrib.sites",
-	"loginas",
 	"rest_framework",
 	"hsreplaynet.accounts",
 	"hsreplaynet.api",
@@ -51,6 +50,7 @@ if not IS_RUNNING_AS_LAMBDA:
 		"allauth.account",
 		"allauth.socialaccount",
 		"allauth_battlenet",
+		"loginas",
 	]
 
 if not DEBUG:
