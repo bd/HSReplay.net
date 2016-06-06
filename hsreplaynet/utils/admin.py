@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
+from django.utils.html import format_html
 
 
 def set_field_admin_action(qs, field_name):
@@ -51,10 +52,10 @@ def admin_urlify(column):
 			url = ""
 		admin_pattern = "admin:%s_%s_change" % (_obj._meta.app_label, _obj._meta.model_name)
 		admin_url = reverse(admin_pattern, args=[_obj.pk])
-		ret = '<a href="%s">%s</a>' % (admin_url, _obj)
+
+		ret = format_html('<a href="{url}">{obj}</a>', url=admin_url, obj=_obj)
 		if url:
-			ret += ' (<a href="%s">View</a>)' % (url)
+			ret += format_html(' (<a href="{url}">View</a>)', url=url)
 		return ret
-	inner.allow_tags = True
 	inner.short_description = column.replace("_", " ")
 	return inner
