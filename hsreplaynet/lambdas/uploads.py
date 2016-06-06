@@ -10,7 +10,7 @@ from hsreplaynet import instrumentation
 from hsreplaynet.uploads.models import UploadEvent, UploadEventType
 from hsreplaynet.uploads.processing import queue_upload_event_for_processing
 from hsreplaynet.api.views import UploadEventViewSet
-from hsreplaynet.games.models import process_upload_event
+from hsreplaynet.games.processing import process_upload_event
 
 
 logging.getLogger("boto").setLevel(logging.WARN)
