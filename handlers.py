@@ -9,14 +9,11 @@ standard Django requests.
 import logging
 import os
 import django
-import pymysql
 
 
 logging.getLogger("boto").setLevel(logging.WARN)
 logger = logging.getLogger(__file__)
 logger.setLevel(logging.INFO)
-
-pymysql.install_as_MySQLdb()
 
 # This block properly bootstraps Django for running inside the AWS Lambda Runtime.
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "hsreplaynet.settings")
