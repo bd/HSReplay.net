@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.db.models import Count
 from hsreplaynet.utils.admin import admin_urlify as urlify, set_user
-from .models import GameReplayUpload, GlobalGame, GlobalGamePlayer, SingleGameRawLogUpload
+from .models import GameReplay, GlobalGame, GlobalGamePlayer
 
 
 class GlobalGamePlayerInline(admin.TabularInline):
@@ -11,19 +11,19 @@ class GlobalGamePlayerInline(admin.TabularInline):
 	show_change_link = True
 
 
-@admin.register(GameReplayUpload)
-class GameReplayUploadAdmin(admin.ModelAdmin):
+@admin.register(GameReplay)
+class GameReplayAdmin(admin.ModelAdmin):
 	actions = (set_user, )
 	list_display = (
 		"__str__", urlify("user"), urlify("global_game"),
-		"hsreplay_version", "replay_xml", urlify("raw_log")
+		"hsreplay_version", "replay_xml",
 	)
 	list_filter = (
 		"hsreplay_version", "is_spectated_game", "won", "disconnected",
 		"is_deleted", "exclude_in_aggregate_stats",
 	)
 	raw_id_fields = (
-		"upload_token", "user", "global_game", "raw_log",
+		"upload_token", "user", "global_game",
 	)
 
 
@@ -67,14 +67,3 @@ class GlobalGamePlayerAdmin(admin.ModelAdmin):
 	list_display = ("__str__", urlify("user"), "player_id", "is_first")
 	list_filter = ("is_ai", "rank", "is_first")
 	raw_id_fields = ("game", "user", "deck_list")
-
-
-@admin.register(SingleGameRawLogUpload)
-class SingleGameRawLogUploadAdmin(admin.ModelAdmin):
-	date_hierarchy = "match_start_timestamp"
-	list_display = (
-		"__str__", "upload_token", "match_start_timestamp", "hearthstone_build",
-		"game_type", "scenario_id", "is_spectated_game"
-	)
-	list_filter = ("is_spectated_game", "game_type", "hearthstone_build")
-	raw_id_fields = ("upload_token", )

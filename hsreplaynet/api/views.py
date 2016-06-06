@@ -6,10 +6,10 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.status import HTTP_201_CREATED
 from hsreplaynet.accounts.models import AccountClaim
-from hsreplaynet.uploads.models import GameUpload
+from hsreplaynet.uploads.models import UploadEvent
 from . import serializers
 from .authentication import AuthTokenAuthentication, RequireAuthToken
-from .models import AuthToken, UploadAgentAPIKey
+from .models import AuthToken, APIKey
 
 
 class WriteOnlyOnceViewSet(CreateModelMixin, RetrieveModelMixin, GenericViewSet):
@@ -22,10 +22,10 @@ class AuthTokenViewSet(WriteOnlyOnceViewSet):
 	serializer_class = serializers.AuthTokenSerializer
 
 
-class UploadAgentViewSet(WriteOnlyOnceViewSet):
+class APIKeyViewSet(WriteOnlyOnceViewSet):
 	permission_classes = (AllowAny, )
-	queryset = UploadAgentAPIKey.objects.all()
-	serializer_class = serializers.UploadAgentSerializer
+	queryset = APIKey.objects.all()
+	serializer_class = serializers.APIKeySerializer
 
 
 class CreateAccountClaimView(CreateAPIView):
@@ -42,11 +42,11 @@ class CreateAccountClaimView(CreateAPIView):
 		return response
 
 
-class GameUploadViewSet(WriteOnlyOnceViewSet):
+class UploadEventViewSet(WriteOnlyOnceViewSet):
 	authentication_classes = (AuthTokenAuthentication, SessionAuthentication)
 	permission_classes = (RequireAuthToken, )
-	queryset = GameUpload.objects.all()
-	serializer_class = serializers.GameUploadSerializer
+	queryset = UploadEvent.objects.all()
+	serializer_class = serializers.UploadEventSerializer
 
 
 class CreateStatsSnapshotView(CreateAPIView):

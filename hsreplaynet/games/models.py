@@ -1,214 +1,311 @@
-import json
-from io import StringIO
-from dateutil.parser import parse as dateutil_parse
-from django.core.exceptions import ValidationError
-from django.core.files.base import ContentFile
-from hearthstone.enums import GameTag, PlayState, PowerType, Zone
-from hsreplay import __version__ as hsreplay_version
-from hsreplay.dumper import parse_log, create_document, game_to_xml
-from hsreplay.utils import toxml
-from hsreplaynet.utils import deduplication_time_range
-from hsreplaynet.cards.models import Deck
-from hsreplaynet.web.models import GameReplayUpload, GlobalGame, GlobalGamePlayer, PendingReplayOwnership
-from hsreplaynet.uploads.models import GameUploadStatus
+import uuid
+from math import ceil
+from django.conf import settings
+from django.core.files.storage import default_storage
+from django.core.urlresolvers import reverse
+from django.db import models
+from hearthstone.enums import BnetGameType, PlayState
+from hsreplaynet.cards.models import Card, Deck
+from hsreplaynet.fields import IntEnumField, PlayerIDField
+from hsreplaynet.uploads.models import UploadEventStatus
 
 
-def _get_player_meta(d, i):
-	return {
-		"rank": str(d["player%i_rank" % (i)]),
-		"legendRank": str(d["player%i_legend_rank" % (i)]),
-		"cardback": str(d["player%i_cardback" % (i)]),
-	}
+def _generate_replay_upload_key(instance, filename):
+	timestamp = instance.global_game.match_start_timestamp("%Y/%m/%d")
+	return "%s/replays/%s.xml" % (timestamp, str(instance.id))
 
 
-def find_friendly_player(game_tree):
-	for packet in game_tree.packets[1:]:
-		if packet.type != PowerType.FULL_ENTITY:
-			break
-		tags = dict(packet.tags)
-		if tags[GameTag.ZONE] == Zone.HAND and not packet.cardid:
-			return tags[GameTag.CONTROLLER] % 2 + 1
+class GlobalGame(models.Model):
+	"""
+	Represents a globally unique game (e.g. from the server's POV).
 
+	The fields on this object represent information that is public
+	to all players and spectators. When the same game is uploaded
+	by multiple players or spectators they will all share a
+	reference to a single global game.
 
-def eligible_for_unification(meta):
-	return False
+	When a replay or raw log file is uploaded the server first checks
+	for the existence of a GlobalGame record. It looks for any games
+	that occured on the same region where both players have matching
+	battle_net_ids and where the match start timestamp is within +/- 1
+	minute from the timestamp on the upload.
+	The +/- range on the match start timestamp is to account for
+	potential clock drift between the computer that generated this
+	replay and the computer that uploaded the earlier record which
+	first created the GlobalGame record. If no existing GlobalGame
+	record is found, then one is created.
+	"""
+	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
+	# We believe game_id is not monotonically increasing as it appears
+	# to roll over and reset periodically.
+	game_server_game_id = models.IntegerField("Battle.net Game ID",
+		null=True, blank=True,
+		help_text="This is the game_id from the Net.log"
+	)
+	game_server_address = models.GenericIPAddressField(null=True, blank=True)
+	game_server_port = models.IntegerField(null=True, blank=True)
 
-def find_duplicate_games(meta, timestamp):
-	matches = GlobalGame.objects.filter(
-		hearthstone_build = meta["hearthstone_build"],
-		game_type = meta["game_type"],
-		game_server_game_id = meta["game_id"],
-		game_server_address = meta["server_ip"],
-		game_server_port = meta["server_port"],
-		match_start_timestamp__range = deduplication_time_range(timestamp),
+	hearthstone_build = models.CharField("Hearthstone Build Number",
+		max_length=50, blank=True, null=True,
+		help_text="Patch number at the time the game was played."
 	)
 
-	if matches:
-		if len(matches) > 1:
-			# clearly something's up. invalidate the upload, look into it manually.
-			raise ValidationError("Found too many global games. Mumble mumble...")
-		global_game = matches.first()
-
-		# Check for duplicate uploads of the same game (eg. from same POV)
-		uploads = GameReplayUpload.objects.filter(
-			global_game = global_game,
-			is_spectated_game = meta["spectator_mode"],
-			game_server_client_id = meta["client_id"],
-		)
-		if len(uploads) > 1:
-			raise ValidationError("Found too many player games... What happened?")
-		elif uploads:
-			return global_game, uploads.first()
-	return global_game, None
-
-
-def process_upload_event(upload_event):
-	if upload_event.game:
-		raise NotImplementedError("Reprocessing not implemented yet")
-	upload_event.status = GameUploadStatus.PROCESSING
-	upload_event.save()
-
-	meta = json.loads(upload_event.metadata)
-
-	upload_event.file.open(mode="rb")
-	log = StringIO(upload_event.file.read().decode("utf-8"))
-	upload_event.file.close()
-
-	match_start_timestamp = dateutil_parse(meta["match_start_timestamp"])
-	packet_tree = parse_log(log, processor="GameState", date=match_start_timestamp)
-
-	if len(packet_tree.games) != 1:
-		raise ValidationError("Expected exactly 1 game, got %i" % (len(packet_tree.games)))
-
-	game_tree = packet_tree.games[0]
-
-	build = meta["stats"]["meta"]["hearthstone_build"]
-	root = create_document(version=hsreplay_version, build=build)
-	player_meta = [_get_player_meta(meta, i) for i in (1, 2)]
-	game_meta = {
-		"id": str(meta["game_id"]),
-		"type": str(meta["game_type"]),
-		"reconnecting": str(meta["reconnecting"]).lower(),
-	}
-	# decks = [deck.split(",") for deck in meta["decks"]]
-	game = game_to_xml(game_tree,
-		game_meta = game_meta,
-		player_meta = player_meta,
-		decks = [meta["player1_deck"], meta["player2_deck"]],
-	)
-	root.append(game)
-
-	start_time = game_tree.start_time
-	end_time = game_tree.end_time
-
-	friendly_player_id = meta["friendly_player"] or find_friendly_player(game_tree)
-	if not friendly_player_id:
-		raise ValidationError("Friendly player ID not present at upload and could not guess it.")
-
-	# Check if we have enough metadata to deduplicate the game
-	unifying = False
-	if eligible_for_unification(meta):
-		global_game, upload = find_duplicate_games(meta, start_time)
-		if upload:
-			return upload  # ?
-		elif global_game:
-			unifying = True
-
-	if not unifying:
-		num_entities = max(e.id for e in packet_tree.games[0].entities)
-		num_turns = packet_tree.games[0].tags.get(GameTag.TURN)
-
-		global_game = GlobalGame.objects.create(
-			game_server_game_id = meta["game_id"],
-			game_server_address = meta["server_ip"],
-			game_server_port = meta["server_port"],
-			game_type = meta["game_type"],
-			hearthstone_build = build,
-			match_start_timestamp = start_time,
-			match_end_timestamp = end_time,
-			ladder_season = meta["stats"]["ranked_season_stats"]["season"],
-			scenario_id = meta["scenario_id"],
-			num_entities = num_entities,
-			num_turns = num_turns,
-		)
-
-	user = upload_event.token.user
-
-	replay = GameReplayUpload(
-		friendly_player_id = friendly_player_id,
-		game_server_client_id = meta["client_id"],
-		game_server_spectate_key = meta["spectate_key"],
-		global_game = global_game,
-		hsreplay_version = hsreplay_version,
-		is_spectated_game = meta["spectator_mode"],
-		# raw_log = raw_log,
-		user = user,
+	match_start_timestamp = models.DateTimeField("Match Start Timestamp",
+		help_text="Must be a timezone aware datetime."
 	)
 
-	for player in root.iter("Player"):
-		player_id = player.get("playerID")
-		if player_id not in ("1", "2"):
-			raise ValidationError("Unexpected player ID: %r" % (player_id))
-		player_id = int(player_id)
-		idx = player_id - 1
+	match_end_timestamp = models.DateTimeField("Match End Timestamp",
+		help_text="Must be a timezone aware datetime."
+	)
 
-		account_lo, account_hi = player.get("accountLo"), player.get("accountHi")
-		if not account_lo.isdigit():
-			raise ValidationError("Unexpected accountLo: %r" % (account_lo))
-		if not account_hi.isdigit():
-			raise ValidationError("Unexpected accountHi: %r" % (account_hi))
-		account_lo, account_hi = int(account_lo), int(account_hi)
+	# The BnetGameType enum encodes whether it's ranked or casual as well as standard or wild.
+	game_type = IntEnumField("Game Type",
+		enum=BnetGameType,
+		null=True, blank=True,
+	)
 
-		player_obj = game_tree.players[idx]
-		hero = list(player_obj.heroes)[0]
-		decklist = meta["player%i_deck" % (player_id)]
-		if not decklist:
-			decklist = [c.card_id for c in player_obj.initial_deck if c.card_id]
-		deck, _ = Deck.objects.get_or_create_from_id_list(decklist)
-		final_state = player_obj.tags.get(GameTag.PLAYSTATE, 0)
+	# ladder_season is nullable since not all games are ladder games
+	ladder_season = models.IntegerField("Ladder season",
+		null=True, blank=True,
+		help_text="The season as calculated from the match start timestamp."
+	)
 
-		game_player = GlobalGamePlayer(
-			game = global_game,
-			player_id = player_id,
-			name = player_obj.name,
-			account_hi = account_hi,
-			account_lo = account_lo,
-			is_ai = account_lo == 0,
-			hero_id = hero.card_id,
-			hero_premium = hero.tags.get(GameTag.PREMIUM, False),
-			rank = player_meta[idx].get("rank"),
-			legend_rank = player_meta[idx].get("legendRank", 0),
-			is_first = player_obj.tags.get(GameTag.FIRST_PLAYER, False),
-			final_state = final_state,
-			deck_list = deck,
-			duplicated = unifying,
+	# Nullable, since not all replays are TBs.
+	# Will currently have no way to calculate this so it will always be null for now.
+	brawl_season = models.IntegerField("Tavern Brawl Season",
+		default=0,
+		help_text="The brawl season which increments every week the brawl changes."
+	)
+
+	# Nullable, We currently have no way to discover this.
+	scenario_id = models.IntegerField("Scenario ID",
+		null=True, blank=True,
+		help_text="ID from DBF/SCENARIO.xml or Scenario cache",
+	)
+
+	# The following basic stats are globally visible to all
+	num_turns = models.IntegerField()
+	num_entities = models.IntegerField()
+
+	class Meta:
+		ordering = ("-match_start_timestamp", )
+
+	def __str__(self):
+		return " vs ".join(str(p) for p in self.players.all())
+
+	@property
+	def duration(self):
+		return self.match_end_timestamp - self.match_start_timestamp
+
+	@property
+	def is_tavern_brawl(self):
+		return self.game_type in (
+			BnetGameType.BGT_TAVERNBRAWL_PVP,
+			BnetGameType.BGT_TAVERNBRAWL_1P_VERSUS_AI,
+			BnetGameType.BGT_TAVERNBRAWL_2P_COOP,
 		)
-		game_player.save()
 
-		# XXX move the following to replay save()
-		if player_id == friendly_player_id:
-			# Record whether the uploader won/lost that game
-			if final_state in (PlayState.PLAYING, PlayState.INVALID):
-				# This means we disconnected during the game
-				replay.disconnected = True
-			elif final_state in (PlayState.WINNING, PlayState.WON):
-				replay.won = True
+	@property
+	def num_own_turns(self):
+		return ceil(self.num_turns / 2)
+
+
+class GlobalGamePlayer(models.Model):
+	game = models.ForeignKey(GlobalGame, related_name="players")
+
+	name = models.CharField("Player name",
+		blank=True, max_length=64,
+	)
+	user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
+
+	player_id = PlayerIDField(null=True, blank=True)
+	account_hi = models.BigIntegerField("Account Hi",
+		blank=True, null=True,
+		help_text="The region value from account hilo"
+	)
+	account_lo = models.BigIntegerField("Account Lo",
+		blank=True, null=True,
+		help_text="The account ID value from account hilo"
+	)
+	is_ai = models.BooleanField("Is AI",
+		default=False,
+		help_text="Whether the player is an AI.",
+	)
+	is_first = models.BooleanField("Is first player",
+		help_text="Whether the player is the first player",
+	)
+
+	rank = models.SmallIntegerField("Rank",
+		null=True, blank=True,
+		help_text="1 through 25, or 0 for legend.",
+	)
+	legend_rank = models.PositiveIntegerField("Legend rank",
+		null=True, blank=True,
+	)
+
+	hero = models.ForeignKey(Card)
+	hero_premium = models.BooleanField("Hero Premium",
+		default=False,
+		help_text="Whether the player's initial hero is golden."
+	)
+
+	final_state = IntEnumField("Final State",
+		enum=PlayState, default=PlayState.INVALID,
+	)
+
+	deck_list = models.ForeignKey(Deck,
+		help_text="As much as is known of the player's starting deck list."
+	)
+
+	duplicated = models.BooleanField("Duplicated",
+		default=False,
+		help_text="Set to true if the player was created from a deduplicated upload."
+	)
+
+	def __str__(self):
+		return self.name
+
+	@property
+	def won(self):
+		return self.final_state in (PlayState.WINNING, PlayState.WON)
+
+
+class GameReplayManager(models.Manager):
+	def get_or_create_from_game_upload_event(self, game_upload_event):
+		# meta_data = json.loads(game_upload_event.meta_data)
+		# TODO: Use the metadata to generate the GameReplay record.
+		# ...
+
+		# NOTE: This method should update the status Enum on this object based on what happens inside this method.
+		game_upload_event.status = UploadEventStatus.SUCCESS
+		game_upload_event.save()
+
+		# Callers of this method expect a tuple of the GameReplay and a Boolean to indicate whether it was created
+		return (None, False)
+
+
+class GameReplay(models.Model):
+	"""
+	Represents a replay as captured from the point of view of a single
+	packet stream sent to a Hearthstone client.
+
+	Replays can be uploaded by either of the players or by any number
+	of spectators who watched the match. It is possible
+	that the same game could be uploaded from multiple points of view.
+	When this happens each GameReplay will point
+	to the same GlobalGame record via the global_game foreign key.
+
+	It is possible that different uploads of the same game will have
+	different information in them.
+	For example:
+	- If Player A and Player B are Real ID Friends and Player C is
+	Battle.net friends with just Player B, then when Player C spectates
+	a match between Players A and B, his uploaded replay will show the
+	BattleTag as the name of Player A. However if Player B uploads a
+	replay of the same match, his replay will show the real name for
+	Player A.
+
+	- Likewise, if Player C either starts spectating the game after it has
+	already begun or stops spectating before it ends, then his uploaded
+	replay will have fewer turns of gameplay then Player B's replay.
+	"""
+	class Meta:
+		ordering = ("global_game", )
+		unique_together = ("upload_token", "global_game")
+
+	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+	objects = GameReplayManager()
+	upload_token = models.ForeignKey("api.AuthToken", null=True, blank=True, related_name="replays")
+	user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
+	global_game = models.ForeignKey(GlobalGame,
+		related_name="replays",
+		help_text="References the single global game that this replay shows."
+	)
+
+	# This is useful to know because replays that are spectating both players
+	# will have more data then those from a single player.
+	# For example, they will have access to the cards that are in each players hand.
+	# This is detectable from the raw logs, although we currently intend to have
+	# the client uploading the replay provide it.
+	is_spectated_game = models.BooleanField(default=False)
+
+	# The "friendly player" is the player whose cards are at the bottom of the
+	# screen when watching a game. For spectators this is determined by which
+	# player they started spectating first (if they spectate both).
+	friendly_player_id = PlayerIDField("Friendly Player ID",
+		null=True,
+		help_text="PlayerID of the friendly player (1 or 2)",
+	)
+
+	# This information is all optional and is from the Net.log ConnectAPI
+	game_server_spectate_key = models.CharField(max_length=50, null=True, blank=True)
+	game_server_client_id = models.IntegerField(null=True, blank=True)
+
+	replay_xml = models.FileField(upload_to=_generate_replay_upload_key)
+	hsreplay_version = models.CharField("HSReplay version",
+		max_length=20,
+		help_text="The HSReplay spec version of the HSReplay XML file",
+	)
+
+	# The fields below capture the preferences of the user who uploaded it.
+	is_deleted = models.BooleanField("Soft deleted",
+		default=False,
+		help_text="Indicates user request to delete the upload"
+	)
+	exclude_in_aggregate_stats = models.BooleanField(default=False)
+
+	won = models.NullBooleanField()
+	disconnected = models.BooleanField(default=False)
+
+	def __str__(self):
+		players = self.global_game.players.values_list("player_id", "final_state", "name")
+		if len(players) != 2:
+			return "Broken game (%i players)" % (len(players))
+		if players[0][0] == self.friendly_player_id:
+			friendly, opponent = players
+		else:
+			opponent, friendly = players
+		if self.disconnected:
+			state = "Disconnected"
+		elif self.won:
+			state = "Won"
+		elif friendly[1] == opponent[1]:
+			state = "Tied"
+		else:
+			state = "Lost"
+		return "%s (%s) vs %s" % (friendly[2], state, opponent[2])
+
+	def get_absolute_url(self):
+		return reverse("games_replay_view", kwargs={"id": self.id})
+
+	def delete(self, using=None):
+		# We must cleanup the S3 object ourselves (It is not handled by django-storages)
+		if default_storage.exists(self.replay_xml.name):
+			self.replay_xml.delete()
+
+		return super(GameReplay, self).delete(using)
+
+	@property
+	def css_classes(self):
+		ret = []
+		if self.won is not None:
+			if self.won:
+				ret.append("hsreplay-positive")
 			else:
-				# Anything else is a concede/loss/tie
-				replay.won = False
+				ret.append("hsreplay-negative")
+		if self.disconnected:
+			ret.append("hsreplay-invalid")
+		return " ".join(ret)
 
-	xml_str = toxml(root, pretty=False)
-	replay.replay_xml.save("hsreplay.xml", ContentFile(xml_str), save=False)
-	replay.save()
 
-	if user is None:
-		# If the auth token has not yet been claimed, create
-		# a pending claim for the replay for when it will be.
-		claim = PendingReplayOwnership(replay=replay, token=upload_event.token)
-		claim.save()
+class PendingReplayOwnership(models.Model):
+	"""
+	A model associating an AuthKey with a GameReplay, until
+	the AuthKey gains a real user.
+	"""
+	replay = models.OneToOneField(GameReplay)
+	token = models.ForeignKey("api.AuthToken", related_name="replay_claims")
 
-	upload_event.status = GameUploadStatus.SUCCESS
-	upload_event.save()
-
-	return replay
+	class Meta:
+		unique_together = ("replay", "token")

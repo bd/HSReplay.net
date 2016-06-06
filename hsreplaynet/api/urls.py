@@ -4,9 +4,9 @@ from . import views
 
 
 router = DefaultRouter()
-router.register(r"agents", views.UploadAgentViewSet)
+router.register(r"agents", views.APIKeyViewSet)
 router.register(r"tokens", views.AuthTokenViewSet)
-router.register(r"uploads", views.GameUploadViewSet)
+router.register(r"uploads", views.UploadEventViewSet)
 
 urlpatterns = [
 	url(r"^v1/", include(router.urls)),

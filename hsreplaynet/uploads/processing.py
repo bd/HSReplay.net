@@ -1,4 +1,5 @@
-"""A module for scheduling UploadEvents to be processed or reprocessed.
+"""
+A module for scheduling UploadEvents to be processed or reprocessed.
 
 For additional details see:
 http://boto3.readthedocs.io/en/latest/reference/services/sns.html#SNS.Client.publish
@@ -9,10 +10,11 @@ import boto3
 from django.conf import settings
 from django.utils.timezone import now
 from hsreplaynet.instrumentation import error_handler, influx_metric
-from hsreplaynet.uploads.models import UploadEventProcessingRequest
 
 
+logger = logging.getLogger(__file__)
 _sns_client = None
+
 
 def sns_client():
 	global _sns_client
@@ -20,17 +22,15 @@ def sns_client():
 		_sns_client = boto3.client("sns")
 	return _sns_client
 
-logger = logging.getLogger(__file__)
-
 
 def queue_upload_event_for_processing(upload_event_id):
-	"""This method is used when UploadEvents are initially created.
+	"""
+	This method is used when UploadEvents are initially created.
 	However it can also be used to requeue an UploadEvent to be
 	processed again if an error was detected downstream that has now been fixed.
 	"""
-
 	if settings.IS_RUNNING_LIVE or settings.IS_RUNNING_AS_LAMBDA:
-		logger.info("We are on Lambda or in production so GameUpload %s will be submitted to SNS." % upload_event_id)
+		logger.info("UploadEvent %s will be submitted to SNS." % (upload_event_id))
 
 		topic_arn = settings.SNS_PROCESS_UPLOAD_EVENT_TOPIC
 		message = {"upload_event_id": upload_event_id}
@@ -51,22 +51,13 @@ def queue_upload_event_for_processing(upload_event_id):
 		else:
 			message_id = response["MessageId"]
 			logger.info("The submitted message ID is: %s" % message_id)
-			try:
-				UploadEventProcessingRequest.objects.create(
-					upload_event_id = upload_event_id,
-					sns_topic_arn = topic_arn,
-					sns_message_id = message_id
-				)
-			except Exception as e:
-				error_handler(e)
-				success = False
-
 			return message_id
 
 		finally:
-			influx_metric("queue_upload_event_for_processing",
-				fields = {"value":1},
-				timestamp = now(),
+			influx_metric(
+				"queue_upload_event_for_processing",
+				fields={"value": 1},
+				timestamp=now(),
 				tags={
 					"success": success,
 					"is_running_as_lambda": settings.IS_RUNNING_AS_LAMBDA,

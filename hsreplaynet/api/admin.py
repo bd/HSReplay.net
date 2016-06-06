@@ -1,6 +1,6 @@
 from django.contrib import admin
 from hsreplaynet.utils.admin import set_user
-from .models import *
+from .models import APIKey, AuthToken
 
 
 @admin.register(AuthToken)
@@ -12,13 +12,13 @@ class AuthTokenAdmin(admin.ModelAdmin):
 
 
 class AuthTokenInline(admin.TabularInline):
-	model = UploadAgentAPIKey.tokens.through
+	model = APIKey.tokens.through
 	raw_id_fields = ("authtoken", )
 	extra = 3
 
 
-@admin.register(UploadAgentAPIKey)
-class UploadAgentAPIKeyAdmin(admin.ModelAdmin):
+@admin.register(APIKey)
+class APIKeyAdmin(admin.ModelAdmin):
 	list_display = ("__str__", "email", "website", "api_key", "enabled")
 	search_fields = ("full_name", "email", "website")
 	list_filter = ("enabled", )

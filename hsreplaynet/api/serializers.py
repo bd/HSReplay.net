@@ -1,11 +1,11 @@
 import json
 from django.core.serializers.json import DjangoJSONEncoder
-from rest_framework.exceptions import ValidationError
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 from hsreplaynet.stats import models as stats_models
-from hsreplaynet.uploads.models import GameUpload
+from hsreplaynet.uploads.models import UploadEvent
 from hsreplaynet.utils import get_client_ip
-from .models import AuthToken, UploadAgentAPIKey
+from .models import AuthToken, APIKey
 
 
 class DeckListField(serializers.ListField):
@@ -33,19 +33,19 @@ class AuthTokenSerializer(serializers.HyperlinkedModelSerializer):
 
 	def create(self, data):
 		try:
-			api_key = UploadAgentAPIKey.objects.get(api_key=data.pop("api_key"))
-		except (UploadAgentAPIKey.DoesNotExist, ValueError) as e:
+			api_key = APIKey.objects.get(api_key=data.pop("api_key"))
+		except (APIKey.DoesNotExist, ValueError) as e:
 			raise ValidationError(str(e))
 		ret = super(AuthTokenSerializer, self).create(data)
 		api_key.tokens.add(ret)
 		return ret
 
 
-class UploadAgentSerializer(serializers.HyperlinkedModelSerializer):
+class APIKeySerializer(serializers.HyperlinkedModelSerializer):
 	api_key = serializers.CharField(read_only=True)
 
 	class Meta:
-		model = UploadAgentAPIKey
+		model = APIKey
 		fields = ("full_name", "email", "website", "api_key")
 
 
@@ -94,7 +94,7 @@ class GameSerializer(serializers.Serializer):
 	url = serializers.ReadOnlyField(source="get_absolute_url")
 
 
-class GameUploadSerializer(serializers.Serializer):
+class UploadEventSerializer(serializers.Serializer):
 	id = serializers.UUIDField(read_only=True)
 	type = serializers.IntegerField()
 	status = serializers.IntegerField(read_only=True)
@@ -130,7 +130,7 @@ class GameUploadSerializer(serializers.Serializer):
 	def create(self, data):
 		request = self.context["request"]
 
-		ret = GameUpload(
+		ret = UploadEvent(
 			file=data.pop("file"),
 			token_id = request.session["auth_token"],
 			type = data.pop("type"),

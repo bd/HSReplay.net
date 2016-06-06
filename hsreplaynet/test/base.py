@@ -8,7 +8,7 @@ from django.core.management import call_command
 from django.test import TestCase
 from selenium import webdriver
 from hearthstone.enums import *
-from hsreplaynet.api.models import AuthToken, UploadAgentAPIKey
+from hsreplaynet.api.models import AuthToken, APIKey
 from mock import MagicMock
 
 
@@ -134,8 +134,8 @@ class CardDataBaseTest(TestCase):
 
 
 def create_agent_and_token():
-	agent = UploadAgentAPIKey.objects.create(
-		full_name="Test Upload Agent",
+	agent = APIKey.objects.create(
+		full_name="Test API Key",
 		email="test@testagent.example.org",
 		website="http://testagent.example.org"
 	)

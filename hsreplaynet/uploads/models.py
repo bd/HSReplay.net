@@ -7,7 +7,7 @@ from django.core.files.storage import default_storage
 from hsreplaynet.fields import IntEnumField
 
 
-class GameUploadType(IntEnum):
+class UploadEventType(IntEnum):
 	POWER_LOG = 1
 	OUTPUT_TXT = 2
 	HSREPLAY_XML = 3
@@ -23,7 +23,7 @@ class GameUploadType(IntEnum):
 		return ".txt"
 
 
-class GameUploadStatus(IntEnum):
+class UploadEventStatus(IntEnum):
 	UNKNOWN = 0
 	PROCESSING = 1
 	SERVER_ERROR = 2
@@ -33,18 +33,18 @@ class GameUploadStatus(IntEnum):
 
 def _generate_key(instance, filename):
 	timestamp = now().strftime("%Y/%m/%d")
-	extension = GameUploadType(instance.type).extension
+	extension = UploadEventType(instance.type).extension
 	return "uploads/%s/%s%s" % (timestamp, str(instance.id), extension)
 
 
-class GameUploadManager(models.Manager):
+class UploadEventManager(models.Manager):
 	def get_by_bucket_and_key(self, bucket, key):
-		if key.endswith(GameUploadType.POWER_LOG.extension):
+		if key.endswith(UploadEventType.POWER_LOG.extension):
 			db_id = key[19:-10]
 			return self.objects.get(id=db_id)
 
 
-class GameUpload(models.Model):
+class UploadEvent(models.Model):
 	"""
 	Represents a game upload, before the creation of the game itself.
 
@@ -52,37 +52,25 @@ class GameUpload(models.Model):
 	The raw logs have not yet been parsed for validity.
 	"""
 	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-	token = models.ForeignKey("api.AuthToken", null=True, blank=True)
-	type = IntEnumField(enum=GameUploadType)
-	game = models.ForeignKey("web.GameReplayUpload", null=True, blank=True)
+	token = models.ForeignKey("api.AuthToken", null=True, blank=True, related_name="uploads")
+	type = IntEnumField(enum=UploadEventType)
+	game = models.ForeignKey("games.GameReplay", null=True, blank=True, related_name="uploads")
 	created = models.DateTimeField(auto_now_add=True)
 	upload_ip = models.GenericIPAddressField()
-	status = IntEnumField(enum=GameUploadStatus, default=GameUploadStatus.UNKNOWN)
+	status = IntEnumField(enum=UploadEventStatus, default=UploadEventStatus.UNKNOWN)
 	tainted = models.BooleanField(default=False)
 
 	metadata = models.TextField()
 	file = models.FileField(upload_to=_generate_key)
 
-	objects = GameUploadManager()
+	objects = UploadEventManager()
 
 	def delete(self, using=None):
 		# We must cleanup the S3 object ourselves (It is not handled by django-storages)
 		if default_storage.exists(self.file.name):
 			self.file.delete()
 
-		return super(GameUpload, self).delete(using)
+		return super(UploadEvent, self).delete(using)
 
 	def get_absolute_url(self):
 		return reverse("upload_detail", kwargs={"id": str(self.id)})
-
-
-class UploadEventProcessingRequest(models.Model):
-	"""
-	Represents a message published to an SNS Topic to schedule
-	an UploadEvent for Processing.
-	"""
-	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-	created = models.DateTimeField(auto_now_add=True)
-	upload_event = models.ForeignKey(GameUpload)
-	sns_topic_arn = models.CharField(max_length=100)
-	sns_message_id = models.CharField(max_length=100)

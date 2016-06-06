@@ -20,7 +20,7 @@ class AuthToken(models.Model):
 		return self.key
 
 
-class UploadAgentAPIKey(models.Model):
+class APIKey(models.Model):
 	full_name = models.CharField(max_length=254)
 	email = models.EmailField()
 	website = models.URLField(blank=True)
@@ -35,4 +35,4 @@ class UploadAgentAPIKey(models.Model):
 	def save(self, *args, **kwargs):
 		if not self.api_key:
 			self.api_key = uuid.uuid4()
-		return super(UploadAgentAPIKey, self).save(*args, **kwargs)
+		return super(APIKey, self).save(*args, **kwargs)

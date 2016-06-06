@@ -1,12 +1,12 @@
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.views.generic import View
-from .models import GameUpload
+from .models import UploadEvent
 
 
 class UploadDetailView(View):
 	def get(self, request, id):
-		upload = get_object_or_404(GameUpload, id=id)
+		upload = get_object_or_404(UploadEvent, id=id)
 		if upload.game:
 			return HttpResponseRedirect(upload.game.get_absolute_url())
 
