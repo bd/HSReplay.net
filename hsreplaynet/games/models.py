@@ -11,7 +11,7 @@ from hsreplaynet.uploads.models import UploadEventStatus
 
 
 def _generate_replay_upload_key(instance, filename):
-	timestamp = instance.global_game.match_start_timestamp("%Y/%m/%d")
+	timestamp = instance.global_game.match_start_timestamp.strftime("%Y/%m/%d")
 	return "%s/replays/%s.xml" % (timestamp, str(instance.id))
 
 
