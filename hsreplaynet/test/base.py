@@ -14,7 +14,7 @@ from mock import MagicMock
 
 APP_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_DATA_GIT = "https://github.com/HearthSim/hsreplay-test-data.git"
-TEST_DATA_REPO = os.path.join(APP_DIR, "hsreplay-test-data")
+TEST_DATA_REPO = os.path.join(APP_DIR, "..", "..", "data", "hsreplay-test-data")
 TEST_DATA_LOCATION = os.path.join(TEST_DATA_REPO, "hsreplaynet-tests")
 SCREEN_DUMP_LOCATION = os.path.join(TEST_DATA_LOCATION, "screendumps")
 JSON_DATA_LOCATION = os.path.join(TEST_DATA_LOCATION, "json")
