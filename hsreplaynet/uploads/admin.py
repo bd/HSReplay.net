@@ -8,7 +8,8 @@ class UploadEventAdmin(admin.ModelAdmin):
 	date_hierarchy = "created"
 	list_display = (
 		"__str__", "status", "tainted", "type", urlify("token"),
-		urlify("game"), "upload_ip", "file"
+		urlify("game"), "upload_ip", "created", "file",
 	)
 	list_filter = ("type", "status", "tainted")
 	raw_id_fields = ("token", "game")
+	readonly_fields = ("created", )
