@@ -7,7 +7,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.utils.timezone import now
-from hsreplaynet.instrumentation import error_handler, influx_metric, influx_timer
+from hsreplaynet.instrumentation import error_handler, influx_metric, influx_timer, influx_function_incovation_gauge
 from hsreplaynet.api.models import AuthToken
 from hsreplaynet.uploads.models import GameUpload, GameUploadType, GameUploadStatus
 from hsreplaynet.web.models import GameReplayUpload, SingleGameRawLogUpload
@@ -26,6 +26,7 @@ logger.setLevel(logging.INFO)
 
 
 @sentry_aware_handler
+@influx_function_incovation_gauge
 def create_power_log_upload_event_handler(event, context):
 	"""
 	A handler for creating UploadEvents via Lambda.
@@ -99,6 +100,37 @@ def create_power_log_upload_event_handler(event, context):
 				"result_type" : "SERVER_ERROR"
 			}
 
+
+@sentry_aware_handler
+@influx_function_incovation_gauge
+def process_upload_event_handler(event, context):
+	"""
+	This handler is triggered by SNS whenever someone
+	publishes a message to the SNS_PROCESS_UPLOAD_EVENT_TOPIC.
+	"""
+
+	handler_start = now()
+	with influx_timer("process_upload_event_handler_duration_ms",
+					  timestamp=handler_start,
+					  is_running_as_lambda=settings.IS_RUNNING_AS_LAMBDA):
+
+		logger.info("Received event: " + json.dumps(event, indent=2))
+		message = json.loads(event['Records'][0]['Sns']['Message'])
+		logger.info("From SNS: " + str(message))
+		upload_event_id = message["upload_event_id"]
+		logger.info("Upload Event ID: %s" % upload_event_id)
+
+		try:
+			game_upload = GameUpload.objects.get(id=upload_event_id)
+		except GameUpload.DoesNotExist as e:
+			error_handler(e)
+		else:
+			# TODO: Invoke downstream processing here.
+			logger.info("GameUpload's initial status is: %s" % str(game_upload.status))
+			process_upload_event(game_upload)
+			logger.info("GameUpload's status after processing is: %s" % str(game_upload.status))
+
+
 @sentry_aware_handler
 def raw_log_upload_handler(event, context):
 	# If an exception is thrown we must translate it into a string that the API Gateway
@@ -130,84 +162,6 @@ def raw_log_upload_handler(event, context):
 			}
 
 		return result
-
-@sentry_aware_handler
-def process_upload_event_handler(event, context):
-	"""
-	This handler is triggered by SNS whenever someone
-	publishes a message to the SNS_PROCESS_UPLOAD_EVENT_TOPIC.
-	"""
-
-	handler_start = now()
-	with influx_timer("process_upload_event_handler_duration_ms",
-					  timestamp=handler_start,
-					  is_running_as_lambda=settings.IS_RUNNING_AS_LAMBDA):
-
-		logger.info("Received event: " + json.dumps(event, indent=2))
-		message = json.loads(event['Records'][0]['Sns']['Message'])
-		logger.info("From SNS: " + str(message))
-		upload_event_id = message["upload_event_id"]
-		logger.info("Upload Event ID: %s" % upload_event_id)
-
-		try:
-			game_upload = GameUpload.objects.get(id=upload_event_id)
-		except GameUpload.DoesNotExist as e:
-			error_handler(e)
-		else:
-			# TODO: Invoke downstream processing here.
-			logger.info("GameUpload's initial status is: %s" % str(game_upload.status))
-			process_upload_event(game_upload)
-			logger.info("GameUpload's status after processing is: %s" % str(game_upload.status))
-
-
-@sentry_aware_handler
-def create_upload_event_handler(event, context):
-	"""
-	A handler for creating UploadEvents via Lambda.
-	"""
-	_reset_time_elapsed()
-	time_logger.info("TIMING: %s - create_upload_event_handler start." % _time_elapsed())
-	logger.info("*** Event Data (excluding the body content) ***")
-
-	meta_data = {}
-	for k, v in event.items():
-		if k != "body":
-			logger.info("%s: %s" % (k, v))
-			meta_data[k] = v
-
-	# TODO: Port validators from RawLogUpload and run them in case we need to return a validation error.
-	try:
-		b64encoded_log = event["body"]
-		body_data = b64decode(b64encoded_log)
-		time_logger.info("TIMING: %s - After Base64 decoding." % _time_elapsed())
-
-		api_key = event["x-hsreplay-api-key"]
-		logger.info("Upload submitted with API Key: %s" % api_key)
-		token = event["x-hsreplay-upload-token"]
-		logger.info("Upload submitted with Upload Token: %s" % token)
-
-		upload_event_type = GameUploadType.POWER_LOG
-		#TODO: We need to extract the clients intended upload type from the event metadata.
-
-		upload_event = GameUpload.objects.create(
-			token = AuthToken.objects.filter(key=token).first(),
-			type = upload_event_type,
-			upload_up = event.get("source_ip"),
-			status = GameUploadStatus.PROCESSING,
-			meta_data = json.dumps(meta_data),
-			file = ContentFile(body_data, name=upload_event_type.name)
-		)
-
-		# Publish a message to SNS to queue the upload_event for downstream processing.
-		queue_upload_event_for_processing(upload_event)
-
-	except Exception as e:
-		error_handler(e)
-		time_logger.info("TIMING: %s - create_upload_event_handler Finished. Returning FAILURE." % _time_elapsed())
-		return {"result": "FAILURE", "upload_event_id": ""}
-	else:
-		time_logger.info("TIMING: %s - create_upload_event_handler Finished. Returning SUCCESS." % _time_elapsed())
-		return {"result": "SUCCESS", "upload_event_id": str(upload_event.id)}
 
 
 @sentry_aware_handler

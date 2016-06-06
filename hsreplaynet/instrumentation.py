@@ -53,6 +53,37 @@ def sentry_aware_handler(func):
 	return wrapper
 
 
+def influx_function_incovation_gauge(func):
+	@wraps(func)
+	def wrapper(*args, **kwargs):
+		timestamp = now()
+		measurement = func.__name__
+		with influx_gauge(measurement, timestamp=timestamp):
+			return func(*args, **kwargs)
+
+	return wrapper
+
+
+
+@contextmanager
+def influx_gauge(measure, timestamp=None, **kwargs):
+	"""
+	Gauges measure the count of inflight uploads. Additional kwargs are passed to InfluxDB as tags.
+	"""
+	exception_raised_in_with_block = False
+	if settings.IS_RUNNING_LIVE or settings.IS_RUNNING_AS_LAMBDA:
+		influx_metric(measure, fields={"count": 1}, timestamp=timestamp, **kwargs)
+	try:
+		yield
+	except Exception as e:
+		exception_raised_in_with_block = True
+		raise
+	finally:
+		kwargs["exception_thrown"] = exception_raised_in_with_block
+		if settings.IS_RUNNING_LIVE or settings.IS_RUNNING_AS_LAMBDA:
+			influx_metric(measure, fields={"count": -1}, timestamp=timestamp, **kwargs)
+
+
 influx = InfluxDBClient(
 	settings.INFLUX_DB_ADDRESS,
 	8086,
@@ -60,6 +91,7 @@ influx = InfluxDBClient(
 	password=settings.INFLUX_DB_PASSWORD,
 	database=settings.INFLUX_DB_NAME
 )
+
 
 def influx_metric(measure, fields, timestamp=None, tags={}):
 	if timestamp is None:
@@ -109,3 +141,5 @@ def influx_timer(measure, timestamp=None, **kwargs):
 			payload["time"] = timestamp.isoformat()
 			logger.info("About To Send Metric To InfluxDB: %s" % (str(payload)))
 			influx.write_points([payload])
+
+
