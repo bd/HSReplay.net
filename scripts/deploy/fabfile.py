@@ -42,7 +42,7 @@ def _update_virtualenv(venv, requirements):
 
 def _update_static_files(venv, path):
 	if not exists(path + "/hsreplaynet/web/static/bootstrap"):
-		sudo(path + "/get_bootstrap.sh", user="www-data")
+		sudo(path + "/scripts/get_bootstrap.sh", user="www-data")
 	sudo("%s/bin/python %s/manage.py collectstatic --noinput" % (venv, path), user="www-data")
 
 

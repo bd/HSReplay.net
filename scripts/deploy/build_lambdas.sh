@@ -1,6 +1,6 @@
 echo "Creating AWS Lambda Deployment Zip"
 
-BASEDIR=$(readlink -f "$(dirname $0)/..")
+BASEDIR=$(readlink -f "$(dirname $0)/../..")
 ZIPFILE="$BASEDIR/deploy/hsreplay.zip"
 SITE_PACKAGES=$(python -c "import sys; print(sys.path[-1])")
 
