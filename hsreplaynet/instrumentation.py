@@ -93,13 +93,13 @@ influx = InfluxDBClient(
 )
 
 
-def influx_metric(measure, fields, timestamp=None, tags={}):
+def influx_metric(measure, fields, timestamp=None, **kwargs):
 	if timestamp is None:
 		timestamp = now()
 	if settings.IS_RUNNING_LIVE or settings.IS_RUNNING_AS_LAMBDA:
 		payload = {
 			"measurement": measure,
-			"tags": tags,
+			"tags": kwargs,
 			"fields": fields,
 		}
 
