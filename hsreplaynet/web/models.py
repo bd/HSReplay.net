@@ -703,6 +703,13 @@ class GameReplayUpload(models.Model):
 	def get_absolute_url(self):
 		return reverse("games_replay_view", kwargs={"id": self.id})
 
+	def delete(self, using=None):
+		# We must cleanup the S3 object ourselves (It is not handled by django-storages)
+		if default_storage.exists(self.replay_xml.name):
+			self.replay_xml.delete()
+
+		return super(GameReplayUpload, self).delete(using)
+
 	@property
 	def css_classes(self):
 		ret = []

@@ -3,6 +3,7 @@ from enum import IntEnum
 from django.core.urlresolvers import reverse
 from django.utils.timezone import now
 from django.db import models
+from django.core.files.storage import default_storage
 from hsreplaynet.fields import IntEnumField
 
 
@@ -63,6 +64,13 @@ class GameUpload(models.Model):
 	file = models.FileField(upload_to=_generate_key)
 
 	objects = GameUploadManager()
+
+	def delete(self, using=None):
+		# We must cleanup the S3 object ourselves (It is not handled by django-storages)
+		if default_storage.exists(self.file.name):
+			self.file.delete()
+
+		return super(GameUpload, self).delete(using)
 
 	def get_absolute_url(self):
 		return reverse("upload_detail", kwargs={"id": str(self.id)})
