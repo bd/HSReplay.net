@@ -62,22 +62,38 @@ def create_power_log_upload_event_handler(event, context):
 			response.render()
 			logger.info("Response (code=%r): %s" % (response.status_code, response.content))
 
-			if str(response.status_code).startswith("4"):
-				raise Exception(json.dumps({
-					"result_type": "VALIDATION_ERROR",
-					"body": response.content
-				}))
+		except Exception as e:
+			logger.exception(e)
+			instrumentation.error_handler(e)
+			raise Exception(json.dumps({
+				"result_type": "SERVER_ERROR",
+			}))
 
-			elif response.status_code == 201:
+		else:
+
+			if response.status_code == 201:
 
 				# Extract the upload_event from the response, and queue it for downstream processing.
-				upload_event_id = response.data["id"]
-				queue_upload_event_for_processing(upload_event_id)
+				try:
+					upload_event_id = response.data["id"]
+					queue_upload_event_for_processing(upload_event_id)
+				except Exception as e:
+					logger.exception(e)
+					instrumentation.error_handler(e)
+					raise Exception(json.dumps({
+						"result_type": "SERVER_ERROR",
+					}))
 
 				return {
 					"result_type": "SUCCESS",
 					"body": response.content,
 				}
+
+			elif str(response.status_code).startswith("4"):
+				raise Exception(json.dumps({
+					"result_type": "VALIDATION_ERROR",
+					"body": response.content
+				}))
 
 			else:
 				# We should never reach this block
@@ -87,12 +103,6 @@ def create_power_log_upload_event_handler(event, context):
 					"response_content": response.content,
 				}))
 
-		except Exception as e:
-			logger.exception(e)
-			instrumentation.error_handler(e)
-			raise Exception(json.dumps({
-				"result_type": "SERVER_ERROR",
-			}))
 
 
 @instrumentation.sentry_aware_handler
