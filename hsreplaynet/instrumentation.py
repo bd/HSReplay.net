@@ -50,6 +50,8 @@ def sentry_aware_handler(func):
 				sentry.captureException()
 			else:
 				logger.info("Sentry is not available.")
+			raise
+
 	return wrapper
 
 
