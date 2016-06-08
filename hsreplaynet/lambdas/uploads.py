@@ -63,10 +63,10 @@ def create_power_log_upload_event_handler(event, context):
 			logger.info("Response (code=%r): %s" % (response.status_code, response.content))
 
 			if str(response.status_code).startswith("4"):
-				return {
+				raise Exception(json.dumps({
 					"result_type": "VALIDATION_ERROR",
 					"body": response.content
-				}
+				}))
 
 			elif response.status_code == 201:
 
@@ -81,18 +81,18 @@ def create_power_log_upload_event_handler(event, context):
 
 			else:
 				# We should never reach this block
-				return {
+				raise Exception(json.dumps({
 					"result_type": "SERVER_ERROR",
 					"response_code": response.status_code,
 					"response_content": response.content,
-				}
+				}))
 
 		except Exception as e:
 			logger.exception(e)
 			instrumentation.error_handler(e)
-			return {
+			raise Exception(json.dumps({
 				"result_type": "SERVER_ERROR",
-			}
+			}))
 
 
 @instrumentation.sentry_aware_handler
