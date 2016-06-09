@@ -83,7 +83,7 @@ def process_upload_event(upload_event):
 
 	game_tree = packet_tree.games[0]
 
-	build = meta["stats"]["meta"]["hearthstone_build"]
+	build = meta["hearthstone_build"] or meta["stats"]["meta"]["hearthstone_build"]
 	root = create_document(version=hsreplay_version, build=build)
 	player_meta = [_get_player_meta(meta, i) for i in (1, 2)]
 	game_meta = {

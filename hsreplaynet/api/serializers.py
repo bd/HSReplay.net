@@ -102,8 +102,9 @@ class UploadEventSerializer(serializers.Serializer):
 	game = GameSerializer(read_only=True)
 	stats = SnapshotStatsSerializer(required=False)
 
-	game_type = serializers.IntegerField(write_only=True)
 	file = serializers.FileField()
+	game_type = serializers.IntegerField(write_only=True)
+	hearthstone_build = serializers.IntegerField(write_only=True)
 	match_start_timestamp = serializers.DateTimeField(write_only=True)
 	friendly_player = serializers.IntegerField(required=False, min_value=1, max_value=2, write_only=True)
 
