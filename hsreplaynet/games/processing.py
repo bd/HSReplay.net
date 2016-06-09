@@ -102,7 +102,7 @@ def process_upload_event(upload_event):
 	start_time = game_tree.start_time
 	end_time = game_tree.end_time
 
-	friendly_player_id = meta["friendly_player"] or find_friendly_player(game_tree)
+	friendly_player_id = meta.get("friendly_player") or find_friendly_player(game_tree)
 	if not friendly_player_id:
 		raise ValidationError("Friendly player ID not present at upload and could not guess it.")
 

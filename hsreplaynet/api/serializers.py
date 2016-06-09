@@ -105,7 +105,7 @@ class UploadEventSerializer(serializers.Serializer):
 	game_type = serializers.IntegerField(write_only=True)
 	file = serializers.FileField()
 	match_start_timestamp = serializers.DateTimeField(write_only=True)
-	friendly_player = serializers.IntegerField(min_value=1, max_value=2, write_only=True)
+	friendly_player = serializers.IntegerField(required=False, min_value=1, max_value=2, write_only=True)
 
 	queue_time = serializers.IntegerField(default=0, min_value=1, write_only=True)
 	spectator_mode = serializers.BooleanField(default=False, write_only=True)
