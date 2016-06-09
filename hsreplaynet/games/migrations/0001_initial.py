@@ -7,7 +7,7 @@ import django.core.validators
 from django.db import migrations, models
 import django.db.models.deletion
 import hearthstone.enums
-import hsreplaynet.fields
+import hsreplaynet.utils.fields
 import hsreplaynet.games.models
 import uuid
 
@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
                 ('is_spectated_game', models.BooleanField(default=False)),
-                ('friendly_player_id', hsreplaynet.fields.PlayerIDField(choices=[(1, 1), (2, 2)], help_text='PlayerID of the friendly player (1 or 2)', null=True, validators=[django.core.validators.MinValueValidator(1), django.core.validators.MaxValueValidator(2)], verbose_name='Friendly Player ID')),
+                ('friendly_player_id', hsreplaynet.utils.fields.PlayerIDField(choices=[(1, 1), (2, 2)], help_text='PlayerID of the friendly player (1 or 2)', null=True, validators=[django.core.validators.MinValueValidator(1), django.core.validators.MaxValueValidator(2)], verbose_name='Friendly Player ID')),
                 ('game_server_spectate_key', models.CharField(blank=True, max_length=50, null=True)),
                 ('game_server_client_id', models.IntegerField(blank=True, null=True)),
                 ('replay_xml', models.FileField(upload_to=hsreplaynet.games.models._generate_replay_upload_key)),
@@ -52,7 +52,7 @@ class Migration(migrations.Migration):
                 ('hearthstone_build', models.CharField(blank=True, help_text='Patch number at the time the game was played.', max_length=50, null=True, verbose_name='Hearthstone Build Number')),
                 ('match_start_timestamp', models.DateTimeField(help_text='Must be a timezone aware datetime.', verbose_name='Match Start Timestamp')),
                 ('match_end_timestamp', models.DateTimeField(help_text='Must be a timezone aware datetime.', verbose_name='Match End Timestamp')),
-                ('game_type', hsreplaynet.fields.IntEnumField(blank=True, choices=[(0, 'BGT_UNKNOWN'), (1, 'BGT_FRIENDS'), (2, 'BGT_RANKED_STANDARD'), (3, 'BGT_ARENA'), (4, 'BGT_VS_AI'), (5, 'BGT_TUTORIAL'), (6, 'BGT_ASYNC'), (9, 'BGT_NEWBIE'), (7, 'BGT_CASUAL_STANDARD'), (8, 'BGT_TEST1'), (10, 'BGT_TEST3'), (16, 'BGT_TAVERNBRAWL_PVP'), (17, 'BGT_TAVERNBRAWL_1P_VERSUS_AI'), (18, 'BGT_TAVERNBRAWL_2P_COOP'), (30, 'BGT_RANKED_WILD'), (31, 'BGT_CASUAL_WILD'), (32, 'BGT_LAST')], null=True, validators=[hsreplaynet.fields.IntEnumValidator(hearthstone.enums.BnetGameType)], verbose_name='Game Type')),
+                ('game_type', hsreplaynet.utils.fields.IntEnumField(blank=True, choices=[(0, 'BGT_UNKNOWN'), (1, 'BGT_FRIENDS'), (2, 'BGT_RANKED_STANDARD'), (3, 'BGT_ARENA'), (4, 'BGT_VS_AI'), (5, 'BGT_TUTORIAL'), (6, 'BGT_ASYNC'), (9, 'BGT_NEWBIE'), (7, 'BGT_CASUAL_STANDARD'), (8, 'BGT_TEST1'), (10, 'BGT_TEST3'), (16, 'BGT_TAVERNBRAWL_PVP'), (17, 'BGT_TAVERNBRAWL_1P_VERSUS_AI'), (18, 'BGT_TAVERNBRAWL_2P_COOP'), (30, 'BGT_RANKED_WILD'), (31, 'BGT_CASUAL_WILD'), (32, 'BGT_LAST')], null=True, validators=[hsreplaynet.utils.fields.IntEnumValidator(hearthstone.enums.BnetGameType)], verbose_name='Game Type')),
                 ('ladder_season', models.IntegerField(blank=True, help_text='The season as calculated from the match start timestamp.', null=True, verbose_name='Ladder season')),
                 ('brawl_season', models.IntegerField(default=0, help_text='The brawl season which increments every week the brawl changes.', verbose_name='Tavern Brawl Season')),
                 ('scenario_id', models.IntegerField(blank=True, help_text='ID from DBF/SCENARIO.xml or Scenario cache', null=True, verbose_name='Scenario ID')),
@@ -68,7 +68,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(blank=True, max_length=64, verbose_name='Player name')),
-                ('player_id', hsreplaynet.fields.PlayerIDField(blank=True, choices=[(1, 1), (2, 2)], null=True, validators=[django.core.validators.MinValueValidator(1), django.core.validators.MaxValueValidator(2)])),
+                ('player_id', hsreplaynet.utils.fields.PlayerIDField(blank=True, choices=[(1, 1), (2, 2)], null=True, validators=[django.core.validators.MinValueValidator(1), django.core.validators.MaxValueValidator(2)])),
                 ('account_hi', models.BigIntegerField(blank=True, help_text='The region value from account hilo', null=True, verbose_name='Account Hi')),
                 ('account_lo', models.BigIntegerField(blank=True, help_text='The account ID value from account hilo', null=True, verbose_name='Account Lo')),
                 ('is_ai', models.BooleanField(default=False, help_text='Whether the player is an AI.', verbose_name='Is AI')),
@@ -76,7 +76,7 @@ class Migration(migrations.Migration):
                 ('rank', models.SmallIntegerField(blank=True, help_text='1 through 25, or 0 for legend.', null=True, verbose_name='Rank')),
                 ('legend_rank', models.PositiveIntegerField(blank=True, null=True, verbose_name='Legend rank')),
                 ('hero_premium', models.BooleanField(default=False, help_text="Whether the player's initial hero is golden.", verbose_name='Hero Premium')),
-                ('final_state', hsreplaynet.fields.IntEnumField(choices=[(0, 'INVALID'), (1, 'PLAYING'), (2, 'WINNING'), (3, 'LOSING'), (4, 'WON'), (5, 'LOST'), (6, 'TIED'), (7, 'DISCONNECTED'), (8, 'CONCEDED')], default=0, validators=[hsreplaynet.fields.IntEnumValidator(hearthstone.enums.PlayState)], verbose_name='Final State')),
+                ('final_state', hsreplaynet.utils.fields.IntEnumField(choices=[(0, 'INVALID'), (1, 'PLAYING'), (2, 'WINNING'), (3, 'LOSING'), (4, 'WON'), (5, 'LOST'), (6, 'TIED'), (7, 'DISCONNECTED'), (8, 'CONCEDED')], default=0, validators=[hsreplaynet.utils.fields.IntEnumValidator(hearthstone.enums.PlayState)], verbose_name='Final State')),
                 ('duplicated', models.BooleanField(default=False, help_text='Set to true if the player was created from a deduplicated upload.', verbose_name='Duplicated')),
                 ('deck_list', models.ForeignKey(help_text="As much as is known of the player's starting deck list.", on_delete=django.db.models.deletion.CASCADE, to='cards.Deck')),
                 ('game', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='players', to='games.GlobalGame')),

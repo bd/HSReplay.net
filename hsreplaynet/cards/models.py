@@ -2,7 +2,7 @@ import hashlib
 import random
 from django.db import models
 from hearthstone import enums
-from hsreplaynet.fields import IntEnumField
+from hsreplaynet.utils.fields import IntEnumField
 
 
 class CardManager(models.Manager):

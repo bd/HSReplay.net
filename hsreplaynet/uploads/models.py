@@ -4,7 +4,7 @@ from django.core.urlresolvers import reverse
 from django.utils.timezone import now
 from django.db import models
 from django.core.files.storage import default_storage
-from hsreplaynet.fields import IntEnumField
+from hsreplaynet.utils.fields import IntEnumField
 
 
 class UploadEventType(IntEnum):

@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 from django.db import migrations, models
 import django.db.models.deletion
-import hsreplaynet.fields
+import hsreplaynet.utils.fields
 import hsreplaynet.uploads.models
 import uuid
 
@@ -23,10 +23,10 @@ class Migration(migrations.Migration):
             name='UploadEvent',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('type', hsreplaynet.fields.IntEnumField(choices=[(1, 'POWER_LOG'), (2, 'OUTPUT_TXT'), (3, 'HSREPLAY_XML')], validators=[hsreplaynet.fields.IntEnumValidator(hsreplaynet.uploads.models.UploadEventType)])),
+                ('type', hsreplaynet.utils.fields.IntEnumField(choices=[(1, 'POWER_LOG'), (2, 'OUTPUT_TXT'), (3, 'HSREPLAY_XML')], validators=[hsreplaynet.utils.fields.IntEnumValidator(hsreplaynet.uploads.models.UploadEventType)])),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('upload_ip', models.GenericIPAddressField()),
-                ('status', hsreplaynet.fields.IntEnumField(choices=[(0, 'UNKNOWN'), (1, 'PROCESSING'), (2, 'SERVER_ERROR'), (3, 'PARSING_ERROR'), (4, 'SUCCESS')], default=0, validators=[hsreplaynet.fields.IntEnumValidator(hsreplaynet.uploads.models.UploadEventStatus)])),
+                ('status', hsreplaynet.utils.fields.IntEnumField(choices=[(0, 'UNKNOWN'), (1, 'PROCESSING'), (2, 'SERVER_ERROR'), (3, 'PARSING_ERROR'), (4, 'SUCCESS')], default=0, validators=[hsreplaynet.utils.fields.IntEnumValidator(hsreplaynet.uploads.models.UploadEventStatus)])),
                 ('tainted', models.BooleanField(default=False)),
                 ('metadata', models.TextField()),
                 ('file', models.FileField(upload_to=hsreplaynet.uploads.models._generate_key)),

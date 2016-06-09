@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 from django.db import migrations, models
 import django.db.models.deletion
 import hearthstone.enums
-import hsreplaynet.fields
+import hsreplaynet.utils.fields
 
 
 class Migration(migrations.Migration):
@@ -26,12 +26,12 @@ class Migration(migrations.Migration):
                 ('how_to_earn', models.TextField(blank=True)),
                 ('how_to_earn_golden', models.TextField(blank=True)),
                 ('artist', models.CharField(blank=True, max_length=255)),
-                ('card_class', hsreplaynet.fields.IntEnumField(choices=[(0, 'INVALID'), (1, 'DEATHKNIGHT'), (2, 'DRUID'), (3, 'HUNTER'), (4, 'MAGE'), (5, 'PALADIN'), (6, 'PRIEST'), (7, 'ROGUE'), (8, 'SHAMAN'), (9, 'WARLOCK'), (10, 'WARRIOR'), (11, 'DREAM'), (12, 'COUNT')], default=0, validators=[hsreplaynet.fields.IntEnumValidator(hearthstone.enums.CardClass)])),
-                ('card_set', hsreplaynet.fields.IntEnumField(choices=[(0, 'INVALID'), (1, 'TEST_TEMPORARY'), (2, 'CORE'), (3, 'EXPERT1'), (4, 'REWARD'), (5, 'MISSIONS'), (6, 'DEMO'), (7, 'NONE'), (8, 'CHEAT'), (9, 'BLANK'), (10, 'DEBUG_SP'), (11, 'PROMO'), (12, 'NAXX'), (13, 'GVG'), (14, 'BRM'), (15, 'TGT'), (16, 'CREDITS'), (17, 'HERO_SKINS'), (18, 'TB'), (19, 'SLUSH'), (20, 'LOE'), (21, 'OG'), (22, 'OG_RESERVE')], default=0, validators=[hsreplaynet.fields.IntEnumValidator(hearthstone.enums.CardSet)])),
-                ('faction', hsreplaynet.fields.IntEnumField(choices=[(0, 'INVALID'), (1, 'HORDE'), (2, 'ALLIANCE'), (3, 'NEUTRAL')], default=0, validators=[hsreplaynet.fields.IntEnumValidator(hearthstone.enums.Faction)])),
-                ('race', hsreplaynet.fields.IntEnumField(choices=[(0, 'INVALID'), (1, 'BLOODELF'), (2, 'DRAENEI'), (3, 'DWARF'), (4, 'GNOME'), (5, 'GOBLIN'), (6, 'HUMAN'), (7, 'NIGHTELF'), (8, 'ORC'), (9, 'TAUREN'), (10, 'TROLL'), (11, 'UNDEAD'), (12, 'WORGEN'), (13, 'GOBLIN2'), (14, 'MURLOC'), (15, 'DEMON'), (16, 'SCOURGE'), (17, 'MECHANICAL'), (18, 'ELEMENTAL'), (19, 'OGRE'), (20, 'BEAST'), (21, 'TOTEM'), (22, 'NERUBIAN'), (23, 'PIRATE'), (24, 'DRAGON')], default=0, validators=[hsreplaynet.fields.IntEnumValidator(hearthstone.enums.Race)])),
-                ('rarity', hsreplaynet.fields.IntEnumField(choices=[(0, 'INVALID'), (1, 'COMMON'), (2, 'FREE'), (3, 'RARE'), (4, 'EPIC'), (5, 'LEGENDARY'), (6, 'UNKNOWN_6')], default=0, validators=[hsreplaynet.fields.IntEnumValidator(hearthstone.enums.Rarity)])),
-                ('type', hsreplaynet.fields.IntEnumField(choices=[(0, 'INVALID'), (1, 'GAME'), (2, 'PLAYER'), (3, 'HERO'), (4, 'MINION'), (5, 'SPELL'), (6, 'ENCHANTMENT'), (7, 'WEAPON'), (8, 'ITEM'), (9, 'TOKEN'), (10, 'HERO_POWER')], default=0, validators=[hsreplaynet.fields.IntEnumValidator(hearthstone.enums.CardType)])),
+                ('card_class', hsreplaynet.utils.fields.IntEnumField(choices=[(0, 'INVALID'), (1, 'DEATHKNIGHT'), (2, 'DRUID'), (3, 'HUNTER'), (4, 'MAGE'), (5, 'PALADIN'), (6, 'PRIEST'), (7, 'ROGUE'), (8, 'SHAMAN'), (9, 'WARLOCK'), (10, 'WARRIOR'), (11, 'DREAM'), (12, 'COUNT')], default=0, validators=[hsreplaynet.utils.fields.IntEnumValidator(hearthstone.enums.CardClass)])),
+                ('card_set', hsreplaynet.utils.fields.IntEnumField(choices=[(0, 'INVALID'), (1, 'TEST_TEMPORARY'), (2, 'CORE'), (3, 'EXPERT1'), (4, 'REWARD'), (5, 'MISSIONS'), (6, 'DEMO'), (7, 'NONE'), (8, 'CHEAT'), (9, 'BLANK'), (10, 'DEBUG_SP'), (11, 'PROMO'), (12, 'NAXX'), (13, 'GVG'), (14, 'BRM'), (15, 'TGT'), (16, 'CREDITS'), (17, 'HERO_SKINS'), (18, 'TB'), (19, 'SLUSH'), (20, 'LOE'), (21, 'OG'), (22, 'OG_RESERVE')], default=0, validators=[hsreplaynet.utils.fields.IntEnumValidator(hearthstone.enums.CardSet)])),
+                ('faction', hsreplaynet.utils.fields.IntEnumField(choices=[(0, 'INVALID'), (1, 'HORDE'), (2, 'ALLIANCE'), (3, 'NEUTRAL')], default=0, validators=[hsreplaynet.utils.fields.IntEnumValidator(hearthstone.enums.Faction)])),
+                ('race', hsreplaynet.utils.fields.IntEnumField(choices=[(0, 'INVALID'), (1, 'BLOODELF'), (2, 'DRAENEI'), (3, 'DWARF'), (4, 'GNOME'), (5, 'GOBLIN'), (6, 'HUMAN'), (7, 'NIGHTELF'), (8, 'ORC'), (9, 'TAUREN'), (10, 'TROLL'), (11, 'UNDEAD'), (12, 'WORGEN'), (13, 'GOBLIN2'), (14, 'MURLOC'), (15, 'DEMON'), (16, 'SCOURGE'), (17, 'MECHANICAL'), (18, 'ELEMENTAL'), (19, 'OGRE'), (20, 'BEAST'), (21, 'TOTEM'), (22, 'NERUBIAN'), (23, 'PIRATE'), (24, 'DRAGON')], default=0, validators=[hsreplaynet.utils.fields.IntEnumValidator(hearthstone.enums.Race)])),
+                ('rarity', hsreplaynet.utils.fields.IntEnumField(choices=[(0, 'INVALID'), (1, 'COMMON'), (2, 'FREE'), (3, 'RARE'), (4, 'EPIC'), (5, 'LEGENDARY'), (6, 'UNKNOWN_6')], default=0, validators=[hsreplaynet.utils.fields.IntEnumValidator(hearthstone.enums.Rarity)])),
+                ('type', hsreplaynet.utils.fields.IntEnumField(choices=[(0, 'INVALID'), (1, 'GAME'), (2, 'PLAYER'), (3, 'HERO'), (4, 'MINION'), (5, 'SPELL'), (6, 'ENCHANTMENT'), (7, 'WEAPON'), (8, 'ITEM'), (9, 'TOKEN'), (10, 'HERO_POWER')], default=0, validators=[hsreplaynet.utils.fields.IntEnumValidator(hearthstone.enums.CardType)])),
                 ('collectible', models.BooleanField(default=False)),
                 ('battlecry', models.BooleanField(default=False)),
                 ('divine_shield', models.BooleanField(default=False)),

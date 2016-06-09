@@ -6,8 +6,8 @@ from django.core.urlresolvers import reverse
 from django.db import models
 from hearthstone.enums import BnetGameType, PlayState
 from hsreplaynet.cards.models import Card, Deck
-from hsreplaynet.fields import IntEnumField, PlayerIDField
 from hsreplaynet.uploads.models import UploadEventStatus
+from hsreplaynet.utils.fields import IntEnumField, PlayerIDField
 
 
 def _generate_replay_upload_key(instance, filename):
