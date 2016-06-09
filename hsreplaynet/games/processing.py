@@ -7,7 +7,7 @@ from hearthstone.enums import GameTag, PlayState, PowerType, Zone
 from hsreplay import __version__ as hsreplay_version
 from hsreplay.dumper import parse_log, create_document, game_to_xml
 from hsreplay.utils import toxml
-from hsreplaynet.utils import deduplication_time_range
+from hsreplaynet.utils import deduplication_time_range, guess_ladder_season
 from hsreplaynet.cards.models import Deck
 from hsreplaynet.uploads.models import UploadEventStatus
 from .models import GameReplay, GlobalGame, GlobalGamePlayer, PendingReplayOwnership
@@ -101,6 +101,10 @@ def process_upload_event(upload_event):
 
 	start_time = game_tree.start_time
 	end_time = game_tree.end_time
+	if "stats" in meta and "ranked_season_stats" in meta["stats"]:
+		ladder_season = meta["stats"]["ranked_season_stats"]["season"]
+	else:
+		ladder_season = guess_ladder_season(end_time)
 
 	friendly_player_id = meta.get("friendly_player") or find_friendly_player(game_tree)
 	if not friendly_player_id:
@@ -127,7 +131,7 @@ def process_upload_event(upload_event):
 			hearthstone_build = build,
 			match_start_timestamp = start_time,
 			match_end_timestamp = end_time,
-			ladder_season = meta["stats"]["ranked_season_stats"]["season"],
+			ladder_season = season,
 			scenario_id = meta["scenario_id"],
 			num_entities = num_entities,
 			num_turns = num_turns,

@@ -3,6 +3,7 @@ import datetime
 import logging
 import os
 import time
+from dateutil.relativedelta import relativedelta
 
 
 _timing_start = time.clock()
@@ -39,3 +40,11 @@ def deduplication_time_range(ts):
 	"""
 	margin = datetime.timedelta(hours=6)
 	return ts - margin, ts + margin
+
+
+def guess_ladder_season(timestamp):
+	epoch = datetime.datetime(2014, 1, 1)
+	epoch_season = 1
+	delta = relativedelta(timestamp, epoch)
+	months = (delta.years * 12) + delta.months
+	return epoch_season + months
