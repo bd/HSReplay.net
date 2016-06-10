@@ -2,7 +2,7 @@
 VERSION="3.3.6"
 PKGNAME="bootstrap-$VERSION-dist"
 SOURCE="https://github.com/twbs/bootstrap/releases/download/v$VERSION/$PKGNAME.zip"
-BASEDIR="$(readlink -f $(dirname $0))"
+BASEDIR="$(readlink -f $(dirname $0))/.."
 STATICDIR="$BASEDIR/hsreplaynet/static"
 OUTDIR="$STATICDIR/bootstrap"
 ZIPFILE="$OUTDIR/bootstrap.zip"
