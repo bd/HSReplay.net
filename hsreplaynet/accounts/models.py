@@ -1,4 +1,5 @@
 from django.core.urlresolvers import reverse
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 from hsreplaynet.utils import generate_key
 
@@ -18,3 +19,8 @@ class AccountClaim(models.Model):
 
 	def get_absolute_url(self):
 		return reverse("account_claim", kwargs={"id": self.id})
+
+
+class User(AbstractUser):
+	id = models.BigAutoField(primary_key=True)
+	username = models.CharField(max_length=150, unique=True)

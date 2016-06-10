@@ -1,10 +1,10 @@
 from django import forms
 from django.contrib.admin import ACTION_CHECKBOX_NAME
-from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.utils.html import format_html
+from hsreplaynet.accounts.models import User
 
 
 def set_field_admin_action(qs, field_name):
