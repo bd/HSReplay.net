@@ -4,7 +4,7 @@ from .views import MyReplaysView, ReplayDetailView
 
 
 # NOTE: Remove this once we have short IDs
-UUID = r"[0-9a-f-]{36}"
+UUID = r"\d+"
 
 urlpatterns = [
 	url(r"^$", RedirectView.as_view(pattern_name="my_replays", permanent=False)),

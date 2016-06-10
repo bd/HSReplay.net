@@ -1,4 +1,3 @@
-import uuid
 from math import ceil
 from django.conf import settings
 from django.core.files.storage import default_storage
@@ -35,7 +34,7 @@ class GlobalGame(models.Model):
 	first created the GlobalGame record. If no existing GlobalGame
 	record is found, then one is created.
 	"""
-	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+	id = models.BigAutoField(primary_key=True)
 
 	# We believe game_id is not monotonically increasing as it appears
 	# to roll over and reset periodically.
@@ -112,6 +111,7 @@ class GlobalGame(models.Model):
 
 
 class GlobalGamePlayer(models.Model):
+	id = models.BigAutoField(primary_key=True)
 	game = models.ForeignKey(GlobalGame, related_name="players")
 
 	name = models.CharField("Player name",
@@ -214,8 +214,7 @@ class GameReplay(models.Model):
 		ordering = ("global_game", )
 		unique_together = ("upload_token", "global_game")
 
-	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-	objects = GameReplayManager()
+	id = models.BigAutoField(primary_key=True)
 	upload_token = models.ForeignKey("api.AuthToken", null=True, blank=True, related_name="replays")
 	user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
 	global_game = models.ForeignKey(GlobalGame,
@@ -257,6 +256,8 @@ class GameReplay(models.Model):
 
 	won = models.NullBooleanField()
 	disconnected = models.BooleanField(default=False)
+
+	objects = GameReplayManager()
 
 	def __str__(self):
 		players = self.global_game.players.values_list("player_id", "final_state", "name")

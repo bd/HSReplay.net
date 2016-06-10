@@ -2,6 +2,7 @@ from django.db import models
 
 
 class StatsMeta(models.Model):
+	id = models.BigAutoField(primary_key=True)
 	hearthstone_build = models.PositiveIntegerField()
 	platform = models.PositiveIntegerField(default=1)
 	battlenet_id = models.BigIntegerField()
@@ -9,6 +10,7 @@ class StatsMeta(models.Model):
 
 
 class PlayerStats(models.Model):
+	id = models.BigAutoField(primary_key=True)
 	snapshot_time = models.DateTimeField()
 	meta = models.ForeignKey(StatsMeta)
 
@@ -17,6 +19,7 @@ class PlayerStats(models.Model):
 
 
 class ArenaDraftStats(models.Model):
+	id = models.BigAutoField(primary_key=True)
 	snapshot_time = models.DateTimeField()
 	meta = models.ForeignKey(StatsMeta)
 
@@ -26,6 +29,7 @@ class ArenaDraftStats(models.Model):
 
 
 class BrawlSeasonStats(models.Model):
+	id = models.BigAutoField(primary_key=True)
 	snapshot_time = models.DateTimeField()
 	meta = models.ForeignKey(StatsMeta)
 
@@ -37,6 +41,7 @@ class BrawlSeasonStats(models.Model):
 
 
 class RankedSeasonStats(models.Model):
+	id = models.BigAutoField(primary_key=True)
 	snapshot_time = models.DateTimeField()
 	meta = models.ForeignKey(StatsMeta)
 

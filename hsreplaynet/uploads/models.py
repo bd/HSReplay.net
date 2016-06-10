@@ -1,4 +1,3 @@
-import uuid
 from enum import IntEnum
 from django.core.urlresolvers import reverse
 from django.utils.timezone import now
@@ -51,7 +50,7 @@ class UploadEvent(models.Model):
 	The metadata captured is what was provided by the uploader.
 	The raw logs have not yet been parsed for validity.
 	"""
-	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+	id = models.BigAutoField(primary_key=True)
 	token = models.ForeignKey("api.AuthToken", null=True, blank=True, related_name="uploads")
 	type = IntEnumField(enum=UploadEventType)
 	game = models.ForeignKey("games.GameReplay", null=True, blank=True, related_name="uploads")

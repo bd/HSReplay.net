@@ -159,7 +159,7 @@ class Deck(models.Model):
 	The default sorting for cards when iterating over a deck is by
 	mana cost and then alphabetical within cards of equal cost.
 	"""
-	id = models.AutoField(primary_key=True)
+	id = models.BigAutoField(primary_key=True)
 	objects = DeckManager()
 	cards = models.ManyToManyField(Card, through="Include")
 	digest = models.CharField(max_length=32, unique=True)
@@ -217,7 +217,7 @@ class Deck(models.Model):
 
 
 class Include(models.Model):
-	id = models.AutoField(primary_key=True)
+	id = models.BigAutoField(primary_key=True)
 	deck = models.ForeignKey(Deck, on_delete=models.CASCADE)
 	card = models.ForeignKey(Card, on_delete=models.PROTECT)
 	count = models.IntegerField(default=1)
@@ -230,7 +230,6 @@ class Include(models.Model):
 
 
 class CardCollectionAuditLog(models.Model):
-	id = models.AutoField(primary_key=True)
 	job_date = models.DateField()
 
 	# Load Cards
