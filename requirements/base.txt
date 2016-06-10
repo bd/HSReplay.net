@@ -1,6 +1,8 @@
 wheel==0.29.0
-Django==1.9.6
-djangorestframework==3.3.3
+Django==1.10a1
+# djangorestframework==3.3.3
+# Using git for Django 1.10 support (>= 3.3.4)
+git+https://github.com/tomchristie/django-rest-framework.git#egg=djangorestframework
 requests==2.10.0
 hearthstone
 hsreplay==1.2.2

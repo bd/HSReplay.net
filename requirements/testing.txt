@@ -1,5 +1,6 @@
 # testing libs
-django-nose==1.4.3
+# django-nose==1.4.3 does not support Django 1.10
+git+https://github.com/django-nose/django-nose.git#egg=django-nose
 mock==2.0.0
 nosexcover==1.0.10
 pylint==1.5.5
