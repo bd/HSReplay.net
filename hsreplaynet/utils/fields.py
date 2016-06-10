@@ -1,6 +1,7 @@
+import shortuuid
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.db.models import PositiveSmallIntegerField, SmallIntegerField
+from django.db.models import CharField, PositiveSmallIntegerField, SmallIntegerField
 from django.utils.deconstruct import deconstructible
 
 
@@ -42,3 +43,17 @@ class PlayerIDField(PositiveSmallIntegerField):
 		kwargs["choices"] = ((1, 1), (2, 2))
 		kwargs["validators"] = [MinValueValidator(1), MaxValueValidator(2)]
 		super(PlayerIDField, self).__init__(*args, **kwargs)
+
+
+def _shortuuid():
+	return shortuuid.uuid()
+
+
+class ShortUUIDField(CharField):
+	def __init__(self, *args, **kwargs):
+		kwargs.setdefault("max_length", 22)
+		kwargs.setdefault("editable", False)
+		kwargs.setdefault("blank", True)
+		kwargs.setdefault("unique", True)
+		kwargs.setdefault("default", _shortuuid)
+		super(ShortUUIDField, self).__init__(*args, **kwargs)

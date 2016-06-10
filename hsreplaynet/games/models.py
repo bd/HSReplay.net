@@ -6,7 +6,7 @@ from django.db import models
 from hearthstone.enums import BnetGameType, PlayState
 from hsreplaynet.cards.models import Card, Deck
 from hsreplaynet.uploads.models import UploadEventStatus
-from hsreplaynet.utils.fields import IntEnumField, PlayerIDField
+from hsreplaynet.utils.fields import IntEnumField, PlayerIDField, ShortUUIDField
 
 
 def _generate_replay_upload_key(instance, filename):
@@ -215,6 +215,7 @@ class GameReplay(models.Model):
 		unique_together = ("upload_token", "global_game")
 
 	id = models.BigAutoField(primary_key=True)
+	shortid = ShortUUIDField("Short ID")
 	upload_token = models.ForeignKey("api.AuthToken", null=True, blank=True, related_name="replays")
 	user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
 	global_game = models.ForeignKey(GlobalGame,
@@ -278,7 +279,7 @@ class GameReplay(models.Model):
 		return "%s (%s) vs %s" % (friendly[2], state, opponent[2])
 
 	def get_absolute_url(self):
-		return reverse("games_replay_view", kwargs={"id": self.id})
+		return reverse("games_replay_view", kwargs={"id": self.shortid})
 
 	def delete(self, using=None):
 		# We must cleanup the S3 object ourselves (It is not handled by django-storages)

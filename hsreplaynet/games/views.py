@@ -18,5 +18,5 @@ class MyReplaysView(View):
 
 class ReplayDetailView(View):
 	def get(self, request, id):
-		replay = get_object_or_404(GameReplay, id=id)
+		replay = get_object_or_404(GameReplay, shortid=id)
 		return render(request, "games/replay_detail.html", {"replay": replay})
