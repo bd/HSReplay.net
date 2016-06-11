@@ -14,11 +14,11 @@ from .models import GameReplay, GlobalGame, GlobalGamePlayer, PendingReplayOwner
 
 
 def _get_player_meta(d, i):
-	player = d["player%i" % (i)]
+	player = d.get("player%i" % (i), {})
 	return {
-		"rank": str(player["rank"]),
-		"legendRank": str(player["legend_rank"]),
-		"cardback": str(player["cardback"]),
+		"rank": str(player.get("rank")),
+		"legendRank": str(player.get("legend_rank")),
+		"cardback": str(player.get("cardback")),
 	}
 
 
@@ -168,9 +168,9 @@ def process_upload_event(upload_event):
 		account_lo, account_hi = int(account_lo), int(account_hi)
 
 		player_obj = game_tree.players[idx]
-		player_meta_obj = meta["player%i" % (player_id)]
+		player_meta_obj = meta.get("player%i" % (player_id), {})
 		hero = list(player_obj.heroes)[0]
-		decklist = player_meta_obj["deck"]
+		decklist = player_meta_obj.get("deck")
 		if not decklist:
 			decklist = [c.card_id for c in player_obj.initial_deck if c.card_id]
 		deck, _ = Deck.objects.get_or_create_from_id_list(decklist)
@@ -185,11 +185,11 @@ def process_upload_event(upload_event):
 			is_ai = account_lo == 0,
 			hero_id = hero.card_id,
 			hero_premium = hero.tags.get(GameTag.PREMIUM, False),
-			rank = player_meta_obj["rank"],
-			legend_rank = player_meta_obj["legend_rank"],
-			stars = player_meta_obj["stars"],
-			wins = player_meta_obj["wins"],
-			losses = player_meta_obj["losses"],
+			rank = player_meta_obj.get("rank"),
+			legend_rank = player_meta_obj.get("legend_rank"),
+			stars = player_meta_obj.get("stars"),
+			wins = player_meta_obj.get("wins"),
+			losses = player_meta_obj.get("losses"),
 			is_first = player_obj.tags.get(GameTag.FIRST_PLAYER, False),
 			final_state = final_state,
 			deck_list = deck,

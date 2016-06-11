@@ -129,8 +129,8 @@ class UploadEventSerializer(serializers.Serializer):
 
 	scenario_id = serializers.IntegerField(default=0, min_value=0, write_only=True)
 
-	player1 = PlayerSerializer(write_only=True)
-	player2 = PlayerSerializer(write_only=True)
+	player1 = PlayerSerializer(required=False, write_only=True)
+	player2 = PlayerSerializer(required=False, write_only=True)
 
 	def create(self, data):
 		request = self.context["request"]
