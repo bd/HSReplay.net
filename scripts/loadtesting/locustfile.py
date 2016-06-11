@@ -64,7 +64,7 @@ MEDIUM_REPLAY = open(os.path.join(DATA_DIR, "examples", "medium.log")).read()  #
 LARGE_REPLAY = open(os.path.join(DATA_DIR, "examples", "large.log")).read()  # 31 minute game
 
 API_KEY = os.environ.get("API_KEY")
-API_ENDPOINT = "/api/v1/replay/upload/raw"
+API_ENDPOINT = "/api/v1/replay/upload/powerlog"
 
 
 class UploadBehavior(TaskSet):
@@ -75,13 +75,14 @@ class UploadBehavior(TaskSet):
 		# This is where we request an UploadToken for this user.
 		if not API_KEY:
 			raise RuntimeError("The API_KEY environment variable needs to be set.")
+
 		self.HEADERS = {
-			"x-hsreplay-api-key": API_KEY,
-			"x-hsreplay-upload-token": self.request_new_upload_token(),
+			"Authorization": "Token %s" % self.request_new_upload_token(),
 		}
+
 		self.QUERY_PARAMS = {
-			#"player_1_rank" : 18,
-			#"match_start_timestamp" : "2016-05-10T17:10:06.4923855+02:00"
+			"match_start_timestamp": "2016-05-10T17:10:06.4923855+02:00",
+			"hearthstone_build": 12574,
 		}
 
 	def request_new_upload_token(self):
