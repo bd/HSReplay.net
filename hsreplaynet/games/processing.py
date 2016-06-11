@@ -14,10 +14,11 @@ from .models import GameReplay, GlobalGame, GlobalGamePlayer, PendingReplayOwner
 
 
 def _get_player_meta(d, i):
+	player = d["player%i" % (i)]
 	return {
-		"rank": str(d["player%i_rank" % (i)]),
-		"legendRank": str(d["player%i_legend_rank" % (i)]),
-		"cardback": str(d["player%i_cardback" % (i)]),
+		"rank": str(player["rank"]),
+		"legendRank": str(player["legend_rank"]),
+		"cardback": str(player["cardback"]),
 	}
 
 
@@ -95,7 +96,7 @@ def process_upload_event(upload_event):
 	game = game_to_xml(game_tree,
 		game_meta = game_meta,
 		player_meta = player_meta,
-		decks = [meta["player1_deck"], meta["player2_deck"]],
+		decks = [meta.get("player1", {}).get("deck"), meta.get("player2", {}).get("deck")],
 	)
 	root.append(game)
 
@@ -131,7 +132,7 @@ def process_upload_event(upload_event):
 			hearthstone_build = build,
 			match_start_timestamp = start_time,
 			match_end_timestamp = end_time,
-			ladder_season = season,
+			ladder_season = ladder_season,
 			scenario_id = meta["scenario_id"],
 			num_entities = num_entities,
 			num_turns = num_turns,

@@ -94,6 +94,13 @@ class GameSerializer(serializers.Serializer):
 	url = serializers.ReadOnlyField(source="get_absolute_url")
 
 
+class PlayerSerializer(serializers.Serializer):
+	rank = serializers.IntegerField(required=False, min_value=0, max_value=25, write_only=True)
+	legend_rank = serializers.IntegerField(default=0, min_value=1, write_only=True)
+	deck = DeckListField(required=False, write_only=True)
+	cardback = serializers.IntegerField(default=0, min_value=1, write_only=True)
+
+
 class UploadEventSerializer(serializers.Serializer):
 	id = serializers.UUIDField(read_only=True)
 	type = serializers.IntegerField()
@@ -119,23 +126,17 @@ class UploadEventSerializer(serializers.Serializer):
 
 	scenario_id = serializers.IntegerField(default=0, min_value=0, write_only=True)
 
-	player1_rank = serializers.IntegerField(required=False, min_value=0, max_value=25, write_only=True)
-	player2_rank = serializers.IntegerField(required=False, min_value=0, max_value=25, write_only=True)
-	player1_legend_rank = serializers.IntegerField(default=0, min_value=1, write_only=True)
-	player2_legend_rank = serializers.IntegerField(default=0, min_value=1, write_only=True)
-	player1_deck = DeckListField(required=False, write_only=True)
-	player2_deck = DeckListField(required=False, write_only=True)
-	player1_cardback = serializers.IntegerField(default=0, min_value=1, write_only=True)
-	player2_cardback = serializers.IntegerField(default=0, min_value=1, write_only=True)
+	player1 = PlayerSerializer(write_only=True)
+	player2 = PlayerSerializer(write_only=True)
 
 	def create(self, data):
 		request = self.context["request"]
 
 		ret = UploadEvent(
 			file=data.pop("file"),
-			token_id = request.session["auth_token"],
-			type = data.pop("type"),
-			upload_ip = get_client_ip(request),
+			token_id=request.session["auth_token"],
+			type=data.pop("type"),
+			upload_ip=get_client_ip(request),
 		)
 		ret.metadata = json.dumps(data, cls=DjangoJSONEncoder)
 		ret.save()
