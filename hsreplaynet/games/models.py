@@ -136,14 +136,6 @@ class GlobalGamePlayer(models.Model):
 		help_text="Whether the player is the first player",
 	)
 
-	rank = models.SmallIntegerField("Rank",
-		null=True, blank=True,
-		help_text="1 through 25, or 0 for legend.",
-	)
-	legend_rank = models.PositiveIntegerField("Legend rank",
-		null=True, blank=True,
-	)
-
 	hero = models.ForeignKey(Card)
 	hero_premium = models.BooleanField("Hero Premium",
 		default=False,
@@ -161,6 +153,27 @@ class GlobalGamePlayer(models.Model):
 	duplicated = models.BooleanField("Duplicated",
 		default=False,
 		help_text="Set to true if the player was created from a deduplicated upload."
+	)
+
+	# Game type metadata
+
+	rank = models.SmallIntegerField("Rank",
+		null=True, blank=True,
+		help_text="1 through 25, or 0 for legend.",
+	)
+	legend_rank = models.PositiveIntegerField("Legend rank",
+		null=True, blank=True,
+	)
+	stars = models.PositiveSmallIntegerField("Stars",
+		null=True, blank=True,
+	)
+	wins = models.PositiveIntegerField("Wins",
+		null=True, blank=True,
+		help_text="Number of wins in the current game mode (eg. ladder season, arena key...)",
+	)
+	losses = models.PositiveIntegerField("Losses",
+		null=True, blank=True,
+		help_text="Number of losses in the current game mode (current season)",
 	)
 
 	def __str__(self):
