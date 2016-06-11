@@ -97,6 +97,9 @@ class GameSerializer(serializers.Serializer):
 class PlayerSerializer(serializers.Serializer):
 	rank = serializers.IntegerField(required=False, min_value=0, max_value=25, write_only=True)
 	legend_rank = serializers.IntegerField(default=0, min_value=1, write_only=True)
+	stars = serializers.IntegerField(required=False, max_value=95, write_only=True)
+	wins = serializers.IntegerField(required=False, write_only=True)
+	losses = serializers.IntegerField(required=False, write_only=True)
 	deck = DeckListField(required=False, write_only=True)
 	cardback = serializers.IntegerField(default=0, min_value=1, write_only=True)
 

@@ -168,8 +168,9 @@ def process_upload_event(upload_event):
 		account_lo, account_hi = int(account_lo), int(account_hi)
 
 		player_obj = game_tree.players[idx]
+		player_meta_obj = meta["player%i" % (player_id)]
 		hero = list(player_obj.heroes)[0]
-		decklist = meta["player%i_deck" % (player_id)]
+		decklist = player_meta_obj["deck"]
 		if not decklist:
 			decklist = [c.card_id for c in player_obj.initial_deck if c.card_id]
 		deck, _ = Deck.objects.get_or_create_from_id_list(decklist)
@@ -184,14 +185,16 @@ def process_upload_event(upload_event):
 			is_ai = account_lo == 0,
 			hero_id = hero.card_id,
 			hero_premium = hero.tags.get(GameTag.PREMIUM, False),
-			rank = player_meta[idx].get("rank"),
-			legend_rank = player_meta[idx].get("legendRank", 0),
+			rank = player_meta_obj["rank"],
+			legend_rank = player_meta_obj["legend_rank"],
+			stars = player_meta_obj["stars"],
+			wins = player_meta_obj["wins"],
+			losses = player_meta_obj["losses"],
 			is_first = player_obj.tags.get(GameTag.FIRST_PLAYER, False),
 			final_state = final_state,
 			deck_list = deck,
 			duplicated = unifying,
 		)
-		game_player.save()
 
 		# XXX move the following to replay save()
 		if player_id == friendly_player_id:
@@ -204,6 +207,8 @@ def process_upload_event(upload_event):
 			else:
 				# Anything else is a concede/loss/tie
 				replay.won = False
+
+		game_player.save()
 
 	xml_str = toxml(root, pretty=False)
 	replay.replay_xml.save("hsreplay.xml", ContentFile(xml_str), save=False)
