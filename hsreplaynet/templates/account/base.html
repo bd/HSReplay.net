@@ -12,9 +12,11 @@
 			<div class="container">
 				<ul class="nav navbar-nav">
 					<li><a href="{% url 'account_edit' %}">General</a></li>
-					<li><a href="{% url 'account_email' %}">E-Mail</a></li>
-					<li><a href="{% url 'account_change_password' %}">Password</a></li>
-					<li><a href="{% url 'socialaccount_connections' %}">Battle.net</a></li>
+					{% if user.is_superuser %}
+						<li><a href="{% url 'account_email' %}">E-Mail</a></li>
+						<li><a href="{% url 'account_change_password' %}">Password</a></li>
+						<li><a href="{% url 'socialaccount_connections' %}">Battle.net</a></li>
+					{% endif %}
 					<li><a href="{% url 'account_delete' %}">Delete account</a></li>
 				</ul>
 				<ul class="nav navbar-nav">
