@@ -23,22 +23,23 @@ def lambda_handler(event, context):
 	else:
 		token = token_str
 
-	token = AuthToken.objects.filter(key=token).first()
-	if not token:
-		raise Exception('Unauthorized')
-	else:
-		tmp = event['methodArn'].split(':')
-		apiGatewayArnTmp = tmp[5].split('/')
-		awsAccountId = tmp[4]
+	try:
+		token = AuthToken.objects.get(key=token)
+	except AuthToken.DoesNotExist:
+		raise Exception("Unauthorized token %r" % (token))
 
-		principalId = 'user'
-		policy = AuthPolicy(principalId, awsAccountId)
-		policy.restApiId = apiGatewayArnTmp[0]
-		policy.region = tmp[3]
-		policy.stage = apiGatewayArnTmp[1]
-		policy.allowAllMethods()
+	tmp = event["methodArn"].split(":")
+	apiGatewayArnTmp = tmp[5].split("/")
+	awsAccountId = tmp[4]
 
-		return policy.build()
+	principalId = "user"
+	policy = AuthPolicy(principalId, awsAccountId)
+	policy.restApiId = apiGatewayArnTmp[0]
+	policy.region = tmp[3]
+	policy.stage = apiGatewayArnTmp[1]
+	policy.allowAllMethods()
+
+	return policy.build()
 
 
 class HttpVerb:
