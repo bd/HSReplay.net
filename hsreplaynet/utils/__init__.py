@@ -43,7 +43,7 @@ def deduplication_time_range(ts):
 
 
 def guess_ladder_season(timestamp):
-	epoch = datetime.datetime(2014, 1, 1)
+	epoch = datetime.datetime(2014, 1, 1, tzinfo=timestamp.tzinfo)
 	epoch_season = 1
 	delta = relativedelta(timestamp, epoch)
 	months = (delta.years * 12) + delta.months
