@@ -40,7 +40,7 @@ def find_duplicate_games(meta, timestamp):
 		hearthstone_build = meta["hearthstone_build"],
 		game_type = meta["game_type"],
 		game_server_game_id = meta["game_id"],
-		game_server_address = meta["server_ip"],
+		game_server_address = meta.get("server_ip"),
 		game_server_port = meta["server_port"],
 		match_start_timestamp__range = deduplication_time_range(timestamp),
 	)
@@ -126,7 +126,7 @@ def process_upload_event(upload_event):
 
 		global_game = GlobalGame.objects.create(
 			game_server_game_id = meta["game_id"],
-			game_server_address = meta["server_ip"],
+			game_server_address = meta.get("server_ip"),
 			game_server_port = meta["server_port"],
 			game_type = meta["game_type"],
 			hearthstone_build = build,
