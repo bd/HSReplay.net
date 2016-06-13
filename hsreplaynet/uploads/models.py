@@ -30,10 +30,15 @@ class UploadEventStatus(IntEnum):
 	SUCCESS = 4
 
 
-def _generate_key(instance, filename):
-	timestamp = now().strftime("%Y/%m/%d")
+def _generate_upload_path(instance, filename):
+	ts = now()
 	extension = UploadEventType(instance.type).extension
-	return "uploads/%s/%s%s" % (timestamp, str(instance.id), extension)
+	if instance.token:
+		token = instance.token.key[:14]
+	else:
+		token = "unknown-token"
+	yymmdd = ts.strftime("%Y/%m/%d")
+	return "uploads/%s/%s/%s%s" % (yymmdd, token, ts.isoformat(), extension)
 
 
 class UploadEventManager(models.Manager):
@@ -60,7 +65,7 @@ class UploadEvent(models.Model):
 	tainted = models.BooleanField(default=False)
 
 	metadata = models.TextField()
-	file = models.FileField(upload_to=_generate_key)
+	file = models.FileField(upload_to=_generate_upload_path)
 
 	objects = UploadEventManager()
 

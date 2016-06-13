@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
                 ('status', hsreplaynet.utils.fields.IntEnumField(choices=[(0, 'UNKNOWN'), (1, 'PROCESSING'), (2, 'SERVER_ERROR'), (3, 'PARSING_ERROR'), (4, 'SUCCESS')], default=0, validators=[hsreplaynet.utils.fields.IntEnumValidator(hsreplaynet.uploads.models.UploadEventStatus)])),
                 ('tainted', models.BooleanField(default=False)),
                 ('metadata', models.TextField()),
-                ('file', models.FileField(upload_to=hsreplaynet.uploads.models._generate_key)),
+                ('file', models.FileField(upload_to=hsreplaynet.uploads.models._generate_upload_path)),
                 ('game', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='uploads', to='games.GameReplay')),
                 ('token', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='uploads', to='api.AuthToken')),
             ],
