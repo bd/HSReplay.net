@@ -5,8 +5,8 @@ from .models import UploadEvent
 
 
 class UploadDetailView(View):
-	def get(self, request, id):
-		upload = get_object_or_404(UploadEvent, id=id)
+	def get(self, request, shortid):
+		upload = get_object_or_404(UploadEvent, shortid=shortid)
 		if upload.game:
 			return HttpResponseRedirect(upload.game.get_absolute_url())
 

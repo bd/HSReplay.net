@@ -3,7 +3,7 @@ from django.core.urlresolvers import reverse
 from django.utils.timezone import now
 from django.db import models
 from django.core.files.storage import default_storage
-from hsreplaynet.utils.fields import IntEnumField
+from hsreplaynet.utils.fields import IntEnumField, ShortUUIDField
 
 
 class UploadEventType(IntEnum):
@@ -56,6 +56,7 @@ class UploadEvent(models.Model):
 	The raw logs have not yet been parsed for validity.
 	"""
 	id = models.BigAutoField(primary_key=True)
+	shortid = ShortUUIDField("Short ID")
 	token = models.ForeignKey("api.AuthToken", null=True, blank=True, related_name="uploads")
 	type = IntEnumField(enum=UploadEventType)
 	game = models.ForeignKey("games.GameReplay", null=True, blank=True, related_name="uploads")
@@ -77,4 +78,4 @@ class UploadEvent(models.Model):
 		return super(UploadEvent, self).delete(using)
 
 	def get_absolute_url(self):
-		return reverse("upload_detail", kwargs={"id": str(self.id)})
+		return reverse("upload_detail", kwargs={"shortid": self.shortid})

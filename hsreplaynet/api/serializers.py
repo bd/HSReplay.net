@@ -106,6 +106,7 @@ class PlayerSerializer(serializers.Serializer):
 
 class UploadEventSerializer(serializers.Serializer):
 	id = serializers.UUIDField(read_only=True)
+	shortid = serializers.UUIDField(read_only=True)
 	type = serializers.IntegerField()
 	status = serializers.IntegerField(read_only=True)
 	tainted = serializers.BooleanField(read_only=True)
