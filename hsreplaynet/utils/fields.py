@@ -45,15 +45,17 @@ class PlayerIDField(PositiveSmallIntegerField):
 		super(PlayerIDField, self).__init__(*args, **kwargs)
 
 
-def _shortuuid():
-	return shortuuid.uuid()
-
-
 class ShortUUIDField(CharField):
 	def __init__(self, *args, **kwargs):
 		kwargs.setdefault("max_length", 22)
 		kwargs.setdefault("editable", False)
 		kwargs.setdefault("blank", True)
 		kwargs.setdefault("unique", True)
-		kwargs.setdefault("default", _shortuuid)
 		super(ShortUUIDField, self).__init__(*args, **kwargs)
+
+	def pre_save(self, model_instance, add):
+		ret = super(ShortUUIDField, self).pre_save(model_instance, add)
+		if not ret:
+			ret = shortuuid.uuid()
+			setattr(model_instance, self.attname, ret)
+		return ret

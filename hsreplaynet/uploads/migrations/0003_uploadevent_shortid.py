@@ -16,6 +16,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='uploadevent',
             name='shortid',
-            field=hsreplaynet.utils.fields.ShortUUIDField(blank=True, default=hsreplaynet.utils.fields._shortuuid, editable=False, max_length=22, unique=True, verbose_name='Short ID'),
+            field=hsreplaynet.utils.fields.ShortUUIDField(blank=True, editable=False, max_length=22, unique=True, verbose_name='Short ID'),
         ),
     ]
