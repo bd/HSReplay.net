@@ -15,6 +15,7 @@
 {% endblock stylesheets %}
 
 {% block fullcontent %}
+{% setting "JOUST_RAVEN_DSN_PUBLIC" as dsn %}
 
 <div id="tabletop" class="container-fluid">
 	<div class="row">
@@ -36,6 +37,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react-dom.min.js"></script>
+{% if dsn %}<script src="https://cdn.ravenjs.com/3.0.4/raven.min.js"></script>{% endif %}
 <script src="{% joust_static 'joust.js' %}"></script>
 <script>
 	$(document).ready(function() {
@@ -78,10 +80,19 @@
 			});
 		};
 
+		{% if dsn %}
+		Raven.config("{{ dsn }}").install();
+		{% endif %}
+
 		Joust.viewer("joust-container")
 			.metadata(cb)
 			.assets("{% joust_static 'assets/' %}")
 			.cardArt("{% joust_static 'card-art/' %}")
+			.logger(function(error) {
+				{% if dsn %}Raven && Raven.captureException(error);{% endif %}
+				var message = error.message ? error.message : error;
+				console.error(message);
+			})
 			.fromUrl($("#joust-container").data("replayurl"));
 	});
 </script>
