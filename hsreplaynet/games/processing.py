@@ -229,6 +229,7 @@ def process_upload_event(upload_event):
 		claim = PendingReplayOwnership(replay=replay, token=upload_event.token)
 		claim.save()
 
+	upload_event.game = replay
 	upload_event.status = UploadEventStatus.SUCCESS
 	upload_event.save()
 
