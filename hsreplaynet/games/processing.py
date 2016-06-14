@@ -10,6 +10,7 @@ from hsreplay.utils import toxml
 from hsreplaynet.utils import deduplication_time_range, guess_ladder_season
 from hsreplaynet.cards.models import Deck
 from hsreplaynet.uploads.models import UploadEventStatus
+from hsreplaynet import instrumentation
 from .models import GameReplay, GlobalGame, GlobalGamePlayer, PendingReplayOwnership
 
 
@@ -220,7 +221,10 @@ def process_upload_event(upload_event):
 		game_player.save()
 
 	xml_str = toxml(root, pretty=False)
-	replay.replay_xml.save("hsreplay.xml", ContentFile(xml_str), save=False)
+	xml_file = ContentFile(xml_str)
+	instrumentation.influx_metric("replay_xml_num_bytes", {"size": xml_file.size})
+
+	replay.replay_xml.save("hsreplay.xml", xml_file, save=False)
 	replay.save()
 
 	if user is None and upload_event.token is not None:

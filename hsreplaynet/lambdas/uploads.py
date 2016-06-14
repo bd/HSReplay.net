@@ -37,6 +37,8 @@ def create_power_log_upload_event_handler(event, context):
 					logger.info("%s: %s" % (k, v))
 
 			body = b64decode(event.get("body"))
+			instrumentation.influx_metric("raw_power_log_upload_num_bytes", {"size": len(body)})
+
 			power_log_file = tempfile.NamedTemporaryFile(mode="r+b", suffix=".log")
 			power_log_file.write(body)
 			power_log_file.flush()
