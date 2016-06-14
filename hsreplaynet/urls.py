@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib import admin
 from django.contrib.flatpages.views import flatpage
@@ -18,3 +19,9 @@ urlpatterns = [
 	url(r"^pages/", include("django.contrib.flatpages.urls")),
 	url(r"^uploads/", include("hsreplaynet.uploads.urls")),
 ]
+
+
+if settings.DEBUG:
+	from django.conf.urls.static import static
+
+	urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
