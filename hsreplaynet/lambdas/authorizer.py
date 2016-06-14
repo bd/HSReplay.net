@@ -23,11 +23,6 @@ def lambda_handler(event, context):
 	else:
 		token = token_str
 
-	try:
-		token = AuthToken.objects.get(key=token)
-	except AuthToken.DoesNotExist:
-		raise Exception("Unauthorized token %r" % (token))
-
 	tmp = event["methodArn"].split(":")
 	apiGatewayArnTmp = tmp[5].split("/")
 	awsAccountId = tmp[4]
@@ -37,7 +32,16 @@ def lambda_handler(event, context):
 	policy.restApiId = apiGatewayArnTmp[0]
 	policy.region = tmp[3]
 	policy.stage = apiGatewayArnTmp[1]
-	policy.allowAllMethods()
+
+	try:
+		token = AuthToken.objects.get(key=token)
+		policy.allowAllMethods()
+	except AuthToken.DoesNotExist as e:
+		logger.exception(e)
+		policy.denyAllMethods()
+	except Exception as e:
+		logger.exception(e)
+		raise Exception("Unauthorized token %r" % (token))
 
 	return policy.build()
 
