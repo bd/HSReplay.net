@@ -3,7 +3,7 @@ from io import StringIO
 from dateutil.parser import parse as dateutil_parse
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
-from hearthstone.enums import GameTag, PlayState, PowerType, Zone
+from hearthstone.enums import BnetGameType, GameTag, PlayState, PowerType, Zone
 from hsreplay import __version__ as hsreplay_version
 from hsreplay.dumper import parse_log, create_document, game_to_xml
 from hsreplay.utils import toxml
@@ -87,11 +87,18 @@ def process_upload_event(upload_event):
 	build = meta["hearthstone_build"] or meta["stats"]["meta"]["hearthstone_build"]
 	root = create_document(version=hsreplay_version, build=build)
 	player_meta = [_get_player_meta(meta, i) for i in (1, 2)]
+
+	game_type = meta.get("game_type", BnetGameType.BGT_UNKNOWN)
+	game_id = meta.get("game_id")
+	reconnecting = meta.get("reconnecting", False)
 	game_meta = {
-		"id": str(meta["game_id"]),
-		"type": str(meta["game_type"]),
-		"reconnecting": str(meta["reconnecting"]).lower(),
+		"type": str(int(game_type)),
 	}
+	if game_id:
+		game_meta["id"] = game_id
+	if reconnecting:
+		game_meta["reconnecting"] = "true"
+
 	# decks = [deck.split(",") for deck in meta["decks"]]
 	game = game_to_xml(game_tree,
 		game_meta = game_meta,
@@ -125,15 +132,15 @@ def process_upload_event(upload_event):
 		num_turns = packet_tree.games[0].tags.get(GameTag.TURN)
 
 		global_game = GlobalGame.objects.create(
-			game_server_game_id = meta["game_id"],
+			game_server_game_id = meta.get("game_id"),
 			game_server_address = meta.get("server_ip"),
-			game_server_port = meta["server_port"],
-			game_type = meta["game_type"],
+			game_server_port = meta.get("server_port"),
+			game_type = game_type,
 			hearthstone_build = build,
 			match_start_timestamp = start_time,
 			match_end_timestamp = end_time,
 			ladder_season = ladder_season,
-			scenario_id = meta["scenario_id"],
+			scenario_id = meta.get("scenario_id"),
 			num_entities = num_entities,
 			num_turns = num_turns,
 		)
@@ -146,11 +153,11 @@ def process_upload_event(upload_event):
 
 	replay = GameReplay(
 		friendly_player_id = friendly_player_id,
-		game_server_client_id = meta["client_id"],
-		game_server_spectate_key = meta["spectate_key"],
+		game_server_client_id = meta.get("client_id"),
+		game_server_spectate_key = meta.get("spectate_key"),
 		global_game = global_game,
 		hsreplay_version = hsreplay_version,
-		is_spectated_game = meta["spectator_mode"],
+		is_spectated_game = meta.get("spectator_mode", False),
 		# raw_log = raw_log,
 		user = user,
 	)

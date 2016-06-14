@@ -96,12 +96,12 @@ class GameSerializer(serializers.Serializer):
 
 class PlayerSerializer(serializers.Serializer):
 	rank = serializers.IntegerField(required=False, min_value=0, max_value=25, write_only=True)
-	legend_rank = serializers.IntegerField(default=0, min_value=1, write_only=True)
+	legend_rank = serializers.IntegerField(required=False, min_value=1, write_only=True)
 	stars = serializers.IntegerField(required=False, max_value=95, write_only=True)
 	wins = serializers.IntegerField(required=False, write_only=True)
 	losses = serializers.IntegerField(required=False, write_only=True)
 	deck = DeckListField(required=False, write_only=True)
-	cardback = serializers.IntegerField(default=0, min_value=1, write_only=True)
+	cardback = serializers.IntegerField(required=False, min_value=1, write_only=True)
 
 
 class UploadEventSerializer(serializers.Serializer):
@@ -119,16 +119,16 @@ class UploadEventSerializer(serializers.Serializer):
 	match_start_timestamp = serializers.DateTimeField(write_only=True)
 	friendly_player = serializers.IntegerField(required=False, min_value=1, max_value=2, write_only=True)
 
-	queue_time = serializers.IntegerField(default=0, min_value=1, write_only=True)
+	queue_time = serializers.IntegerField(required=False, min_value=1, write_only=True)
 	spectator_mode = serializers.BooleanField(default=False, write_only=True)
 	reconnecting = serializers.BooleanField(default=False, write_only=True)
 	server_ip = serializers.IPAddressField(required=False, write_only=True)
-	server_port = serializers.IntegerField(default=0, min_value=1, max_value=65535, write_only=True)
-	client_id = serializers.IntegerField(default=0, min_value=1, write_only=True)
-	game_id = serializers.IntegerField(default=0, min_value=1, write_only=True)
+	server_port = serializers.IntegerField(required=False, min_value=1, max_value=65535, write_only=True)
+	client_id = serializers.IntegerField(required=False, min_value=1, write_only=True)
+	game_id = serializers.IntegerField(required=False, min_value=1, write_only=True)
 	spectate_key = serializers.CharField(default="", write_only=True)
 
-	scenario_id = serializers.IntegerField(default=0, min_value=0, write_only=True)
+	scenario_id = serializers.IntegerField(required=False, min_value=0, write_only=True)
 
 	player1 = PlayerSerializer(required=False, write_only=True)
 	player2 = PlayerSerializer(required=False, write_only=True)
