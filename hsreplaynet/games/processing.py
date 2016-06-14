@@ -138,9 +138,11 @@ def process_upload_event(upload_event):
 			num_turns = num_turns,
 		)
 
-	if not upload_event.token:
-		raise ValidationError("No token attached to upload event %r" % (upload_event))
-	user = upload_event.token.user
+	if upload_event.token:
+		user = upload_event.token.user
+	else:
+		# No token was attached to the request (maybe a manual one?)
+		user = None
 
 	replay = GameReplay(
 		friendly_player_id = friendly_player_id,
@@ -214,7 +216,7 @@ def process_upload_event(upload_event):
 	replay.replay_xml.save("hsreplay.xml", ContentFile(xml_str), save=False)
 	replay.save()
 
-	if user is None:
+	if user is None and upload_event.token is not None:
 		# If the auth token has not yet been claimed, create
 		# a pending claim for the replay for when it will be.
 		claim = PendingReplayOwnership(replay=replay, token=upload_event.token)
