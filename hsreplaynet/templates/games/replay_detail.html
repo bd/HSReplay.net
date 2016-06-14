@@ -56,10 +56,10 @@
 		{% endif %}
 
 		var cb = function (buildNumber, cb) {
-			var bn = buildNumber;
+			var bn = +"{{ replay.global_game.hearthstone_build }}";
 			var store = null;
 
-			if(typeof buildNumber === "undefined") {
+			if(!bn) {
 				bn = "latest";
 			} else {
 				store = "joust-" + bn;
