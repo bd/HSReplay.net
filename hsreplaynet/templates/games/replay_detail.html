@@ -41,6 +41,20 @@
 <script src="{% joust_static 'joust.js' %}"></script>
 <script>
 	$(document).ready(function() {
+		{% if dsn %}
+		Raven.config("{{ dsn }}").install();
+		Raven.setExtraContext({
+				replay_xml_url: "{{ replay.replay_xml.url }}",
+				hearthstone_build: {{ replay.global_game.hearthstone_build }}
+			});
+			{% if user.is_authenticated %}
+				Raven.setUserContext({
+					id: {{ user.id }},
+					username: "{{ user.username }}"
+				});
+			{% endif %}
+		{% endif %}
+
 		var cb = function (buildNumber, cb) {
 			var bn = buildNumber;
 			var store = null;
@@ -79,10 +93,6 @@
 				}
 			});
 		};
-
-		{% if dsn %}
-		Raven.config("{{ dsn }}").install();
-		{% endif %}
 
 		Joust.viewer("joust-container")
 			.metadata(cb)
