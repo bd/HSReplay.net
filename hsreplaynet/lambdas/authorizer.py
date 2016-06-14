@@ -36,11 +36,14 @@ def lambda_handler(event, context):
 	try:
 		token = AuthToken.objects.get(key=token)
 		policy.allowAllMethods()
+		logger.info("Authentication successful.")
 	except AuthToken.DoesNotExist as e:
 		logger.exception(e)
 		policy.denyAllMethods()
+		logger.info("Authentication denied.")
 	except Exception as e:
 		logger.exception(e)
+		logger.info("Authentication denied.")
 		raise Exception("Unauthorized token %r" % (token))
 
 	return policy.build()
