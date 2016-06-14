@@ -96,15 +96,16 @@ def process_upload_event(upload_event):
 		"type": str(int(game_type)),
 	}
 	if game_id:
-		game_meta["id"] = game_id
+		game_meta["id"] = str(game_id)
 	if reconnecting:
 		game_meta["reconnecting"] = "true"
 
 	# decks = [deck.split(",") for deck in meta["decks"]]
-	game = game_to_xml(game_tree,
-		game_meta = game_meta,
-		player_meta = player_meta,
-		decks = [meta.get("player1", {}).get("deck"), meta.get("player2", {}).get("deck")],
+	game = game_to_xml(
+		game_tree,
+		game_meta=game_meta,
+		player_meta=player_meta,
+		decks=[meta.get("player1", {}).get("deck"), meta.get("player2", {}).get("deck")],
 	)
 	root.append(game)
 
