@@ -80,16 +80,34 @@
 				}
 			}
 
+			var parse = function(result) {
+				cb(JSON.parse(result));
+			};
+
+			var save = function(result) {
+				if (store != null && typeof(Storage) !== "undefined") {
+					localStorage.setItem(store, result);
+					console.debug("Card data saved to local storage");
+				}
+
+				parse(result);
+			};
+
 			$.ajax("{% hearthstonejson replay.global_game.hearthstone_build %}", {
 				type: "GET",
 				dataType: "text",
-				success: function(result) {
-					if (store != null && typeof(Storage) !== "undefined") {
-						localStorage.setItem(store, result);
-						console.debug("Card data saved to local storage");
+				success: save,
+				error: function(xhr, status, error) {
+					if(bn != 'latest' && xhr.status == 404) {
+						{% if dsn %}
+							Raven && Raven.captureMessage('Unknown build "' + bn + '"', {level: "warning"});
+						{% endif %}
+						$.ajax("{% hearthstonejson "latest" %}", {
+							type: "GET",
+							dataType: "text",
+							success: parse
+						});
 					}
-
-					cb(JSON.parse(result));
 				}
 			});
 		};
