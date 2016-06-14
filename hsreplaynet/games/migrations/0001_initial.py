@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
                 ('friendly_player_id', hsreplaynet.utils.fields.PlayerIDField(choices=[(1, 1), (2, 2)], help_text='PlayerID of the friendly player (1 or 2)', null=True, validators=[django.core.validators.MinValueValidator(1), django.core.validators.MaxValueValidator(2)], verbose_name='Friendly Player ID')),
                 ('game_server_spectate_key', models.CharField(blank=True, max_length=50, null=True)),
                 ('game_server_client_id', models.IntegerField(blank=True, null=True)),
-                ('replay_xml', models.FileField(upload_to=hsreplaynet.games.models._generate_replay_upload_key)),
+                ('replay_xml', models.FileField(upload_to=hsreplaynet.games.models._generate_upload_path)),
                 ('hsreplay_version', models.CharField(help_text='The HSReplay spec version of the HSReplay XML file', max_length=20, verbose_name='HSReplay version')),
                 ('is_deleted', models.BooleanField(default=False, help_text='Indicates user request to delete the upload', verbose_name='Soft deleted')),
                 ('exclude_in_aggregate_stats', models.BooleanField(default=False)),

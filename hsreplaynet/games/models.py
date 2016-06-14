@@ -3,15 +3,21 @@ from django.conf import settings
 from django.core.files.storage import default_storage
 from django.core.urlresolvers import reverse
 from django.db import models
+from django.utils.timezone import now
 from hearthstone.enums import BnetGameType, PlayState
 from hsreplaynet.cards.models import Card, Deck
 from hsreplaynet.uploads.models import UploadEventStatus
 from hsreplaynet.utils.fields import IntEnumField, PlayerIDField, ShortUUIDField
 
 
-def _generate_replay_upload_key(instance, filename):
-	timestamp = instance.global_game.match_start_timestamp.strftime("%Y/%m/%d")
-	return "%s/replays/%s.xml" % (timestamp, str(instance.id))
+def _generate_upload_path(instance, filename):
+	ts = now()
+	if instance.upload_token:
+		token = instance.token.key[:14]
+	else:
+		token = "unknown-token"
+	yymmdd = ts.strftime("%Y/%m/%d")
+	return "replays/%s/%s/%s.hsreplay.xml" % (yymmdd, token, ts.isoformat())
 
 
 class GlobalGame(models.Model):
@@ -255,7 +261,7 @@ class GameReplay(models.Model):
 	game_server_spectate_key = models.CharField(max_length=50, null=True, blank=True)
 	game_server_client_id = models.IntegerField(null=True, blank=True)
 
-	replay_xml = models.FileField(upload_to=_generate_replay_upload_key)
+	replay_xml = models.FileField(upload_to=_generate_upload_path)
 	hsreplay_version = models.CharField("HSReplay version",
 		max_length=20,
 		help_text="The HSReplay spec version of the HSReplay XML file",
