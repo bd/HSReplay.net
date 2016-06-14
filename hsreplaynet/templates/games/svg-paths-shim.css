@@ -16,3 +16,6 @@
 .heroPower div.visuals .hero-power-portrait {
 	clip-path: url({{svg}}#hero-power-clip);
 }
+.weapon div.visuals .hero-weapon-portrait {
+	clip-path: url({{svg}}#hero-weapon-clip);
+}
