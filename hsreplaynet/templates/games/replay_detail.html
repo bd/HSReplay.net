@@ -42,10 +42,12 @@
 <script>
 	$(document).ready(function() {
 		{% if dsn %}
-		Raven.config("{{ dsn }}").install();
-		Raven.setExtraContext({
-				replay_xml_url: "{{ replay.replay_xml.url }}",
-				hearthstone_build: {{ replay.global_game.hearthstone_build }}
+			Raven.config("{{ dsn }}").install();
+			Raven.setExtraContext({
+				replay_xml_url: "{{ replay.replay_xml.url }}"
+			});
+			Raven.setTagsContext({
+				hearthstone_build: "{{ replay.global_game.hearthstone_build }}"
 			});
 			{% if user.is_authenticated %}
 				Raven.setUserContext({
