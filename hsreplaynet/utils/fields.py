@@ -2,6 +2,7 @@ import shortuuid
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db.models import CharField, PositiveSmallIntegerField, SmallIntegerField
+from django.forms.widgets import Select
 from django.utils.deconstruct import deconstructible
 
 
@@ -16,6 +17,12 @@ class IntEnumValidator:
 
 	def __eq__(self, other):
 		return isinstance(other, IntEnumValidator) and self.enum == other.enum
+
+
+class IntEnumSelectWidget(Select):
+	def render_options(self, selected_choices):
+		selected_choices = [int(k) for k in selected_choices]
+		return super(IntEnumSelectWidget, self).render_options(selected_choices)
 
 
 class IntEnumField(SmallIntegerField):
@@ -36,6 +43,11 @@ class IntEnumField(SmallIntegerField):
 			except ValueError:
 				return value
 		return value
+
+	def formfield(self, **kwargs):
+		defaults = {"widget": IntEnumSelectWidget}
+		defaults.update(kwargs)
+		return super(IntEnumField, self).formfield(**defaults)
 
 
 class PlayerIDField(PositiveSmallIntegerField):
