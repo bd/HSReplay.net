@@ -95,14 +95,18 @@
 				parse(result);
 			};
 
-			$.ajax("{% hearthstonejson replay.global_game.hearthstone_build %}", {
+			var url = "{% hearthstonejson replay.global_game.hearthstone_build %}";
+			$.ajax(url, {
 				type: "GET",
 				dataType: "text",
 				success: save,
 				error: function(xhr, status, error) {
-					if(bn != 'latest' && xhr.status == 404) {
+					if(bn != 'latest' && xhr.status) {
 						{% if dsn %}
-							Raven && Raven.captureMessage('Unknown build "' + bn + '"', {level: "warning"});
+							Raven && Raven.captureMessage("HearthstoneJSON: Error fetching build " + bn +"\n'" + url + "' returned status " + xhr.status, {
+								level: "warning",
+								extra: {hearthstonejson_url: url}
+							});
 						{% endif %}
 						$.ajax("{% hearthstonejson "latest" %}", {
 							type: "GET",
