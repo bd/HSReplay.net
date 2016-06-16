@@ -35,6 +35,7 @@
 	</div>
 </div>
 
+<script src="{% static 'web/joust-extra.js' %}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react-dom.min.js"></script>
 {% if dsn %}<script src="https://cdn.ravenjs.com/3.0.5/raven.min.js"></script>{% endif %}
@@ -56,70 +57,17 @@
 				});
 			{% endif %}
 		{% endif %}
-
-		var cb = function (buildNumber, cb) {
-			var bn = +"{{ replay.global_game.hearthstone_build }}";
-			var store = null;
-
-			if(!bn) {
-				bn = "latest";
-			} else {
-				store = "joust-" + bn;
-
-				if (typeof(Storage) !== "undefined") {
-					if (typeof localStorage[store] === "string") {
-						var result = JSON.parse(localStorage[store]);
-						if (typeof result === "object") {
-							console.debug("Loaded card data from local storage (" + result.length + " cards)");
-							cb(result);
-							return;
-						}
-					}
-					if (typeof localStorage[store] !== "undefined") {
-						console.warn("Removing invalid card data in local storage");
-						localStorage.removeItem(store);
-					}
-				}
+		JoustExtra.setup({
+			hearthstonejson: "{% setting "HEARTHSTONEJSON_URL" %}",
+			logger: function (message, extra) {
+				{% if dsn %}
+					Raven && Raven.captureMessage(message, { level: "warning", extra: extra });
+				{% endif %}
+				console.warn(message);
 			}
-
-			var parse = function(result) {
-				cb(JSON.parse(result));
-			};
-
-			var save = function(result) {
-				if (store != null && typeof(Storage) !== "undefined") {
-					localStorage.setItem(store, result);
-					console.debug("Card data saved to local storage");
-				}
-
-				parse(result);
-			};
-
-			var url = "{% hearthstonejson replay.global_game.hearthstone_build %}";
-			$.ajax(url, {
-				type: "GET",
-				dataType: "text",
-				success: save,
-				error: function(xhr, status, error) {
-					if(bn != 'latest' && xhr.status) {
-						{% if dsn %}
-							Raven && Raven.captureMessage("HearthstoneJSON: Error fetching build " + bn +"\n'" + url + "' returned status " + xhr.status, {
-								level: "warning",
-								extra: {hearthstonejson_url: url}
-							});
-						{% endif %}
-						$.ajax("{% hearthstonejson "latest" %}", {
-							type: "GET",
-							dataType: "text",
-							success: parse
-						});
-					}
-				}
-			});
-		};
-
+		});
 		Joust.viewer("joust-container")
-			.metadata(cb)
+			.metadata(JoustExtra.metadata)
 			.assets("{% joust_static 'assets/' %}")
 			.cardArt("{% joust_static 'card-art/' %}")
 			.logger(function(error) {
