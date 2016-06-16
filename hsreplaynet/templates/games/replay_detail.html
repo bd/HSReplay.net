@@ -35,28 +35,30 @@
 	</div>
 </div>
 
-<script src="{% static 'web/joust-extra.js' %}"></script>
+{% if dsn %}
+	<script src="https://cdn.ravenjs.com/3.0.5/raven.min.js"></script>
+	<script>
+		Raven.config("{{ dsn }}").install();
+		Raven.setExtraContext({
+			replay_xml_url: "{{ replay.replay_xml.url }}"
+		});
+		Raven.setTagsContext({
+			hearthstone_build: "{{ replay.global_game.hearthstone_build }}"
+		});
+		{% if user.is_authenticated %}
+			Raven.setUserContext({
+				id: {{ user.id }},
+				username: "{{ user.username }}"
+			});
+		{% endif %}
+	</script>
+{% endif %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react-dom.min.js"></script>
-{% if dsn %}<script src="https://cdn.ravenjs.com/3.0.5/raven.min.js"></script>{% endif %}
+<script src="{% static 'web/joust-extra.js' %}"></script>
 <script src="{% joust_static 'joust.js' %}"></script>
 <script>
 	$(document).ready(function() {
-		{% if dsn %}
-			Raven.config("{{ dsn }}").install();
-			Raven.setExtraContext({
-				replay_xml_url: "{{ replay.replay_xml.url }}"
-			});
-			Raven.setTagsContext({
-				hearthstone_build: "{{ replay.global_game.hearthstone_build }}"
-			});
-			{% if user.is_authenticated %}
-				Raven.setUserContext({
-					id: {{ user.id }},
-					username: "{{ user.username }}"
-				});
-			{% endif %}
-		{% endif %}
 		JoustExtra.setup({
 			hearthstonejson: "{% setting "HEARTHSTONEJSON_URL" %}",
 			logger: function (message, extra) {
