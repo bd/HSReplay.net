@@ -10,7 +10,7 @@ from hsreplay.utils import toxml
 from hsreplaynet.utils import deduplication_time_range, guess_ladder_season
 from hsreplaynet.cards.models import Deck
 from hsreplaynet.uploads.models import UploadEventStatus
-from hsreplaynet import instrumentation
+from hsreplaynet.utils import instrumentation
 from .models import GameReplay, GlobalGame, GlobalGamePlayer, PendingReplayOwnership
 
 

@@ -6,11 +6,11 @@ from django.conf import settings
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.utils.timezone import now
 from rest_framework.test import APIRequestFactory
-from hsreplaynet import instrumentation
-from hsreplaynet.uploads.models import UploadEvent, UploadEventType
-from hsreplaynet.uploads.processing import queue_upload_event_for_processing
 from hsreplaynet.api.views import UploadEventViewSet
 from hsreplaynet.games.processing import process_upload_event
+from hsreplaynet.uploads.models import UploadEvent, UploadEventType
+from hsreplaynet.uploads.processing import queue_upload_event_for_processing
+from hsreplaynet.utils import instrumentation
 
 
 logging.getLogger("boto").setLevel(logging.WARN)
@@ -104,7 +104,6 @@ def create_power_log_upload_event_handler(event, context):
 					"response_code": response.status_code,
 					"response_content": response.content,
 				}))
-
 
 
 @instrumentation.sentry_aware_handler

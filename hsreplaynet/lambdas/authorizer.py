@@ -1,7 +1,7 @@
 import logging
 import re
 from hsreplaynet.api.models import AuthToken
-from hsreplaynet.instrumentation import sentry_aware_handler
+from hsreplaynet.utils.instrumentation import sentry_aware_handler
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

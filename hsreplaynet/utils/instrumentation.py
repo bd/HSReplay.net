@@ -1,10 +1,11 @@
 import time
 from contextlib import contextmanager
+from functools import wraps
 from django.conf import settings
 from django.utils.timezone import now
 from influxdb import InfluxDBClient
-from .utils import logger
-from functools import wraps
+from . import logger
+
 
 if "raven.contrib.django.raven_compat" in settings.INSTALLED_APPS:
 	from raven.contrib.django.raven_compat.models import client as sentry

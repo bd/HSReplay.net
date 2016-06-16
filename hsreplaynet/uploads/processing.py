@@ -9,7 +9,7 @@ import logging
 import boto3
 from django.conf import settings
 from django.utils.timezone import now
-from hsreplaynet.instrumentation import error_handler, influx_metric
+from hsreplaynet.utils.instrumentation import error_handler, influx_metric
 
 
 logger = logging.getLogger(__file__)
