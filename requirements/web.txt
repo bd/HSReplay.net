@@ -1,6 +1,6 @@
 -r base.txt
 
 # web-facing libraries (Not used for lambda clients)
-allauth_battlenet==0.9.4
+allauth_battlenet==0.9.5
 django-allauth==0.25.2
 django-loginas==0.1.9

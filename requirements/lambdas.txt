@@ -4,4 +4,4 @@
 git+https://github.com/mbarrien/django-storages.git@boto3-new#egg=django-storages
 enum34==1.1.6
 influxdb==2.12.0
-raven==5.19.0
+raven==5.21.0
