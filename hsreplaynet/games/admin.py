@@ -20,7 +20,7 @@ class GameReplayAdmin(admin.ModelAdmin):
 	)
 	list_filter = (
 		"hsreplay_version", "is_spectated_game", "won", "disconnected",
-		"is_deleted", "exclude_in_aggregate_stats",
+		"is_deleted",
 	)
 	raw_id_fields = (
 		"upload_token", "user", "global_game",
