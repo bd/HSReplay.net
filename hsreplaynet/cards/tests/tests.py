@@ -1,11 +1,17 @@
 import random
+from django.core.management import call_command
 from django.test import TestCase
 from hearthstone import cardxml, enums
 from hsreplaynet.cards.models import Card, Deck, Include
-from hsreplaynet.test.base import CardDataBaseTest
 
 
-class DeckTests(CardDataBaseTest):
+class DeckTests(TestCase):
+	@classmethod
+	def setUpClass(cls):
+		# Call `manage.py load_cards`
+		call_command("load_cards")
+		super().setUpClass()
+
 	def setUp(self):
 		self.random_deck = Deck.objects.create()
 		self.deck_size = 10

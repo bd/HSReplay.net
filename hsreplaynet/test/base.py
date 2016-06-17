@@ -4,8 +4,6 @@ import subprocess
 import pytz
 from datetime import datetime, date, time
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
-from django.core.management import call_command
-from django.test import TestCase
 from selenium import webdriver
 from hearthstone.enums import *
 from hsreplaynet.api.models import AuthToken, APIKey
@@ -123,14 +121,6 @@ class TestDataConsumerMixin:
 		fixture["num_entities"] = 70
 
 		return fixture
-
-
-class CardDataBaseTest(TestCase):
-	@classmethod
-	def setUpClass(cls):
-		# Call `manage.py load_cards`
-		call_command("load_cards")
-		super(CardDataBaseTest, cls).setUpClass()
 
 
 def create_agent_and_token():
