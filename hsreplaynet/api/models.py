@@ -1,11 +1,10 @@
 import uuid
 from django.conf import settings
 from django.db import models
-from hsreplaynet.utils import generate_key
 
 
 class AuthToken(models.Model):
-	key = models.CharField("Key", max_length=40, primary_key=True)
+	key = models.UUIDField("Key", primary_key=True)
 	user = models.ForeignKey(settings.AUTH_USER_MODEL,
 		related_name="auth_tokens", null=True, blank=True
 	)
@@ -13,7 +12,7 @@ class AuthToken(models.Model):
 
 	def save(self, *args, **kwargs):
 		if not self.key:
-			self.key = generate_key()
+			self.key = uuid.uuid4()
 		return super(AuthToken, self).save(*args, **kwargs)
 
 	def __str__(self):
