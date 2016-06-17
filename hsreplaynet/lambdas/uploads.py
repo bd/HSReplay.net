@@ -7,7 +7,6 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from django.utils.timezone import now
 from rest_framework.test import APIRequestFactory
 from hsreplaynet.api.views import UploadEventViewSet
-from hsreplaynet.games.processing import process_upload_event
 from hsreplaynet.uploads.models import UploadEvent, UploadEventType
 from hsreplaynet.uploads.processing import queue_upload_event_for_processing
 from hsreplaynet.utils import instrumentation
@@ -132,5 +131,5 @@ def process_upload_event_handler(event, context):
 		else:
 			# TODO: Invoke downstream processing here.
 			logger.info("UploadEvent's initial status is: %s" % str(game_upload.status))
-			process_upload_event(game_upload)
+			game_upload.process()
 			logger.info("UploadEvent's status after processing is: %s" % str(game_upload.status))

@@ -79,3 +79,8 @@ class UploadEvent(models.Model):
 
 	def get_absolute_url(self):
 		return reverse("upload_detail", kwargs={"shortid": self.shortid})
+
+	def process(self):
+		from hsreplaynet.games.processing import process_upload_event
+
+		process_upload_event(self)

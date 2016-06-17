@@ -64,9 +64,8 @@ def queue_upload_event_for_processing(upload_event_id):
 				}
 			)
 	else:
-		from hsreplaynet.games.processing import process_upload_event
 		from .models import UploadEvent
 
 		logger.info("Processing UploadEvent %r locally", upload_event_id)
 		upload = UploadEvent.objects.get(id=upload_event_id)
-		process_upload_event(upload)
+		upload.process()
