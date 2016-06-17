@@ -1,7 +1,6 @@
 import json
 from django.core.serializers.json import DjangoJSONEncoder
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
 from hsreplaynet.stats import models as stats_models
 from hsreplaynet.uploads.models import UploadEvent
 from hsreplaynet.utils import get_client_ip
@@ -25,18 +24,14 @@ class UserSerializer(serializers.Serializer):
 class AuthTokenSerializer(serializers.HyperlinkedModelSerializer):
 	key = serializers.CharField(read_only=True)
 	user = UserSerializer(read_only=True)
-	api_key = serializers.CharField(write_only=True)
 
 	class Meta:
 		model = AuthToken
-		fields = ("key", "user", "api_key")
+		fields = ("key", "user")
 
 	def create(self, data):
-		try:
-			api_key = APIKey.objects.get(api_key=data.pop("api_key"))
-		except (APIKey.DoesNotExist, ValueError) as e:
-			raise ValidationError(str(e))
 		ret = super(AuthTokenSerializer, self).create(data)
+		api_key = self.context["request"].api_key
 		api_key.tokens.add(ret)
 		return ret
 

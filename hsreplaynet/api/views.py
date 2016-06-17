@@ -10,6 +10,7 @@ from hsreplaynet.uploads.models import UploadEvent
 from . import serializers
 from .authentication import AuthTokenAuthentication, RequireAuthToken
 from .models import AuthToken, APIKey
+from .permissions import APIKeyPermission
 
 
 class WriteOnlyOnceViewSet(CreateModelMixin, RetrieveModelMixin, GenericViewSet):
@@ -17,7 +18,7 @@ class WriteOnlyOnceViewSet(CreateModelMixin, RetrieveModelMixin, GenericViewSet)
 
 
 class AuthTokenViewSet(WriteOnlyOnceViewSet):
-	permission_classes = (AllowAny, )
+	permission_classes = (APIKeyPermission, )
 	queryset = AuthToken.objects.all()
 	serializer_class = serializers.AuthTokenSerializer
 

@@ -1,4 +1,3 @@
-import json
 from django.test import TestCase
 from hsreplaynet.test.base import create_agent_and_token
 
@@ -10,15 +9,16 @@ class TestAuthTokenRequest(TestCase):
 		self.url = "/api/v1/tokens/"
 
 	def test_request_upload_token(self):
-		data = json.dumps({"api_key": str(self.agent.api_key)})
-		print("posting %r" % (data))
-		response = self.client.post(self.url, content_type="application/json", data=data)
+		response = self.client.post(
+			self.url, content_type="application/json",
+			HTTP_X_API_KEY=str(self.agent.api_key)
+		)
 		self.assertEqual(response.status_code, 201)
 
 	def test_get_raises_not_allowed(self):
 		response = self.client.get(self.url)
-		self.assertEqual(response.status_code, 405)
+		self.assertEqual(response.status_code, 403)
 
-	def test_missing_api_key_raises_400(self):
+	def test_missing_api_key_raises_403(self):
 		response = self.client.post(self.url)
-		self.assertEqual(response.status_code, 400)
+		self.assertEqual(response.status_code, 403)
