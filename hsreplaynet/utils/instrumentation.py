@@ -3,7 +3,6 @@ from contextlib import contextmanager
 from functools import wraps
 from django.conf import settings
 from django.utils.timezone import now
-from influxdb import InfluxDBClient
 from . import logger
 
 
@@ -21,7 +20,10 @@ def error_handler(e):
 
 
 def sentry_aware_handler(func):
-	"""A wrapper which should be used around all handlers in the lambdas module to ensure sentry reporting."""
+	"""
+	A wrapper which should be used around all handlers in the
+	lambdas module to ensure sentry reporting.
+	"""
 	@wraps(func)
 	def wrapper(*args, **kwargs):
 		if len(args) != 2:
@@ -67,18 +69,18 @@ def influx_function_incovation_gauge(func):
 	return wrapper
 
 
-
 @contextmanager
 def influx_gauge(measure, timestamp=None, **kwargs):
 	"""
-	Gauges measure the count of inflight uploads. Additional kwargs are passed to InfluxDB as tags.
+	Gauges measure the count of inflight uploads.
+	Additional kwargs are passed to InfluxDB as tags.
 	"""
 	exception_raised_in_with_block = False
 	if settings.IS_RUNNING_LIVE or settings.IS_RUNNING_AS_LAMBDA:
 		influx_metric(measure, fields={"count": 1}, timestamp=timestamp, **kwargs)
 	try:
 		yield
-	except Exception as e:
+	except Exception:
 		exception_raised_in_with_block = True
 		raise
 	finally:
@@ -87,13 +89,18 @@ def influx_gauge(measure, timestamp=None, **kwargs):
 			influx_metric(measure, fields={"count": -1}, timestamp=timestamp, **kwargs)
 
 
-influx = InfluxDBClient(
-	settings.INFLUX_DB_ADDRESS,
-	8086,
-	username=settings.INFLUX_DB_USER,
-	password=settings.INFLUX_DB_PASSWORD,
-	database=settings.INFLUX_DB_NAME
-)
+try:
+	from influxdb import InfluxDBClient
+	influx = InfluxDBClient(
+		settings.INFLUX_DB_ADDRESS,
+		settings.INFLUX_DB_PORT,
+		username=settings.INFLUX_DB_USER,
+		password=settings.INFLUX_DB_PASSWORD,
+		database=settings.INFLUX_DB_NAME
+	)
+except ImportError as e:
+	logger.info("Influx is not installed, so will be disabled (%s)", e)
+	influx = None
 
 
 def influx_metric(measure, fields, timestamp=None, **kwargs):
@@ -123,7 +130,7 @@ def influx_timer(measure, timestamp=None, **kwargs):
 		timestamp = now()
 	try:
 		yield
-	except Exception as e:
+	except Exception:
 		exception_raised_in_with_block = True
 		raise
 	finally:
@@ -144,5 +151,3 @@ def influx_timer(measure, timestamp=None, **kwargs):
 			payload["time"] = timestamp.isoformat()
 			logger.info("About To Send Metric To InfluxDB: %s" % (str(payload)))
 			influx.write_points([payload])
-
-

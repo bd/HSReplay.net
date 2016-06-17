@@ -22,3 +22,15 @@ RAVEN_CONFIG = {
 	# release based on the git info.
 	# "release": raven.fetch_git_sha(os.path.join(os.path.dirname(__file__), "..")),
 }
+
+
+# Influx Metrics Settings
+INFLUX_DB_NAME = "hsreplaynet"
+INFLUX_DB_ADDRESS = ""
+INFLUX_DB_PORT = 8086
+INFLUX_DB_USER = ""
+INFLUX_DB_PASSWORD = ""
+
+
+# AWS SNS Settings
+SNS_PROCESS_UPLOAD_EVENT_TOPIC = ""
