@@ -180,26 +180,10 @@ if not IS_RUNNING_AS_LAMBDA:
 			},
 		},
 		"handlers": {
-			"joust": {
-				"level": "DEBUG",
-				"class": "logging.handlers.RotatingFileHandler",
-				"filename": os.path.join(LOG_ROOT_DIR, "joust.log"),
-				"maxBytes": 5242880,
-				"backupCount": 5,
-				"formatter": "verbose"
-			},
 			"timing": {
 				"level": "DEBUG",
 				"class": "logging.handlers.RotatingFileHandler",
 				"filename": os.path.join(LOG_ROOT_DIR, "timing.log"),
-				"maxBytes": 5242880,
-				"backupCount": 5,
-				"formatter": "verbose"
-			},
-			"web": {
-				"level": "DEBUG",
-				"class": "logging.handlers.RotatingFileHandler",
-				"filename": os.path.join(LOG_ROOT_DIR, "web.log"),
 				"maxBytes": 5242880,
 				"backupCount": 5,
 				"formatter": "verbose"
@@ -220,14 +204,6 @@ if not IS_RUNNING_AS_LAMBDA:
 				"backupCount": 5,
 				"formatter": "verbose"
 			},
-			"battlenet": {
-				"level": "DEBUG",
-				"class": "logging.handlers.RotatingFileHandler",
-				"filename": os.path.join(LOG_ROOT_DIR, "battlenet.log"),
-				"maxBytes": 5242880,
-				"backupCount": 5,
-				"formatter": "verbose"
-			},
 		},
 		"loggers": {
 			"django": {
@@ -239,16 +215,6 @@ if not IS_RUNNING_AS_LAMBDA:
 				"handlers": ["timing"],
 				"propagate": True,
 				"level": "INFO",
-			},
-			"joust": {
-				"handlers": ["joust", "error_file"],
-				"propagate": False,
-				"level": "DEBUG",
-			},
-			"web": {
-				"handlers": ["web", "error_file"],
-				"propagate": False,
-				"level": "DEBUG",
 			},
 		}
 	}
