@@ -2,6 +2,7 @@
 <html lang="en">
 {% load static from staticfiles %}
 {% load socialaccount %}
+{% load web_extras %}
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -92,6 +93,10 @@
 		<p>
 			This website is not affiliated with Blizzard Entertainment.
 		</p>
+		{% if user.is_staff %}
+			{% setting "RAVEN_CONFIG" as raven_config %}
+			@{{ raven_config.release|default:"unknown revision" }}
+		{% endif %}
 	{% endblock %}
 	</footer>
 </body>

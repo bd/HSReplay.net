@@ -15,3 +15,10 @@ INTERNAL_IPS = (
 	"0.0.0.0",
 	"127.0.0.1",
 )
+
+RAVEN_CONFIG = {
+	"dsn": "https://******@app.getsentry.com/80388",
+	# If you are using git, you can also automatically configure the
+	# release based on the git info.
+	# "release": raven.fetch_git_sha(os.path.join(os.path.dirname(__file__), "..")),
+}
