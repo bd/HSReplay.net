@@ -102,6 +102,10 @@ header nav h1 {
 	color: #aaa;
 }
 
+.site-footer abbr[title] {
+	border-bottom: none;
+}
+
 /* Generic pages (eg. account, flatpages) */
 
 .page {

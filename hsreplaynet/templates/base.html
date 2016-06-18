@@ -89,14 +89,19 @@
 			<a href="https://hearthsim.info">HearthSim</a> &copy; {% now 'Y' %}  &middot;
 			<a href="{% url 'privacy_policy' %}">Privacy Policy</a> &middot;
 			<a href="{% url 'terms_of_service' %}">Terms of Service</a>
+			{% if user.is_staff %}
+				{% setting "RAVEN_CONFIG" as raven_config %}
+				&middot;
+				{% if raven_config.release %}
+					@<abbr title="{{ raven_config.release }}">{{ raven_config.release|slice:":12" }}</abbr>
+				{% else %}
+					@unknown revision
+				{% endif %}
+			{% endif %}
 		</p>
 		<p>
 			This website is not affiliated with Blizzard Entertainment.
 		</p>
-		{% if user.is_staff %}
-			{% setting "RAVEN_CONFIG" as raven_config %}
-			@{{ raven_config.release|default:"unknown revision" }}
-		{% endif %}
 	{% endblock %}
 	</footer>
 </body>
