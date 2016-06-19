@@ -3,33 +3,14 @@ from io import StringIO
 from dateutil.parser import parse as dateutil_parse
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
-from hearthstone.enums import BnetGameType, GameTag, PlayState, PowerType, Zone
-from hsreplay import __version__ as hsreplay_version
-from hsreplay.dumper import parse_log, create_document, game_to_xml
-from hsreplay.utils import toxml
+from hearthstone.enums import BnetGameType, GameTag, PlayState
+from hsreplay.document import HSReplayDocument
+from hsreplay.dumper import parse_log
 from hsreplaynet.utils import deduplication_time_range, guess_ladder_season
 from hsreplaynet.cards.models import Deck
 from hsreplaynet.uploads.models import UploadEventStatus
 from hsreplaynet.utils import instrumentation
 from .models import GameReplay, GlobalGame, GlobalGamePlayer, PendingReplayOwnership
-
-
-def _get_player_meta(d, i):
-	player = d.get("player%i" % (i), {})
-	return {
-		"rank": str(player.get("rank")),
-		"legendRank": str(player.get("legend_rank")),
-		"cardback": str(player.get("cardback")),
-	}
-
-
-def find_friendly_player(game_tree):
-	for packet in game_tree.packets[1:]:
-		if packet.type != PowerType.FULL_ENTITY:
-			break
-		tags = dict(packet.tags)
-		if tags[GameTag.ZONE] == Zone.HAND and not packet.cardid:
-			return tags[GameTag.CONTROLLER] % 2 + 1
 
 
 def eligible_for_unification(meta):
@@ -72,42 +53,21 @@ def process_upload_event(upload_event):
 	upload_event.save()
 
 	meta = json.loads(upload_event.metadata)
+	match_start_timestamp = dateutil_parse(meta["match_start_timestamp"])
+	game_type = meta.get("game_type", BnetGameType.BGT_UNKNOWN)
+	game_id = meta.get("game_id")
+	reconnecting = meta.get("reconnecting", False)
+	build = meta["hearthstone_build"] or meta["stats"]["meta"]["hearthstone_build"]
 
 	upload_event.file.open(mode="rb")
 	log = StringIO(upload_event.file.read().decode("utf-8"))
 	upload_event.file.close()
 
-	match_start_timestamp = dateutil_parse(meta["match_start_timestamp"])
-	packet_tree = parse_log(log, processor="GameState", date=match_start_timestamp)
+	parser = parse_log(log, processor="GameState", date=match_start_timestamp)
 
-	if len(packet_tree.games) != 1:
-		raise ValidationError("Expected exactly 1 game, got %i" % (len(packet_tree.games)))
-
-	game_tree = packet_tree.games[0]
-
-	build = meta["hearthstone_build"] or meta["stats"]["meta"]["hearthstone_build"]
-	root = create_document(version=hsreplay_version, build=build)
-	player_meta = [_get_player_meta(meta, i) for i in (1, 2)]
-
-	game_type = meta.get("game_type", BnetGameType.BGT_UNKNOWN)
-	game_id = meta.get("game_id")
-	reconnecting = meta.get("reconnecting", False)
-	game_meta = {
-		"type": str(int(game_type)),
-	}
-	if game_id:
-		game_meta["id"] = str(game_id)
-	if reconnecting:
-		game_meta["reconnecting"] = "true"
-
-	# decks = [deck.split(",") for deck in meta["decks"]]
-	game = game_to_xml(
-		game_tree,
-		game_meta=game_meta,
-		player_meta=player_meta,
-		decks=[meta.get("player1", {}).get("deck"), meta.get("player2", {}).get("deck")],
-	)
-	root.append(game)
+	if len(parser.games) != 1:
+		raise ValidationError("Expected exactly 1 game, got %i" % (len(parser.games)))
+	game_tree = parser.games[0]
 
 	start_time = game_tree.start_time
 	end_time = game_tree.end_time
@@ -116,7 +76,7 @@ def process_upload_event(upload_event):
 	else:
 		ladder_season = guess_ladder_season(end_time)
 
-	friendly_player_id = meta.get("friendly_player") or find_friendly_player(game_tree)
+	friendly_player_id = meta.get("friendly_player") or game_tree.guess_friendly_player()
 	if not friendly_player_id:
 		raise ValidationError("Friendly player ID not present at upload and could not guess it.")
 
@@ -130,21 +90,21 @@ def process_upload_event(upload_event):
 			unifying = True
 
 	if not unifying:
-		num_entities = max(e.id for e in packet_tree.games[0].entities)
-		num_turns = packet_tree.games[0].tags.get(GameTag.TURN)
+		num_entities = max(e.id for e in game_tree.game.entities)
+		num_turns = game_tree.game.tags.get(GameTag.TURN)
 
 		global_game = GlobalGame.objects.create(
-			game_server_game_id = meta.get("game_id"),
-			game_server_address = meta.get("server_ip"),
-			game_server_port = meta.get("server_port"),
-			game_type = game_type,
-			hearthstone_build = build,
-			match_start_timestamp = start_time,
-			match_end_timestamp = end_time,
-			ladder_season = ladder_season,
-			scenario_id = meta.get("scenario_id"),
-			num_entities = num_entities,
-			num_turns = num_turns,
+			game_server_game_id=game_id,
+			game_server_address=meta.get("server_ip"),
+			game_server_port=meta.get("server_port"),
+			game_type=game_type,
+			hearthstone_build=build,
+			match_start_timestamp=start_time,
+			match_end_timestamp=end_time,
+			ladder_season=ladder_season,
+			scenario_id=meta.get("scenario_id"),
+			num_entities=num_entities,
+			num_turns=num_turns,
 		)
 
 	if upload_event.token:
@@ -153,62 +113,64 @@ def process_upload_event(upload_event):
 		# No token was attached to the request (maybe a manual one?)
 		user = None
 
+	# Create the HSReplay document
+	hsreplay_doc = HSReplayDocument.from_parser(parser, build=build)
+	game_xml = hsreplay_doc.games[0]
+	game_xml.game_type = game_type
+	if game_id:
+		game_xml.id = game_id
+	if reconnecting:
+		game_xml.reconnecting = True
+
+	# The replay object in the db
 	replay = GameReplay(
-		friendly_player_id = friendly_player_id,
-		game_server_client_id = meta.get("client_id"),
-		game_server_spectate_key = meta.get("spectate_key"),
-		global_game = global_game,
-		hsreplay_version = hsreplay_version,
-		is_spectated_game = meta.get("spectator_mode", False),
-		# raw_log = raw_log,
-		user = user,
+		friendly_player_id=friendly_player_id,
+		game_server_client_id=meta.get("client_id"),
+		game_server_spectate_key=meta.get("spectate_key"),
+		global_game=global_game,
+		hsreplay_version=hsreplay_doc.version,
+		is_spectated_game=meta.get("spectator_mode", False),
+		user=user,
 	)
 
-	for player in root.iter("Player"):
-		player_id = player.get("playerID")
-		if player_id not in ("1", "2"):
-			raise ValidationError("Unexpected player ID: %r" % (player_id))
-		player_id = int(player_id)
-		idx = player_id - 1
-
-		account_lo, account_hi = player.get("accountLo"), player.get("accountHi")
-		if not account_lo.isdigit():
-			raise ValidationError("Unexpected accountLo: %r" % (account_lo))
-		if not account_hi.isdigit():
-			raise ValidationError("Unexpected accountHi: %r" % (account_hi))
-		account_lo, account_hi = int(account_lo), int(account_hi)
-
-		player_obj = game_tree.players[idx]
-		player_meta_obj = meta.get("player%i" % (player_id), {})
-		hero = list(player_obj.heroes)[0]
+	# Fill the player metadata and objects
+	for player in game_tree.game.players:
+		player_meta_obj = meta.get("player%i" % (player.player_id), {})
+		hero = list(player.heroes)[0]
 		decklist = player_meta_obj.get("deck")
 		if not decklist:
-			decklist = [c.card_id for c in player_obj.initial_deck if c.card_id]
+			decklist = [c.card_id for c in player.initial_deck if c.card_id]
 		deck, _ = Deck.objects.get_or_create_from_id_list(decklist)
-		final_state = player_obj.tags.get(GameTag.PLAYSTATE, 0)
+		final_state = player.tags.get(GameTag.PLAYSTATE, 0)
+
+		player_xml = game_xml.players[player.player_id - 1]
+		player_xml.rank = player_meta_obj.get("rank")
+		player_xml.legendRank = player_meta_obj.get("legend_rank")
+		player_xml.cardback = player_meta_obj.get("cardback")
+		player_xml.deck = player_meta_obj.get("deck")
 
 		game_player = GlobalGamePlayer(
-			game = global_game,
-			player_id = player_id,
-			name = player_obj.name,
-			account_hi = account_hi,
-			account_lo = account_lo,
-			is_ai = account_lo == 0,
-			hero_id = hero.card_id,
-			hero_premium = hero.tags.get(GameTag.PREMIUM, False),
-			rank = player_meta_obj.get("rank"),
-			legend_rank = player_meta_obj.get("legend_rank"),
-			stars = player_meta_obj.get("stars"),
-			wins = player_meta_obj.get("wins"),
-			losses = player_meta_obj.get("losses"),
-			is_first = player_obj.tags.get(GameTag.FIRST_PLAYER, False),
-			final_state = final_state,
-			deck_list = deck,
-			duplicated = unifying,
+			game=global_game,
+			player_id=player.player_id,
+			name=player.name,
+			account_hi=player.account_hi,
+			account_lo=player.account_lo,
+			is_ai=player.is_ai,
+			hero_id=hero.card_id,
+			hero_premium=hero.tags.get(GameTag.PREMIUM, False),
+			rank=player_meta_obj.get("rank"),
+			legend_rank=player_meta_obj.get("legend_rank"),
+			stars=player_meta_obj.get("stars"),
+			wins=player_meta_obj.get("wins"),
+			losses=player_meta_obj.get("losses"),
+			is_first=player.tags.get(GameTag.FIRST_PLAYER, False),
+			final_state=final_state,
+			deck_list=deck,
+			duplicated=unifying,
 		)
 
 		# XXX move the following to replay save()
-		if player_id == friendly_player_id:
+		if player.player_id == friendly_player_id:
 			# Record whether the uploader won/lost that game
 			if final_state in (PlayState.PLAYING, PlayState.INVALID):
 				# This means we disconnected during the game
@@ -221,11 +183,12 @@ def process_upload_event(upload_event):
 
 		game_player.save()
 
-	xml_str = toxml(root, pretty=False)
+	# Save to XML
+	xml_str = hsreplay_doc.to_xml()
 	xml_file = ContentFile(xml_str)
 	instrumentation.influx_metric("replay_xml_num_bytes", {"size": xml_file.size})
-
 	replay.replay_xml.save("hsreplay.xml", xml_file, save=False)
+
 	replay.save()
 
 	if user is None and upload_event.token is not None:
