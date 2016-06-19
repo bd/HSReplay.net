@@ -114,8 +114,11 @@ def influx_metric(measure, fields, timestamp=None, **kwargs):
 		}
 
 		payload["time"] = timestamp.isoformat()
-		logger.info("About To Send Metric To InfluxDB: %s" % str(payload))
-		influx.write_points([payload])
+		try:
+			influx.write_points([payload])
+		except Exception as e:
+			# Can happen if Influx is not available for example
+			error_handler(e)
 
 
 @contextmanager
@@ -149,5 +152,7 @@ def influx_timer(measure, timestamp=None, **kwargs):
 			}
 
 			payload["time"] = timestamp.isoformat()
-			logger.info("About To Send Metric To InfluxDB: %s" % (str(payload)))
-			influx.write_points([payload])
+			try:
+				influx.write_points([payload])
+			except Exception as e:
+				error_handler(e)
