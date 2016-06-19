@@ -36,7 +36,7 @@ class CreateAccountClaimView(CreateAPIView):
 	serializer_class = serializers.AccountClaimSerializer
 
 	def create(self, request):
-		claim, _ = AccountClaim.objects.get_or_create(token_id=request.session["auth_token"])
+		claim, _ = AccountClaim.objects.get_or_create(token=request.auth_token)
 		serializer = self.get_serializer(claim)
 		headers = self.get_success_headers(serializer.data)
 		response = Response(serializer.data, status=HTTP_201_CREATED, headers=headers)

@@ -8,7 +8,7 @@ class RequireAuthToken(BasePermission):
 	def has_permission(self, request, view):
 		if request.user and request.user.is_staff:
 			return True
-		return bool(request.session.get("auth_token"))
+		return hasattr(request, "auth_token")
 
 
 class AuthTokenAuthentication(TokenAuthentication):
@@ -17,7 +17,7 @@ class AuthTokenAuthentication(TokenAuthentication):
 	def authenticate(self, request):
 		user_token_tuple = super(AuthTokenAuthentication, self).authenticate(request)
 		if user_token_tuple is not None:
-			request.session["auth_token"] = user_token_tuple[1].key
+			request.auth_token = user_token_tuple[1]
 		return user_token_tuple
 
 	def authenticate_credentials(self, key):
