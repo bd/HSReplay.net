@@ -10,13 +10,13 @@ class AuthToken(models.Model):
 	)
 	created = models.DateTimeField("Created", auto_now_add=True)
 
+	def __str__(self):
+		return str(self.key)
+
 	def save(self, *args, **kwargs):
 		if not self.key:
 			self.key = uuid.uuid4()
 		return super(AuthToken, self).save(*args, **kwargs)
-
-	def __str__(self):
-		return self.key
 
 
 class APIKey(models.Model):

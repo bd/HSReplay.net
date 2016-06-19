@@ -34,7 +34,7 @@ def _generate_upload_path(instance, filename):
 	ts = now()
 	extension = UploadEventType(instance.type).extension
 	if instance.token:
-		token = instance.token.key[:14]
+		token = str(instance.token.key)
 	else:
 		token = "unknown-token"
 	yymmdd = ts.strftime("%Y/%m/%d")

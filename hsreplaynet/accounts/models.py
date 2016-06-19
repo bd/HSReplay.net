@@ -9,13 +9,13 @@ class AccountClaim(models.Model):
 	token = models.OneToOneField("api.AuthToken")
 	created = models.DateTimeField("Created", auto_now_add=True)
 
+	def __str__(self):
+		return str(self.id)
+
 	def save(self, *args, **kwargs):
 		if not self.id:
 			self.id = uuid.uuid4()
 		return super().save(*args, **kwargs)
-
-	def __str__(self):
-		return self.id
 
 	def get_absolute_url(self):
 		return reverse("account_claim", kwargs={"id": self.id})

@@ -22,7 +22,7 @@ class UserSerializer(serializers.Serializer):
 
 
 class AuthTokenSerializer(serializers.HyperlinkedModelSerializer):
-	key = serializers.CharField(read_only=True)
+	key = serializers.UUIDField(read_only=True)
 	user = UserSerializer(read_only=True)
 
 	class Meta:
