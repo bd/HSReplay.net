@@ -41,13 +41,6 @@ def _generate_upload_path(instance, filename):
 	return "uploads/%s/%s/%s%s" % (yymmdd, token, ts.isoformat(), extension)
 
 
-class UploadEventManager(models.Manager):
-	def get_by_bucket_and_key(self, bucket, key):
-		if key.endswith(UploadEventType.POWER_LOG.extension):
-			db_id = key[19:-10]
-			return self.objects.get(id=db_id)
-
-
 class UploadEvent(models.Model):
 	"""
 	Represents a game upload, before the creation of the game itself.
@@ -67,8 +60,6 @@ class UploadEvent(models.Model):
 
 	metadata = models.TextField()
 	file = models.FileField(upload_to=_generate_upload_path)
-
-	objects = UploadEventManager()
 
 	@property
 	def is_processing(self):
