@@ -4,7 +4,7 @@
 {% block content %}
 
 <p class="upload-status-message upload-{{ upload.status.name|lower }}">
-{% if upload.status.name == "PROCESSING" %}
+{% if upload.is_processing %}
 	Your replay is still processing. Check back soon!
 {% else %}
 	Something went wrong generating this replay. We're on it.

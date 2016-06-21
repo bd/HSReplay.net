@@ -70,15 +70,19 @@ class UploadEvent(models.Model):
 
 	objects = UploadEventManager()
 
+	@property
+	def is_processing(self):
+		return self.status in (UploadEventStatus.UNKNOWN, UploadEventStatus.PROCESSING)
+
+	def get_absolute_url(self):
+		return reverse("upload_detail", kwargs={"shortid": self.shortid})
+
 	def delete(self, using=None):
 		# We must cleanup the S3 object ourselves (It is not handled by django-storages)
 		if default_storage.exists(self.file.name):
 			self.file.delete()
 
 		return super(UploadEvent, self).delete(using)
-
-	def get_absolute_url(self):
-		return reverse("upload_detail", kwargs={"shortid": self.shortid})
 
 	def process(self):
 		from hsreplaynet.games.processing import process_upload_event
