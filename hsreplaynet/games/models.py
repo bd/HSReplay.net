@@ -12,8 +12,8 @@ from hsreplaynet.utils.fields import IntEnumField, PlayerIDField, ShortUUIDField
 
 def _generate_upload_path(instance, filename):
 	ts = now()
-	if instance.upload_token:
-		token = instance.token.key[:14]
+	if instance.upload_token_id:
+		token = str(instance.upload_token_id)
 	else:
 		token = "unknown-token"
 	yymmdd = ts.strftime("%Y/%m/%d")

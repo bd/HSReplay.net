@@ -33,8 +33,8 @@ class UploadEventStatus(IntEnum):
 def _generate_upload_path(instance, filename):
 	ts = now()
 	extension = UploadEventType(instance.type).extension
-	if instance.token:
-		token = str(instance.token.key)
+	if instance.token_id:
+		token = str(instance.token_id)
 	else:
 		token = "unknown-token"
 	yymmdd = ts.strftime("%Y/%m/%d")
