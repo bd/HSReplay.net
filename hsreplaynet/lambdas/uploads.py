@@ -18,6 +18,7 @@ time_logger = logging.getLogger("TIMING")
 logger.setLevel(logging.INFO)
 
 
+@instrumentation.requires_db_lifecycle_management
 @instrumentation.sentry_aware_handler
 @instrumentation.influx_function_incovation_gauge
 def create_power_log_upload_event_handler(event, context):
@@ -105,6 +106,7 @@ def create_power_log_upload_event_handler(event, context):
 				}))
 
 
+@instrumentation.requires_db_lifecycle_management
 @instrumentation.sentry_aware_handler
 @instrumentation.influx_function_incovation_gauge
 def process_upload_event_handler(event, context):

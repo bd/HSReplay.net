@@ -69,6 +69,19 @@ def influx_function_incovation_gauge(func):
 	return wrapper
 
 
+def requires_db_lifecycle_management(func):
+	@wraps(func)
+	def wrapper(*args, **kwargs):
+		timestamp = now()
+		try:
+			return func(*args, **kwargs)
+		finally:
+			from django.db import connection
+			connection.close()
+
+	return wrapper
+
+
 @contextmanager
 def influx_gauge(measure, timestamp=None, **kwargs):
 	"""
