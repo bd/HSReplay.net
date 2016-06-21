@@ -86,7 +86,7 @@ class UploadBehavior(TaskSet):
 		}
 
 	def request_new_upload_token(self):
-		response = requests.post("https://hsreplay.net/api/v1/tokens/", {"api_key": API_KEY})
+		response = requests.post("https://hsreplay.net/api/v1/tokens/", headers = {"X-Api-Key": API_KEY})
 		return response.json()["key"].encode("ascii")
 
 	@task(6)
