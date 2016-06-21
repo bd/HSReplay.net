@@ -50,7 +50,7 @@ $(document).ready(function() {
 				.cardArt("{% joust_static 'card-art/' %}")
 				.width("100%")
 				.height("100%")
-				.fromUrl("{{ featured_game.replay_xml.url }}");
+				.fromUrl("{{ featured_game.replay_xml.url|safe }}");
 		}
 	};
 	$('#feat-joust-screenshot').click(function(e) {
