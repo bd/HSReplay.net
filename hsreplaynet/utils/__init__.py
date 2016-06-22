@@ -4,6 +4,9 @@ import logging
 import os
 import time
 from dateutil.relativedelta import relativedelta
+from uuid import UUID
+from django.http import Http404
+from django.shortcuts import get_object_or_404
 
 
 _timing_start = time.clock()
@@ -48,3 +51,17 @@ def guess_ladder_season(timestamp):
 	delta = relativedelta(timestamp, epoch)
 	months = (delta.years * 12) + delta.months
 	return epoch_season + months
+
+
+def get_uuid_object_or_404(cls, version=4, **kwargs):
+	"""
+	Helper that validates every kwarg as a valid UUID
+	This avoids ValueError when passing a bad hex string
+	to get_object_or_404().
+	"""
+	for k, v in kwargs.items():
+		try:
+			kwargs[k] = UUID(v, version=version)
+		except ValueError:
+			raise Http404
+	return get_object_or_404(cls, **kwargs)
