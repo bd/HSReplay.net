@@ -57,6 +57,8 @@ class UploadEvent(models.Model):
 	upload_ip = models.GenericIPAddressField()
 	status = IntEnumField(enum=UploadEventStatus, default=UploadEventStatus.UNKNOWN)
 	tainted = models.BooleanField(default=False)
+	error = models.TextField(blank=True)
+	traceback = models.TextField(blank=True)
 
 	metadata = models.TextField()
 	file = models.FileField(upload_to=_generate_upload_path)

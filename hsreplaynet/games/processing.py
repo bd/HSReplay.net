@@ -1,4 +1,5 @@
 import json
+import traceback
 from io import StringIO
 from dateutil.parser import parse as dateutil_parse
 from django.core.exceptions import ValidationError
@@ -63,7 +64,14 @@ def process_upload_event(upload_event):
 	log = StringIO(upload_event.file.read().decode("utf-8"))
 	upload_event.file.close()
 
-	parser = parse_log(log, processor="GameState", date=match_start_timestamp)
+	try:
+		parser = parse_log(log, processor="GameState", date=match_start_timestamp)
+	except Exception as e:
+		upload_event.status = UploadEventStatus.PARSING_ERROR
+		upload_event.error = str(e)
+		upload_event.traceback = traceback.format_exc()
+		upload_event.save()
+		raise
 
 	if len(parser.games) != 1:
 		raise ValidationError("Expected exactly 1 game, got %i" % (len(parser.games)))
