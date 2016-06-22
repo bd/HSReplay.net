@@ -14,6 +14,10 @@ from hsreplaynet.utils import instrumentation
 from .models import GameReplay, GlobalGame, GlobalGamePlayer, PendingReplayOwnership
 
 
+class ParsingError(ValueError):
+	pass
+
+
 def eligible_for_unification(meta):
 	return False
 
@@ -65,10 +69,35 @@ def find_or_create_global_game(game_tree, meta):
 
 
 def process_upload_event(upload_event):
-	if upload_event.game:
-		raise NotImplementedError("Reprocessing not implemented yet")
+	"""
+	Wrapper around do_process_upload_event() to set the event's
+	status and error/traceback as needed.
+	"""
 	upload_event.status = UploadEventStatus.PROCESSING
 	upload_event.save()
+
+	try:
+		replay = do_process_upload_event(upload_event)
+	except Exception as e:
+		if isinstance(e, ParsingError):
+			upload_event.status = UploadEventStatus.PARSING_ERROR
+		else:
+			upload_event.status = UploadEventStatus.SERVER_ERROR
+		upload_event.error = str(e)
+		upload_event.traceback = traceback.format_exc()
+		upload_event.save()
+		raise
+	else:
+		upload_event.game = replay
+		upload_event.status = UploadEventStatus.SUCCESS
+		upload_event.save()
+
+	return replay
+
+
+def do_process_upload_event(upload_event):
+	if upload_event.game:
+		raise NotImplementedError("Reprocessing not implemented yet")
 
 	meta = json.loads(upload_event.metadata)
 	match_start_timestamp = dateutil_parse(meta["match_start_timestamp"])
@@ -80,11 +109,7 @@ def process_upload_event(upload_event):
 	try:
 		parser = parse_log(log, processor="GameState", date=match_start_timestamp)
 	except Exception as e:
-		upload_event.status = UploadEventStatus.PARSING_ERROR
-		upload_event.error = str(e)
-		upload_event.traceback = traceback.format_exc()
-		upload_event.save()
-		raise
+		raise ParsingError(str(e)) from e
 
 	if len(parser.games) != 1:
 		raise ValidationError("Expected exactly 1 game, got %i" % (len(parser.games)))
@@ -184,9 +209,5 @@ def process_upload_event(upload_event):
 		# a pending claim for the replay for when it will be.
 		claim = PendingReplayOwnership(replay=replay, token=upload_event.token)
 		claim.save()
-
-	upload_event.game = replay
-	upload_event.status = UploadEventStatus.SUCCESS
-	upload_event.save()
 
 	return replay
