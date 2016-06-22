@@ -109,7 +109,7 @@ def do_process_upload_event(upload_event):
 	try:
 		parser = parse_log(log, processor="GameState", date=match_start_timestamp)
 	except Exception as e:
-		raise ParsingError(str(e)) from e
+		raise ParsingError(str(e))  # from e
 
 	if len(parser.games) != 1:
 		raise ValidationError("Expected exactly 1 game, got %i" % (len(parser.games)))
