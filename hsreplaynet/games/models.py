@@ -261,6 +261,10 @@ class GameReplay(models.Model):
 
 	won = models.NullBooleanField()
 	disconnected = models.BooleanField(default=False)
+	reconnecting = models.BooleanField("Is reconnecting",
+		default=False,
+		help_text="Whether the player is reconnecting to an existing game",
+	)
 
 	def __str__(self):
 		players = self.global_game.players.values_list("player_id", "final_state", "name")

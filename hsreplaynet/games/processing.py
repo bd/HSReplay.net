@@ -132,7 +132,8 @@ def do_process_upload_event(upload_event):
 	game_xml = hsreplay_doc.games[0]
 	game_xml.game_type = global_game.game_type
 	game_xml.id = global_game.game_server_game_id
-	if meta.get("reconnecting", False):
+	reconnecting = meta.get("reconnecting", False)
+	if reconnecting:
 		game_xml.reconnecting = True
 
 	# The replay object in the db
@@ -143,6 +144,7 @@ def do_process_upload_event(upload_event):
 		global_game=global_game,
 		hsreplay_version=hsreplay_doc.version,
 		is_spectated_game=meta.get("spectator_mode", False),
+		reconnecting=reconnecting,
 		user=user,
 	)
 
