@@ -190,20 +190,6 @@ class GlobalGamePlayer(models.Model):
 		return self.final_state in (PlayState.WINNING, PlayState.WON)
 
 
-class GameReplayManager(models.Manager):
-	def get_or_create_from_game_upload_event(self, game_upload_event):
-		# meta_data = json.loads(game_upload_event.meta_data)
-		# TODO: Use the metadata to generate the GameReplay record.
-		# ...
-
-		# NOTE: This method should update the status Enum on this object based on what happens inside this method.
-		game_upload_event.status = UploadEventStatus.SUCCESS
-		game_upload_event.save()
-
-		# Callers of this method expect a tuple of the GameReplay and a Boolean to indicate whether it was created
-		return (None, False)
-
-
 class GameReplay(models.Model):
 	"""
 	Represents a replay as captured from the point of view of a single
@@ -275,8 +261,6 @@ class GameReplay(models.Model):
 
 	won = models.NullBooleanField()
 	disconnected = models.BooleanField(default=False)
-
-	objects = GameReplayManager()
 
 	def __str__(self):
 		players = self.global_game.players.values_list("player_id", "final_state", "name")
