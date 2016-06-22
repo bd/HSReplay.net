@@ -61,6 +61,9 @@ class UploadEvent(models.Model):
 	metadata = models.TextField()
 	file = models.FileField(upload_to=_generate_upload_path)
 
+	def __str__(self):
+		return self.shortid
+
 	@property
 	def is_processing(self):
 		return self.status in (UploadEventStatus.UNKNOWN, UploadEventStatus.PROCESSING)
