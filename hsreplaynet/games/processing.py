@@ -18,33 +18,50 @@ def eligible_for_unification(meta):
 	return False
 
 
-def find_duplicate_games(meta, timestamp):
-	matches = GlobalGame.objects.filter(
-		hearthstone_build = meta["hearthstone_build"],
-		game_type = meta["game_type"],
-		game_server_game_id = meta["game_id"],
-		game_server_address = meta.get("server_ip"),
-		game_server_port = meta["server_port"],
-		match_start_timestamp__range = deduplication_time_range(timestamp),
+def find_or_create_global_game(game_tree, meta):
+	build = meta["hearthstone_build"] or meta["stats"]["meta"]["hearthstone_build"]
+	game_id = meta.get("game_id")
+	game_type = meta.get("game_type", BnetGameType.BGT_UNKNOWN)
+	start_time = game_tree.start_time
+	end_time = game_tree.end_time
+	if "stats" in meta and "ranked_season_stats" in meta["stats"]:
+		ladder_season = meta["stats"]["ranked_season_stats"]["season"]
+	else:
+		ladder_season = guess_ladder_season(end_time)
+
+	global_game = None
+	# Check if we have enough metadata to deduplicate the game
+	if eligible_for_unification(meta):
+		matches = GlobalGame.objects.filter(
+			hearthstone_build=build,
+			game_type=game_type,
+			game_server_game_id=game_id,
+			game_server_address=meta.get("server_ip"),
+			game_server_port=meta.get("server_port"),
+			match_start_timestamp__range=deduplication_time_range(start_time),
+		)
+
+		if matches:
+			if len(matches) > 1:
+				# clearly something's up. invalidate the upload, look into it manually.
+				raise ValidationError("Found too many global games. Mumble mumble...")
+			return matches.first(), True
+
+	global_game = GlobalGame.objects.create(
+		game_server_game_id=game_id,
+		game_server_address=meta.get("server_ip"),
+		game_server_port=meta.get("server_port"),
+		game_type=game_type,
+		hearthstone_build=build,
+		match_start_timestamp=start_time,
+		match_end_timestamp=end_time,
+		ladder_season=ladder_season,
+		scenario_id=meta.get("scenario_id"),
+		num_entities=len(game_tree.game.entities),
+		num_turns=game_tree.game.tags.get(GameTag.TURN),
 	)
 
-	if matches:
-		if len(matches) > 1:
-			# clearly something's up. invalidate the upload, look into it manually.
-			raise ValidationError("Found too many global games. Mumble mumble...")
-		global_game = matches.first()
-
-		# Check for duplicate uploads of the same game (eg. from same POV)
-		uploads = GameReplay.objects.filter(
-			global_game = global_game,
-			is_spectated_game = meta["spectator_mode"],
-			game_server_client_id = meta["client_id"],
-		)
-		if len(uploads) > 1:
-			raise ValidationError("Found too many player games... What happened?")
-		elif uploads:
-			return global_game, uploads.first()
-	return global_game, None
+	return global_game, False
 
 
 def process_upload_event(upload_event):
@@ -55,10 +72,6 @@ def process_upload_event(upload_event):
 
 	meta = json.loads(upload_event.metadata)
 	match_start_timestamp = dateutil_parse(meta["match_start_timestamp"])
-	game_type = meta.get("game_type", BnetGameType.BGT_UNKNOWN)
-	game_id = meta.get("game_id")
-	reconnecting = meta.get("reconnecting", False)
-	build = meta["hearthstone_build"] or meta["stats"]["meta"]["hearthstone_build"]
 
 	upload_event.file.open(mode="rb")
 	log = StringIO(upload_event.file.read().decode("utf-8"))
@@ -77,43 +90,11 @@ def process_upload_event(upload_event):
 		raise ValidationError("Expected exactly 1 game, got %i" % (len(parser.games)))
 	game_tree = parser.games[0]
 
-	start_time = game_tree.start_time
-	end_time = game_tree.end_time
-	if "stats" in meta and "ranked_season_stats" in meta["stats"]:
-		ladder_season = meta["stats"]["ranked_season_stats"]["season"]
-	else:
-		ladder_season = guess_ladder_season(end_time)
-
 	friendly_player_id = meta.get("friendly_player") or game_tree.guess_friendly_player()
 	if not friendly_player_id:
 		raise ValidationError("Friendly player ID not present at upload and could not guess it.")
 
-	# Check if we have enough metadata to deduplicate the game
-	unifying = False
-	if eligible_for_unification(meta):
-		global_game, upload = find_duplicate_games(meta, start_time)
-		if upload:
-			return upload  # ?
-		elif global_game:
-			unifying = True
-
-	if not unifying:
-		num_entities = max(e.id for e in game_tree.game.entities)
-		num_turns = game_tree.game.tags.get(GameTag.TURN)
-
-		global_game = GlobalGame.objects.create(
-			game_server_game_id=game_id,
-			game_server_address=meta.get("server_ip"),
-			game_server_port=meta.get("server_port"),
-			game_type=game_type,
-			hearthstone_build=build,
-			match_start_timestamp=start_time,
-			match_end_timestamp=end_time,
-			ladder_season=ladder_season,
-			scenario_id=meta.get("scenario_id"),
-			num_entities=num_entities,
-			num_turns=num_turns,
-		)
+	global_game, unified = find_or_create_global_game(game_tree, meta)
 
 	if upload_event.token:
 		user = upload_event.token.user
@@ -122,12 +103,11 @@ def process_upload_event(upload_event):
 		user = None
 
 	# Create the HSReplay document
-	hsreplay_doc = HSReplayDocument.from_parser(parser, build=build)
+	hsreplay_doc = HSReplayDocument.from_parser(parser, build=global_game.hearthstone_build)
 	game_xml = hsreplay_doc.games[0]
-	game_xml.game_type = game_type
-	if game_id:
-		game_xml.id = game_id
-	if reconnecting:
+	game_xml.game_type = global_game.game_type
+	game_xml.id = global_game.game_server_game_id
+	if meta.get("reconnecting", False):
 		game_xml.reconnecting = True
 
 	# The replay object in the db
@@ -174,7 +154,7 @@ def process_upload_event(upload_event):
 			is_first=player.tags.get(GameTag.FIRST_PLAYER, False),
 			final_state=final_state,
 			deck_list=deck,
-			duplicated=unifying,
+			duplicated=unified,
 		)
 
 		# XXX move the following to replay save()
