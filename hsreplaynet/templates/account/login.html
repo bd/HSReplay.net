@@ -1,0 +1,17 @@
+{% extends "account/login.html" %}
+
+{% load i18n %}
+{% load account socialaccount %}
+{% block content %}
+
+<p class="account-login login-bnet">
+	<a href="{% provider_login_url 'battlenet' %}" class="promo-button hero-button">Sign in with Battle.net</a>
+</p>
+
+{% if debug %}
+
+<h1>(Debug only)</h1>
+
+{{ block.super }}
+{% endif %}
+{% endblock %}
