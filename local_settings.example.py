@@ -1,5 +1,5 @@
 DEBUG = True
-ALLOWED_HOSTS = ["locahost:8000"]
+ALLOWED_HOSTS = ("*", )
 
 ACCOUNT_DEFAULT_HTTP_PROTOCOL = "http"
 
@@ -7,7 +7,6 @@ DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 MEDIA_URL = "/media/"
 STATIC_URL = "/static/"
 JOUST_STATIC_URL = "//static.hsreplay.net/static/joust/"
-# JOUST_RAVEN_DSN_PUBLIC = "https://hash@app.getsentry.com/12345"
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
@@ -22,6 +21,7 @@ RAVEN_CONFIG = {
 	# release based on the git info.
 	# "release": raven.fetch_git_sha(os.path.join(os.path.dirname(__file__), "..")),
 }
+# JOUST_RAVEN_DSN_PUBLIC = "https://hash@app.getsentry.com/12345"
 
 
 # Influx Metrics Settings
