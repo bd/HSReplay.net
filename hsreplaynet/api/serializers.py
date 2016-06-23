@@ -134,6 +134,7 @@ class UploadEventSerializer(serializers.Serializer):
 		ret = UploadEvent(
 			file=data.pop("file"),
 			token=request.auth_token,
+			api_key=request.api_key,
 			type=data.pop("type"),
 			upload_ip=get_client_ip(request),
 		)

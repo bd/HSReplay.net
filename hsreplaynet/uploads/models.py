@@ -51,6 +51,7 @@ class UploadEvent(models.Model):
 	id = models.BigAutoField(primary_key=True)
 	shortid = ShortUUIDField("Short ID")
 	token = models.ForeignKey("api.AuthToken", null=True, blank=True, related_name="uploads")
+	api_key = models.ForeignKey("api.APIKey", null=True, blank=True, related_name="uploads")
 	type = IntEnumField(enum=UploadEventType)
 	game = models.ForeignKey("games.GameReplay", null=True, blank=True, related_name="uploads")
 	created = models.DateTimeField(auto_now_add=True)

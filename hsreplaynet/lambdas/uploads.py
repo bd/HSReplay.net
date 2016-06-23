@@ -49,6 +49,7 @@ def create_power_log_upload_event_handler(event, context):
 			headers = event.get("headers")
 			headers["HTTP_X_FORWARDED_FOR"] = event.get("source_ip")
 			headers["HTTP_AUTHORIZATION"] = headers["Authorization"]
+			headers["HTTP_X_API_KEY"] = headers.get("X-Api-Key")
 
 			query_params = event.get("query")
 			query_params["file"] = power_log_file
@@ -59,7 +60,7 @@ def create_power_log_upload_event_handler(event, context):
 			middleware = SessionMiddleware()
 			middleware.process_request(request)
 
-			view = UploadEventViewSet.as_view({'post': 'create'})
+			view = UploadEventViewSet.as_view({"post": "create"})
 			response = view(request)
 			response.render()
 			logger.info("Response (code=%r): %s" % (response.status_code, response.content))
@@ -72,9 +73,7 @@ def create_power_log_upload_event_handler(event, context):
 			}))
 
 		else:
-
 			if response.status_code == 201:
-
 				# Extract the upload_event from the response, and queue it for downstream processing.
 				try:
 					upload_event_id = response.data["id"]

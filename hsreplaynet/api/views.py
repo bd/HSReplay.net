@@ -45,7 +45,7 @@ class CreateAccountClaimView(CreateAPIView):
 
 class UploadEventViewSet(WriteOnlyOnceViewSet):
 	authentication_classes = (AuthTokenAuthentication, SessionAuthentication)
-	permission_classes = (RequireAuthToken, )
+	permission_classes = (RequireAuthToken, APIKeyPermission)
 	queryset = UploadEvent.objects.all()
 	serializer_class = serializers.UploadEventSerializer
 
