@@ -64,9 +64,12 @@ MEDIUM_REPLAY = open(os.path.join(DATA_DIR, "examples", "medium.log")).read()  #
 LARGE_REPLAY = open(os.path.join(DATA_DIR, "examples", "large.log")).read()  # 31 minute game
 
 API_KEY = os.environ.get("API_KEY")
-API_ENDPOINT = os.environ.get("HSREPLAYNET_API_ENDPOINT", "/api/v1/uploads/")
 HOSTNAME = os.environ.get("HSREPLAYNET_HOST", "https://hsreplay.net")
 API_TOKEN_URL = HOSTNAME + "/api/v1/tokens/"
+if HOSTNAME == "https://hsreplay.net":
+	API_ENDPOINT = "/api/v1/replay/upload/powerlog"
+else:
+	API_ENDPOINT = "/api/v1/uploads/"
 
 
 class UploadBehavior(TaskSet):
@@ -80,15 +83,6 @@ class UploadBehavior(TaskSet):
 
 		self.token = self.request_upload_token()
 
-		self.HEADERS = {
-			"Authorization": "Token %s" % (self.token),
-		}
-
-		self.QUERY_PARAMS = {
-			"match_start_timestamp": "2016-05-10T17:10:06.4923855+02:00",
-			"hearthstone_build": 12574,
-		}
-
 	def request_upload_token(self):
 		headers = {"X-Api-Key": API_KEY}
 		with self.client.post(API_TOKEN_URL, headers=headers, catch_response=True) as response:
@@ -97,38 +91,42 @@ class UploadBehavior(TaskSet):
 				raise ResponseError("Could not request a new upload token")
 			return data["key"]
 
+	def post_replay(self, name, data):
+		kwargs = {
+			"data": {
+				"match_start_timestamp": "2016-05-10T17:10:06.4923855+02:00",
+				"hearthstone_build": 12574,
+			},
+			"headers": {
+				"Authorization": "Token %s" % (self.token),
+				"X-Api-Key": API_KEY,
+			},
+			"timeout": None,
+			"name": name,
+		}
+
+		if HOSTNAME == "https://hsreplay.net":
+			# On production systems, the replay file is the data
+			kwargs["params"] = kwargs.pop("data")
+			kwargs["data"] = data
+		else:
+			# By default, the replay file is the `file` parameter
+			kwargs["files"] = {"file": (name + ".log", data)}
+			kwargs["data"]["type"] = 1
+
+		return self.client.post(API_ENDPOINT, **kwargs)
+
 	@task(6)
 	def short_replay(self):
-		# We attempt to upload a short replay
-		self.client.post(API_ENDPOINT,
-			data=SHORT_REPLAY,
-			params=self.QUERY_PARAMS,
-			headers=self.HEADERS,
-			timeout=None,
-			name="short_replay"
-		)
+		self.post_replay("short_replay", SHORT_REPLAY)
 
 	@task(2)
 	def medium_replay(self):
-		# We upload medium length replays twice as often as short ones or long ones.
-		self.client.post(API_ENDPOINT,
-			data=MEDIUM_REPLAY,
-			params=self.QUERY_PARAMS,
-			headers=self.HEADERS,
-			timeout=None,
-			name="medium_replay"
-		)
+		self.post_replay("medium_replay", MEDIUM_REPLAY)
 
 	@task(1)
-	def long_replay(self):
-		# We upload a long replay
-		self.client.post(API_ENDPOINT,
-			data=LARGE_REPLAY,
-			params=self.QUERY_PARAMS,
-			headers=self.HEADERS,
-			timeout=None,
-			name="long_replay"
-		)
+	def large_replay(self):
+		self.post_replay("large_replay", LARGE_REPLAY)
 
 
 class ReplayUploadClient(HttpLocust):
