@@ -36,7 +36,7 @@ have a baseline, you can tune the numbers to zero in on your target rate.
 To initiate a load test against hsreplay.net locally, use the following
 command from within this directory:
 
-$ locust --host=https://upload.hsreplay.net --print-stats
+$ locust --host=https://localhost:8000 --print-stats
 
 Then open the web console to start the test: http://127.0.0.1:8089
 
@@ -56,6 +56,7 @@ import requests
 import patch_gevent
 from locust import HttpLocust, TaskSet, task
 
+
 BASE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 DATA_DIR = os.path.join(BASE_DIR, "data", "hsreplay-test-data")
 
@@ -64,7 +65,9 @@ MEDIUM_REPLAY = open(os.path.join(DATA_DIR, "examples", "medium.log")).read()  #
 LARGE_REPLAY = open(os.path.join(DATA_DIR, "examples", "large.log")).read()  # 31 minute game
 
 API_KEY = os.environ.get("API_KEY")
-API_ENDPOINT = "/api/v1/replay/upload/powerlog"
+API_ENDPOINT = os.environ.get("HSREPLAYNET_API_ENDPOINT", "/api/v1/uploads/")
+HOSTNAME = os.environ.get("HSREPLAYNET_HOST", "https://hsreplay.net")
+API_TOKEN_URL = HOSTNAME + "/api/v1/tokens/"
 
 
 class UploadBehavior(TaskSet):
@@ -76,8 +79,10 @@ class UploadBehavior(TaskSet):
 		if not API_KEY:
 			raise RuntimeError("The API_KEY environment variable needs to be set.")
 
+		self.token = self.request_upload_token()
+
 		self.HEADERS = {
-			"Authorization": "Token %s" % self.request_new_upload_token(),
+			"Authorization": "Token %s" % (self.token),
 		}
 
 		self.QUERY_PARAMS = {
@@ -85,9 +90,11 @@ class UploadBehavior(TaskSet):
 			"hearthstone_build": 12574,
 		}
 
-	def request_new_upload_token(self):
-		response = requests.post("https://hsreplay.net/api/v1/tokens/", headers = {"X-Api-Key": API_KEY})
-		return response.json()["key"].encode("ascii")
+	def request_upload_token(self):
+		headers = {"X-Api-Key": API_KEY}
+		response = requests.post(API_TOKEN_URL, headers=headers)
+		data = response.json()
+		return data["key"].encode("utf-8")
 
 	@task(6)
 	def short_replay(self):
