@@ -52,9 +52,8 @@ before it exits.
 --print-stats is optional but provides more useful debugging info to the console.
 """
 import os
-import requests
 import patch_gevent
-from locust import HttpLocust, TaskSet, task
+from locust import HttpLocust, ResponseError, TaskSet, task
 
 
 BASE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
@@ -92,9 +91,11 @@ class UploadBehavior(TaskSet):
 
 	def request_upload_token(self):
 		headers = {"X-Api-Key": API_KEY}
-		response = requests.post(API_TOKEN_URL, headers=headers)
-		data = response.json()
-		return data["key"].encode("utf-8")
+		with self.client.post(API_TOKEN_URL, headers=headers, catch_response=True) as response:
+			data = response.json()
+			if "key" not in data:
+				raise ResponseError("Could not request a new upload token")
+			return data["key"]
 
 	@task(6)
 	def short_replay(self):
