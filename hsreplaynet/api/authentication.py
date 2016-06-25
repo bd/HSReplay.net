@@ -24,7 +24,7 @@ class AuthTokenAuthentication(TokenAuthentication):
 		model = self.get_model()
 		try:
 			token = model.objects.get(key=key)
-		except model.DoesNotExist:
+		except (model.DoesNotExist, ValueError):
 			raise AuthenticationFailed("Invalid token.")
 
 		if token.user:

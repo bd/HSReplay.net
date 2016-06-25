@@ -18,7 +18,7 @@ class APIKeyPermission(permissions.BasePermission):
 
 		try:
 			api_key = APIKey.objects.get(api_key=key)
-		except APIKey.DoesNotExist:
+		except (APIKey.DoesNotExist, ValueError):
 			return False
 
 		request.api_key = api_key
