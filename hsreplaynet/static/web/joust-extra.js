@@ -18,7 +18,7 @@ var JoustExtra = {
 			this._fetchMetadata("latest", function (result) {
 				callback(JSON.parse(result));
 			});
-		};
+		}.bind(this);
 
 		if (buildNumber) {
 			var key = "hsjson-build-" + buildNumber;
@@ -84,7 +84,7 @@ var JoustExtra = {
 					throw new Error('HearthstoneJSON: Error fetching latest build\n"' + url + '" returned status ' + xhr.status);
 				}
 				errorCallback && errorCallback();
-			}
+			}.bind(this)
 		});
 	}
 };
