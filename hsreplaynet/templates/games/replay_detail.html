@@ -58,7 +58,7 @@
 <script src="{% static 'web/joust-extra.js' %}"></script>
 <script src="{% joust_static 'joust.js' %}"></script>
 <script>
-	$(document).ready(function() {
+	var j = function() {
 		JoustExtra.setup({
 			hearthstonejson: "{% setting "HEARTHSTONEJSON_URL" %}",
 			logger: function (message, extra) {
@@ -78,6 +78,14 @@
 				console.error(message);
 			})
 			.fromUrl($("#joust-container").data("replayurl"));
-	});
+	};
+
+	{% if dsn %}
+		if (Raven && Raven.wrap) {
+			j = Raven.wrap(j);
+		}
+	{% endif %}
+
+	$(document).ready(j);
 </script>
 {% endblock fullcontent %}
