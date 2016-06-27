@@ -63,14 +63,6 @@ SHORT_REPLAY = open(os.path.join(DATA_DIR, "examples", "short.log")).read()  # 4
 MEDIUM_REPLAY = open(os.path.join(DATA_DIR, "examples", "medium.log")).read()  # 9 minute game
 LARGE_REPLAY = open(os.path.join(DATA_DIR, "examples", "large.log")).read()  # 31 minute game
 
-API_KEY = os.environ.get("API_KEY")
-HOSTNAME = os.environ.get("HSREPLAYNET_HOST", "https://hsreplay.net")
-API_TOKEN_URL = HOSTNAME + "/api/v1/tokens/"
-if HOSTNAME == "https://hsreplay.net":
-	API_ENDPOINT = "/api/v1/replay/upload/powerlog"
-else:
-	API_ENDPOINT = "/api/v1/uploads/"
-
 
 class UploadBehavior(TaskSet):
 	def on_start(self):
@@ -78,14 +70,23 @@ class UploadBehavior(TaskSet):
 		Called when a Locust start before any task is scheduled
 		"""
 		# This is where we request an UploadToken for this user.
-		if not API_KEY:
+		self.api_key = os.environ.get("API_KEY")
+		if not self.api_key:
 			raise RuntimeError("The API_KEY environment variable needs to be set.")
+
+		self.is_live = self.client.base_url == "https://upload.hsreplay.net"
+		self.api_token_url = "/api/v1/tokens/"
+		if self.is_live:
+			self.api_token_url = "https://hsreplay.net" + self.api_token_url
+			self.api_endpoint = "/api/v1/replay/upload/powerlog"
+		else:
+			self.api_endpoint = "/api/v1/uploads/"
 
 		self.token = self.request_upload_token()
 
 	def request_upload_token(self):
-		headers = {"X-Api-Key": API_KEY}
-		with self.client.post(API_TOKEN_URL, headers=headers, catch_response=True) as response:
+		headers = {"X-Api-Key": self.api_key}
+		with self.client.post(self.api_token_url, headers=headers, catch_response=True) as response:
 			data = response.json()
 			if "key" not in data:
 				raise ResponseError("Could not request a new upload token")
@@ -99,13 +100,13 @@ class UploadBehavior(TaskSet):
 			},
 			"headers": {
 				"Authorization": "Token %s" % (self.token),
-				"X-Api-Key": API_KEY,
+				"X-Api-Key": self.api_key,
 			},
 			"timeout": None,
 			"name": name,
 		}
 
-		if HOSTNAME == "https://hsreplay.net":
+		if self.is_live:
 			# On production systems, the replay file is the data
 			kwargs["params"] = kwargs.pop("data")
 			kwargs["data"] = data
@@ -114,7 +115,7 @@ class UploadBehavior(TaskSet):
 			kwargs["files"] = {"file": (name + ".log", data)}
 			kwargs["data"]["type"] = 1
 
-		return self.client.post(API_ENDPOINT, **kwargs)
+		return self.client.post(self.api_endpoint, **kwargs)
 
 	@task(6)
 	def short_replay(self):
