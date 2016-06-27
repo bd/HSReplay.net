@@ -162,63 +162,6 @@ DATABASES = {
 
 # Logging
 
-if not IS_RUNNING_AS_LAMBDA:
-	# When we are running on Lambda the logging is configured by the runtime
-	# to write to CloudWatch so this is not needed.
-	LOG_ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, "logs"))
-
-	if not os.path.exists(LOG_ROOT_DIR):
-		os.mkdir(LOG_ROOT_DIR)
-
-	LOGGING = {
-		"version": 1,
-		"disable_existing_loggers": False,
-		"formatters": {
-			"verbose": {
-				"format": "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
-				"datefmt": "%d/%b/%Y %H:%M:%S"
-			},
-		},
-		"handlers": {
-			"timing": {
-				"level": "DEBUG",
-				"class": "logging.handlers.RotatingFileHandler",
-				"filename": os.path.join(LOG_ROOT_DIR, "timing.log"),
-				"maxBytes": 5242880,
-				"backupCount": 5,
-				"formatter": "verbose"
-			},
-			"django_file": {
-				"level": "DEBUG",
-				"class": "logging.handlers.RotatingFileHandler",
-				"filename": os.path.join(LOG_ROOT_DIR, "django.log"),
-				"maxBytes": 5242880,
-				"backupCount": 5,
-				"formatter": "verbose"
-			},
-			"error_file": {
-				"level": "ERROR",
-				"class": "logging.handlers.RotatingFileHandler",
-				"filename": os.path.join(LOG_ROOT_DIR, "error.log"),
-				"maxBytes": 5242880,
-				"backupCount": 5,
-				"formatter": "verbose"
-			},
-		},
-		"loggers": {
-			"django": {
-				"handlers": ["django_file", "error_file"],
-				"propagate": True,
-				"level": "INFO",
-			},
-			"TIMING": {
-				"handlers": ["timing"],
-				"propagate": True,
-				"level": "INFO",
-			},
-		}
-	}
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
