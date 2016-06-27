@@ -7,12 +7,11 @@
 	<link rel="stylesheet" type="text/css" href="{% joust_static 'joust.css' %}"/>
 
 	{% comment %} The following shim fixes card texture clipping in Firefox.
-	See bug: https://news.ycombinator.com/item?id=10316872 {% endcomment %}
+	See bug: https://bugzilla.mozilla.org/show_bug.cgi?id=1075457 {% endcomment %}
 	<style type="text/css">
 		{% include "games/svg-paths-shim.css" with svg="/static/web/svg-paths.svg" %}
 	</style>
-
-{% endblock stylesheets %}
+{% endblock %}
 
 {% block fullcontent %}
 {% setting "JOUST_RAVEN_DSN_PUBLIC" as dsn %}
@@ -38,18 +37,18 @@
 
 {% if dsn %}
 	<script src="https://cdn.ravenjs.com/3.0.5/raven.min.js"></script>
-	<script>
+	<script type="text/javascript">
 		Raven.config("{{ dsn }}").install();
 		Raven.setExtraContext({
-			replay_xml_url: "{{ replay.replay_xml.url }}"
+			replay_xml_url: "{{ replay.replay_xml.url|safe }}",
 		});
 		Raven.setTagsContext({
-			hearthstone_build: "{{ replay.global_game.hearthstone_build }}"
+			hearthstone_build: "{{ replay.global_game.hearthstone_build }}",
 		});
 		{% if user.is_authenticated %}
 			Raven.setUserContext({
 				id: {{ user.id }},
-				username: "{{ user.username }}"
+				username: "{{ user.username }}",
 			});
 		{% endif %}
 	</script>
@@ -58,14 +57,14 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react-dom.min.js"></script>
 <script src="{% static 'web/joust-extra.js' %}"></script>
 <script src="{% joust_static 'joust.js' %}"></script>
-<script>
+<script type="text/javascript">
 	var j = function() {
 		var events = [];
 		JoustExtra.setup({
-			hearthstonejson: "{% setting "HEARTHSTONEJSON_URL" %}",
+			hearthstonejson: "{% setting 'HEARTHSTONEJSON_URL' %}",
 			logger: function (message, extra) {
 				{% if dsn %}
-					Raven && Raven.captureMessage(message, { level: "warning", extra: extra });
+					Raven && Raven.captureMessage(message, {level: "warning", extra: extra});
 				{% endif %}
 				console.warn(message);
 			}
@@ -112,7 +111,7 @@
 								var line = event.type + (tags.length ? "," + tags.join(",") : "") + " " + values.join(",") + " " + timestamp;
 							}).join("\n")],
 							{
-								type: 'text/plain'
+								type: "text/plain",
 							}
 						);
 						oReq.send(blob);
@@ -120,7 +119,7 @@
 					}
 				};
 				window.setInterval(consumeInflux, 30 * 1000);
-				$(window).on('beforeunload', consumeInflux);
+				$(window).on("beforeunload", consumeInflux);
 			{% endif %}
 	};
 
@@ -132,4 +131,4 @@
 
 	$(document).ready(j);
 </script>
-{% endblock fullcontent %}
+{% endblock %}
