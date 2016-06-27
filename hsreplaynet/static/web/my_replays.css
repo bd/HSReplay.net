@@ -11,7 +11,6 @@
 	border: 1px solid #ddd;
 	border-radius: 4px;
 	-webkit-transition: border .2s ease-in-out;
-	-o-transition: border .2s ease-in-out;
 	transition: border .2s ease-in-out;
 }
 
@@ -102,7 +101,7 @@ a.hsreplay-thumbnail:link, a.hsreplay-thumbnail:hover {
 }
 
 .hsreplay-involved figure.winner:before {
-	content: '✔';
+	content: "✔";
 	display: inline-block;
 	position: absolute;
 	line-height: 0.8em;
