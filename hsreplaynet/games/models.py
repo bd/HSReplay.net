@@ -267,6 +267,13 @@ class GameReplay(models.Model):
 	)
 
 	def __str__(self):
+		players = self.global_game.players.values_list("name")
+		if len(players) != 2:
+			return "Broken game (%i players)" % (len(players))
+		return " vs ".join(p[0] for p in players)
+
+	@property
+	def pretty_name(self):
 		players = self.global_game.players.values_list("player_id", "final_state", "name")
 		if len(players) != 2:
 			return "Broken game (%i players)" % (len(players))
