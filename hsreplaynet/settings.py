@@ -109,7 +109,7 @@ if DEBUG:
 else:
 	DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 	STATICFILES_STORAGE = "whitenoise.django.GzipManifestStaticFilesStorage"
-	STATIC_URL = "//static.hsreplay.net/static/"
+	STATIC_URL = "https://static.hsreplay.net/static/"
 
 	# S3
 	S3_RAW_LOG_STORAGE_BUCKET = os.environ.get(
@@ -134,7 +134,7 @@ else:
 	)
 
 JOUST_STATIC_URL = STATIC_URL + "joust/"
-HEARTHSTONEJSON_URL = "https://api.hearthstonejson.com/v1/%(build)s/%(locale)s/cards.json"
+HEARTHSTONEJSON_URL = "https://cdn.hearthstonejson.com/v1/%(build)s/%(locale)s/cards.json"
 
 
 # Email
