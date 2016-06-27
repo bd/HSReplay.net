@@ -22,7 +22,7 @@ RAVEN_CONFIG = {
 	# "release": raven.fetch_git_sha(os.path.join(os.path.dirname(__file__), "..")),
 }
 # JOUST_RAVEN_DSN_PUBLIC = "https://hash@app.getsentry.com/12345"
-
+# JOUST_INFLUX_URL = "http://example.com:1337/write?db=hsreplaynet&precision=s&u=joust&p="
 
 # Influx Metrics Settings
 INFLUX_DB_NAME = "hsreplaynet"

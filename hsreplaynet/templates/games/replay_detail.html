@@ -16,6 +16,7 @@
 
 {% block fullcontent %}
 {% setting "JOUST_RAVEN_DSN_PUBLIC" as dsn %}
+{% setting "JOUST_INFLUX_URL" as influx %}
 
 <div id="tabletop" class="container-fluid">
 	<div class="row">
@@ -59,6 +60,7 @@
 <script src="{% joust_static 'joust.js' %}"></script>
 <script>
 	var j = function() {
+		var events = [];
 		JoustExtra.setup({
 			hearthstonejson: "{% setting "HEARTHSTONEJSON_URL" %}",
 			logger: function (message, extra) {
@@ -77,7 +79,49 @@
 				var message = error.message ? error.message : error;
 				console.error(message);
 			})
+			{% if influx %}
+			.events(function(event, tags, values) {
+				if(!event.type || !event.values.length) {
+					return;
+				}
+				events.push({
+					type: "joust_ " + event,
+					tags: tags,
+					values: values || [],
+					timestamp: Date.now()
+				});
+			})
+			{% endif %}
 			.fromUrl($("#joust-container").data("replayurl"));
+
+			{% if influx %}
+				var consumeInflux = function() {
+					if(events.length) {
+						var oReq = new XMLHttpRequest();
+						oReq.open("POST", "{{ influx|safe }}&precision=ms", true);
+						var blob = new Blob([
+							events.map(function (event) {
+								var tags = [];
+								for (var key1 in event.tags) {
+									tags.push(key1 + "=" + event.tags[key1]);
+								}
+								var values = [];
+								for (var key2 in event.values) {
+									tags.push(key2 + "=" + event.tags[key2]);
+								}
+								var line = event.type + (tags.length ? "," + tags.join(",") : "") + " " + values.join(",") + " " + timestamp;
+							}).join("\n")],
+							{
+								type: 'text/plain'
+							}
+						);
+						oReq.send(blob);
+						events = [];
+					}
+				};
+				window.setInterval(consumeInflux, 30 * 1000);
+				$(window).on('beforeunload', consumeInflux);
+			{% endif %}
 	};
 
 	{% if dsn %}
