@@ -144,7 +144,7 @@
 								}
 								var values = [];
 								for (var key2 in event.values) {
-									tags.push(key2 + "=" + event.tags[key2]);
+									values.push(key2 + "=" + event.values[key2]);
 								}
 								var line = event.type + (tags.length ? "," + tags.join(",") : "") + " " + values.join(",") + " " + event.timestamp;
 							}).join("\n")],
