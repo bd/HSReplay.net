@@ -109,7 +109,7 @@
 			{% if influx %}
 			.events(function(event, values, tags) {
 				if(!event || !Object.keys(values).length) {
-					console.warn('Discarding event "' + event +'"');
+					console.warn('Influx: Discarding event "' + event +'"');
 					return;
 				}
 				joustEvents.push({
@@ -123,30 +123,35 @@
 			.fromUrl($("#joust-container").data("replayurl"));
 
 			{% if influx %}
-				var consumeInflux = function() {
-					if(!joustEvents.length) {
-						return;
-					}
-					var oReq = new XMLHttpRequest();
-					oReq.open("POST", "{{ influx|safe }}&precision=s", true);
-					var blob = new Blob([
-						joustEvents.map(function (event) {
-							var tags = [];
-							for (var key1 in event.tags) {
-								tags.push(key1 + "=" + event.tags[key1]);
-							}
-							var values = [];
-							for (var key2 in event.values) {
-								tags.push(key2 + "=" + event.tags[key2]);
-							}
-							var line = event.type + (tags.length ? "," + tags.join(",") : "") + " " + values.join(",") + " " + event.timestamp;
-						}).join("\n")],
-						{
-							type: "text/plain",
+				var consumeInflux = function () {
+					try {
+						if (!joustEvents.length) {
+							return;
 						}
-					);
-					oReq.send(blob);
-					joustEvents = [];
+						var oReq = new XMLHttpRequest();
+						oReq.open("POST", "{{ influx|safe }}&precision=s", true);
+						var blob = new Blob([
+							joustEvents.map(function (event) {
+								var tags = [];
+								for (var key1 in event.tags) {
+									tags.push(key1 + "=" + event.tags[key1]);
+								}
+								var values = [];
+								for (var key2 in event.values) {
+									tags.push(key2 + "=" + event.tags[key2]);
+								}
+								var line = event.type + (tags.length ? "," + tags.join(",") : "") + " " + values.join(",") + " " + event.timestamp;
+							}).join("\n")],
+							{
+								type: "text/plain",
+							}
+						);
+						oReq.send(blob);
+						joustEvents = [];
+					}
+					catch(e) {
+						console.warn("Failed to contact Influx:", e);
+					}
 				};
 				window.setInterval(consumeInflux, 30 * 1000);
 				$(window).on("beforeunload", consumeInflux);
