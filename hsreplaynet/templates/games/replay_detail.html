@@ -166,7 +166,7 @@
 						joustEvents = [];
 					}
 					catch(e) {
-						console.warn("Failed to contact Influx:", e);
+						console.warn("Failed to reach Influx", e.message ? ": " + e.message : "");
 					}
 				};
 				window.setInterval(consumeInflux, 30 * 1000);
