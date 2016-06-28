@@ -18,20 +18,48 @@
 {% setting "JOUST_INFLUX_URL" as influx %}
 
 <div id="tabletop" class="container-fluid">
-	<div class="row">
-		<div class="col-lg-offset-1 col-lg-10 col-xs-12">
-			<h1>{{ replay }}</h1>
-		</div>
+	<div class="col-lg-offset-1 col-lg-10 col-xs-12">
+		<h1>{{ replay }}</h1>
 	</div>
-	<div class="row full_height">
+	<div class="full_height">
 		<div class="col-lg-offset-1 col-lg-10 col-xs-12 full_height">
 			<div id="joust-container" class="full_height" data-replayurl="{{ replay.replay_xml.url }}"></div>
 		</div>
 	</div>
-	<div class="row">
-		<div class="col-lg-offset-1 col-lg-10 col-xs-12">
-			<p><a href="{{ replay.replay_xml.url }}">Download replay</a></p>
-		</div>
+</div>
+
+<div id="replay-details" class="container-fluid">
+	<div class="col-lg-offset-1 col-lg-10 col-xs-12">
+		<h2>Details</h2>
+		{% with replay.global_game as gg %}
+		<p>
+			<ul>
+				<li>Patch {{ gg.hearthstone_build }}</li>
+				<li>{{ gg.num_turns }} turns, {{ gg.num_entities }} entities</li>
+				<li>
+					{{ gg.game_type.name }}
+					{% if gg.ladder_season %}- Season {{ gg.ladder_season }}{% endif %}
+				</li>
+				<li><a href="{{ replay.replay_xml.url }}">Download replay</a></li>
+			</ul>
+		</p>
+		<h3>Players</h3>
+		<p>
+		{% for player in gg.players.all %}
+			<h4>{{ player }}{% if player.is_ai %} (AI){% endif %} ({{ player.final_state.name|title }})</h4>
+			<ul>
+				<li>{% if player.is_first %}First player{% else %}Second player{% endif %}</li>
+				<li>Hero: {{ player.hero }}{% if player.hero_premium %} (Golden){% endif %}</li>
+				<li>Deck: {{ player.deck_list }}</li>
+				{% if player.rank %}
+					<li>Rank {{ player.rank }}{% if player.stars %} {{ player.stars }} stars{% endif %}</li>
+				{% elif player.legend_rank %}
+					<li>Legend rank {{ player.legend_rank }}</li>
+				{% endif %}
+			</ul>
+		{% endfor %}
+		</p>
+		{% endwith %}
 	</div>
 </div>
 
