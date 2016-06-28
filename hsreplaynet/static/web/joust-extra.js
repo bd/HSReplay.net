@@ -1,7 +1,15 @@
 var JoustExtra = {
 	_options: {
 		hearthstonejson: null,
-		locale: "enUS"
+		locale: "enUS",
+	},
+
+	flags: {
+		cards: {
+			fetched: false,
+			has_build: false,
+			latest: false,
+		}
 	},
 
 	setup: function (options) {
@@ -14,14 +22,21 @@ var JoustExtra = {
 	metadata: function (buildNumber, callback) {
 		buildNumber = +buildNumber;
 
+		var parse = function(result) {
+			this.flags.cards.fetched = true;
+			callback(JSON.parse(result));
+		}.bind(this);
+
 		var fetchLatest = function () {
 			this._fetchMetadata("latest", function (result) {
-				callback(JSON.parse(result));
+				this.flags.cards.latest = true;
+				parse(result);
 			});
 		}.bind(this);
 
 		if (buildNumber) {
 			var key = "hsjson-build-" + buildNumber;
+			this.flags.cards.has_build = true;
 
 			// check for availablity
 			if (typeof(Storage) !== "undefined") {
@@ -45,7 +60,7 @@ var JoustExtra = {
 			this._fetchMetadata(buildNumber,
 				function (result) {
 					// success
-					callback(JSON.parse(result));
+					parse(result);
 
 					// save to storage
 					if (key != null && typeof(Storage) !== "undefined") {
@@ -86,7 +101,7 @@ var JoustExtra = {
 				errorCallback && errorCallback();
 			}.bind(this)
 		});
-	}
+	},
 };
 
 JoustExtra.metadata = JoustExtra.metadata.bind(JoustExtra);

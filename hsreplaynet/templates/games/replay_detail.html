@@ -111,9 +111,19 @@
 					console.warn('Influx: Discarding event "' + event +'"');
 					return;
 				}
+				if(!tags) {
+					tags = {};
+				}
+				switch(event) {
+					case 'cards_received':
+						for(var card_flag in JoustExtra.flags.cards) {
+							tags[card_flag] = JoustExtra.flags.cards[card_flag];
+						}
+						break;
+				}
 				joustEvents.push({
 					type: "joust_ " + event,
-					tags: tags || {},
+					tags: tags,
 					values: values,
 					timestamp: Math.round(Date.now() / 1000)
 				});
