@@ -14,9 +14,6 @@
 {% endblock %}
 
 {% block fullcontent %}
-{% setting "JOUST_RAVEN_DSN_PUBLIC" as dsn %}
-{% setting "JOUST_INFLUX_URL" as influx %}
-
 <div id="tabletop" class="container-fluid">
 	<div class="col-lg-offset-1 col-lg-10 col-xs-12">
 		<h1>{{ replay }}</h1>
@@ -63,6 +60,8 @@
 	</div>
 </div>
 
+{% setting "JOUST_RAVEN_DSN_PUBLIC" as dsn %}
+{% influx_db "joust" as influx %}
 {% if dsn %}
 	<script src="https://cdn.ravenjs.com/3.1.1/raven.min.js"></script>
 	<script type="text/javascript">
@@ -129,7 +128,14 @@
 							return;
 						}
 						var oReq = new XMLHttpRequest();
-						oReq.open("POST", "{{ influx|safe }}&precision=s", true);
+						var url = "{% if influx.SSL %}https{% else %}http{% endif %}" +
+							"://{{ influx.HOST }}" +
+							":{{ influx.PORT|default:8086 }}" +
+							"/write?db={{ influx.NAME }}" +
+							"&u={{ influx.USER }}" +
+							"&p={{ influx.PASSWORD }}" +
+							"&precision=s"
+						oReq.open("POST", url, true);
 						var blob = new Blob([
 							joustEvents.map(function (event) {
 								var tags = [];

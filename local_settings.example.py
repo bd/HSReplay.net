@@ -22,14 +22,17 @@ RAVEN_CONFIG = {
 	# "release": raven.fetch_git_sha(os.path.join(os.path.dirname(__file__), "..")),
 }
 # JOUST_RAVEN_DSN_PUBLIC = "https://hash@app.getsentry.com/12345"
-# JOUST_INFLUX_URL = "http://example.com:1337/write?db=hsreplaynet&precision=s&u=joust&p="
 
-# Influx Metrics Settings
-INFLUX_DB_NAME = "hsreplaynet"
-INFLUX_DB_ADDRESS = ""
-INFLUX_DB_PORT = 8086
-INFLUX_DB_USER = ""
-INFLUX_DB_PASSWORD = ""
+INFLUX_DATABASES = {
+	"hsreplaynet": {
+		"NAME": "hsreplaynet",
+		"ADDRESS": "localhost",
+		"PORT": 8086,
+		"USER": "",
+		"PASSWORD": "",
+		"SSL": False,
+	}
+}
 
 
 # AWS SNS Settings

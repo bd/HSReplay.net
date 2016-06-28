@@ -76,11 +76,12 @@ try:
 
 		influx_settings = settings.INFLUX_DATABASES["hsreplaynet"]
 		influx = InfluxDBClient(
-			host=influx_settings["ADDRESS"],
-			port=influx_settings["PORT"],
+			host=influx_settings["HOST"],
+			port=influx_settings.get("PORT", 8086),
 			username=influx_settings["USER"],
 			password=influx_settings["PASSWORD"],
 			database=influx_settings["NAME"],
+			ssl=influx_settings.get("SSL", False),
 		)
 	else:
 		influx = None

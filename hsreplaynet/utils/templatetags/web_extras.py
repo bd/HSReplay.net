@@ -46,3 +46,9 @@ def hearthstonejson(context, build=None, locale="enUS"):
 @register.simple_tag
 def setting(name):
 	return getattr(settings, name, "")
+
+
+@register.simple_tag
+def influx_db(name):
+	dbs = getattr(settings, "INFLUX_DATABASES", {})
+	return dbs.get(name)
