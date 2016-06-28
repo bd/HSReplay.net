@@ -86,8 +86,8 @@
 <script src="{% static 'web/joust-extra.js' %}"></script>
 <script src="{% joust_static 'joust.js' %}"></script>
 <script type="text/javascript">
+	var joustEvents = [];
 	var j = function() {
-		var events = [];
 		JoustExtra.setup({
 			hearthstonejson: "{% setting 'HEARTHSTONEJSON_URL' %}",
 			logger: function (message, extra) {
@@ -107,15 +107,16 @@
 				console.error(message);
 			})
 			{% if influx %}
-			.events(function(event, tags, values) {
-				if(!event.type || !event.values.length) {
+			.events(function(event, values, tags) {
+				if(!event || !Object.keys(values).length) {
+					console.warn('Discarding event "' + event +'"');
 					return;
 				}
-				events.push({
+				joustEvents.push({
 					type: "joust_ " + event,
-					tags: tags,
-					values: values || [],
-					timestamp: Date.now()
+					tags: tags || {},
+					values: values,
+					timestamp: Math.round(Date.now() / 1000)
 				});
 			})
 			{% endif %}
@@ -123,28 +124,29 @@
 
 			{% if influx %}
 				var consumeInflux = function() {
-					if(events.length) {
-						var oReq = new XMLHttpRequest();
-						oReq.open("POST", "{{ influx|safe }}&precision=ms", true);
-						var blob = new Blob([
-							events.map(function (event) {
-								var tags = [];
-								for (var key1 in event.tags) {
-									tags.push(key1 + "=" + event.tags[key1]);
-								}
-								var values = [];
-								for (var key2 in event.values) {
-									tags.push(key2 + "=" + event.tags[key2]);
-								}
-								var line = event.type + (tags.length ? "," + tags.join(",") : "") + " " + values.join(",") + " " + timestamp;
-							}).join("\n")],
-							{
-								type: "text/plain",
-							}
-						);
-						oReq.send(blob);
-						events = [];
+					if(!joustEvents.length) {
+						return;
 					}
+					var oReq = new XMLHttpRequest();
+					oReq.open("POST", "{{ influx|safe }}&precision=s", true);
+					var blob = new Blob([
+						joustEvents.map(function (event) {
+							var tags = [];
+							for (var key1 in event.tags) {
+								tags.push(key1 + "=" + event.tags[key1]);
+							}
+							var values = [];
+							for (var key2 in event.values) {
+								tags.push(key2 + "=" + event.tags[key2]);
+							}
+							var line = event.type + (tags.length ? "," + tags.join(",") : "") + " " + values.join(",") + " " + event.timestamp;
+						}).join("\n")],
+						{
+							type: "text/plain",
+						}
+					);
+					oReq.send(blob);
+					joustEvents = [];
 				};
 				window.setInterval(consumeInflux, 30 * 1000);
 				$(window).on("beforeunload", consumeInflux);
