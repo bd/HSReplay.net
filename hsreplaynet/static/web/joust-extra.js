@@ -6,9 +6,12 @@ var JoustExtra = {
 
 	flags: {
 		cards: {
-			fetched: false,
+			fetched_any: false,
+			fetched_latest: false,
+			cached: false,
 			has_build: false,
-			latest: false,
+			failed_any: false,
+			failed_totally: false,
 		}
 	},
 
@@ -23,13 +26,13 @@ var JoustExtra = {
 		buildNumber = +buildNumber;
 
 		var parse = function(result) {
-			this.flags.cards.fetched = true;
+			this.flags.cards.fetched_any = true;
 			callback(JSON.parse(result));
 		}.bind(this);
 
 		var fetchLatest = function () {
 			this._fetchMetadata("latest", function (result) {
-				this.flags.cards.latest = true;
+				this.flags.cards.fetched_latest = true;
 				parse(result);
 			});
 		}.bind(this);
@@ -44,6 +47,7 @@ var JoustExtra = {
 				if (typeof localStorage[key] === "string") {
 					var result = JSON.parse(localStorage[key]);
 					if (typeof result === "object" && +result.length > 0) {
+						this.flags.cards.cached = true;
 						callback(result);
 						return;
 					}
@@ -89,6 +93,7 @@ var JoustExtra = {
 					// request was probably cancelled
 					return;
 				}
+				this.flags.cards.failed_any = true;
 				if (buildNumber != "latest") {
 					this._options.logger && this._options.logger(
 						"HearthstoneJSON: Error fetching build " + buildNumber + '\n"' + url + '" returned status ' + xhr.status,
@@ -96,6 +101,7 @@ var JoustExtra = {
 					);
 				}
 				else {
+					this.flags.cards.failed_totally = true;
 					throw new Error('HearthstoneJSON: Error fetching latest build\n"' + url + '" returned status ' + xhr.status);
 				}
 				errorCallback && errorCallback();
