@@ -58,7 +58,38 @@ def sentry_aware_handler(func):
 	return wrapper
 
 
-def influx_function_incovation_gauge(func):
+def requires_db_lifecycle_management(func):
+	@wraps(func)
+	def wrapper(*args, **kwargs):
+		try:
+			return func(*args, **kwargs)
+		finally:
+			from django.db import connection
+			connection.close()
+
+	return wrapper
+
+
+try:
+	if settings.IS_RUNNING_LIVE or settings.IS_RUNNING_AS_LAMBDA:
+		from influxdb import InfluxDBClient
+
+		influx_settings = settings.INFLUX_DATABASES["hsreplaynet"]
+		influx = InfluxDBClient(
+			host=influx_settings["ADDRESS"],
+			port=influx_settings["PORT"],
+			username=influx_settings["USER"],
+			password=influx_settings["PASSWORD"],
+			database=influx_settings["NAME"],
+		)
+	else:
+		influx = None
+except ImportError as e:
+	logger.info("Influx is not installed, so will be disabled (%s)", e)
+	influx = None
+
+
+def influx_function_invocation_gauge(func):
 	@wraps(func)
 	def wrapper(*args, **kwargs):
 		timestamp = now()
@@ -69,54 +100,35 @@ def influx_function_incovation_gauge(func):
 	return wrapper
 
 
-def requires_db_lifecycle_management(func):
-	@wraps(func)
-	def wrapper(*args, **kwargs):
-		timestamp = now()
-		try:
-			return func(*args, **kwargs)
-		finally:
-			from django.db import connection
-			connection.close()
-
-	return wrapper
-
-
 @contextmanager
 def influx_gauge(measure, timestamp=None, **kwargs):
 	"""
 	Gauges measure the count of inflight uploads.
 	Additional kwargs are passed to InfluxDB as tags.
 	"""
-	exception_raised_in_with_block = False
-	if settings.IS_RUNNING_LIVE or settings.IS_RUNNING_AS_LAMBDA:
-		influx_metric(measure, fields={"count": 1}, timestamp=timestamp, **kwargs)
+	exception_raised = False
+	influx_metric(measure, fields={"count": 1}, timestamp=timestamp, **kwargs)
 	try:
 		yield
 	except Exception:
-		exception_raised_in_with_block = True
+		exception_raised = True
 		raise
 	finally:
-		kwargs["exception_thrown"] = exception_raised_in_with_block
-		if settings.IS_RUNNING_LIVE or settings.IS_RUNNING_AS_LAMBDA:
-			influx_metric(measure, fields={"count": -1}, timestamp=timestamp, **kwargs)
+		kwargs["exception_thrown"] = exception_raised
+		influx_metric(measure, fields={"count": -1}, timestamp=timestamp, **kwargs)
 
 
-try:
-	from influxdb import InfluxDBClient
-	influx = InfluxDBClient(
-		settings.INFLUX_DB_ADDRESS,
-		settings.INFLUX_DB_PORT,
-		username=settings.INFLUX_DB_USER,
-		password=settings.INFLUX_DB_PASSWORD,
-		database=settings.INFLUX_DB_NAME
-	)
-except ImportError as e:
-	logger.info("Influx is not installed, so will be disabled (%s)", e)
-	influx = None
+def influx_write_payload(payload):
+	try:
+		influx.write_points(payload)
+	except Exception as e:
+		# Can happen if Influx if not available for example
+		error_handler(e)
 
 
 def influx_metric(measure, fields, timestamp=None, **kwargs):
+	if influx is None:
+		return
 	if timestamp is None:
 		timestamp = now()
 	if settings.IS_RUNNING_LIVE or settings.IS_RUNNING_AS_LAMBDA:
@@ -127,11 +139,7 @@ def influx_metric(measure, fields, timestamp=None, **kwargs):
 		}
 
 		payload["time"] = timestamp.isoformat()
-		try:
-			influx.write_points([payload])
-		except Exception as e:
-			# Can happen if Influx is not available for example
-			error_handler(e)
+		influx_write_payload([payload])
 
 
 @contextmanager
@@ -140,32 +148,30 @@ def influx_timer(measure, timestamp=None, **kwargs):
 	Reports the duration of the context manager.
 	Additional kwargs are passed to InfluxDB as tags.
 	"""
+	if influx is None:
+		return
 	start_time = time.clock()
-	exception_raised_in_with_block = False
+	exception_raised = False
 	if timestamp is None:
 		timestamp = now()
 	try:
 		yield
 	except Exception:
-		exception_raised_in_with_block = True
+		exception_raised = True
 		raise
 	finally:
 		stop_time = time.clock()
 		duration = (stop_time - start_time) * 10000
 
-		if settings.IS_RUNNING_LIVE or settings.IS_RUNNING_AS_LAMBDA:
-			tags = kwargs
-			tags["exception_thrown"] = exception_raised_in_with_block
-			payload = {
-				"measurement": measure,
-				"tags": tags,
-				"fields": {
-					"value": duration,
-				}
+		tags = kwargs
+		tags["exception_thrown"] = exception_raised
+		payload = {
+			"measurement": measure,
+			"tags": tags,
+			"fields": {
+				"value": duration,
 			}
+		}
 
-			payload["time"] = timestamp.isoformat()
-			try:
-				influx.write_points([payload])
-			except Exception as e:
-				error_handler(e)
+		payload["time"] = timestamp.isoformat()
+		influx_write_payload([payload])
