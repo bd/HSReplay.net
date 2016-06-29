@@ -38,6 +38,7 @@ INSTALLED_APPS = [
 	"hsreplaynet.cards",
 	"hsreplaynet.games",
 	"hsreplaynet.lambdas",
+	"hsreplaynet.scenarios",
 	"hsreplaynet.stats",
 	"hsreplaynet.uploads",
 	"hsreplaynet.utils",
