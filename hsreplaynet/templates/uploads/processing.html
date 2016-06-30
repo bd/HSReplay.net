@@ -6,6 +6,9 @@
 <p class="upload-status-message upload-{{ upload.status.name|lower }}">
 {% if upload.is_processing %}
 	Your replay is still processing. Check back soon!
+{% elif upload.status.name == "UNSUPPORTED" %}
+	<strong>This replay is not supported.</strong><br/>
+	<em>{{ upload.error }}</em>
 {% else %}
 	Something went wrong generating this replay. We're on it.
 {% endif %}

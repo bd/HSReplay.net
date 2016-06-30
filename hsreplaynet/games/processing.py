@@ -14,7 +14,15 @@ from hsreplaynet.utils import instrumentation
 from .models import GameReplay, GlobalGame, GlobalGamePlayer, PendingReplayOwnership
 
 
-class ParsingError(ValueError):
+class ProcessingError(Exception):
+	pass
+
+
+class ParsingError(ProcessingError):
+	pass
+
+
+class UnsupportedReplay(ProcessingError):
 	pass
 
 
@@ -81,6 +89,8 @@ def process_upload_event(upload_event):
 	except Exception as e:
 		if isinstance(e, ParsingError):
 			upload_event.status = UploadEventStatus.PARSING_ERROR
+		elif isinstance(e, UnsupportedReplay):
+			upload_event.status = UploadEventStatus.UNSUPPORTED
 		else:
 			upload_event.status = UploadEventStatus.SERVER_ERROR
 		upload_event.error = str(e)
@@ -114,6 +124,10 @@ def do_process_upload_event(upload_event):
 	if len(parser.games) != 1:
 		raise ValidationError("Expected exactly 1 game, got %i" % (len(parser.games)))
 	game_tree = parser.games[0]
+	# If a player's name is None, this is an unsupported replay.
+	for player in game_tree.game.players:
+		if player.name is None:
+			raise UnsupportedReplay("Could not extract player information from the log.")
 
 	friendly_player_id = meta.get("friendly_player") or game_tree.guess_friendly_player()
 	if not friendly_player_id:

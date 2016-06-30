@@ -14,7 +14,7 @@ class Command(BaseCommand):
 			print("Uploading %r" % (file))
 			metadata = {
 				"hearthstone_build": -1,
-				"match_start_timestamp": now().isoformat()
+				"match_start_timestamp": now().isoformat(),
 			}
 
 			event = UploadEvent(
