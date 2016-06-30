@@ -21,6 +21,9 @@ class Adventure(models.Model):
 	updated = models.DateTimeField(auto_now=True)
 	build = models.PositiveIntegerField()
 
+	dbf_filename = "ADVENTURE.xml"
+	dbf_columns = ["ID", "NOTE_DESC", "NAME", "SORT_ORDER", "LEAVING_SOON"]
+
 	def __str__(self):
 		return self.name or self.note_desc
 
@@ -39,6 +42,12 @@ class Wing(models.Model):
 	created = models.DateTimeField(auto_now_add=True)
 	updated = models.DateTimeField(auto_now=True)
 	build = models.PositiveIntegerField()
+
+	dbf_filename = "WING.xml"
+	dbf_columns = [
+		"ID", "NOTE_DESC", "ADVENTURE_ID", "SORT_ORDER", "RELEASE", "REQUIRED_EVENT",
+		"OWNERSHIP_PREREQ_WING_ID", "NAME", "COMING_SOON_LABEL", "REQUIRES_LABEL",
+	]
 
 	def __str__(self):
 		return self.name or self.note_desc
@@ -66,6 +75,14 @@ class Scenario(models.Model):
 	created = models.DateTimeField(auto_now_add=True)
 	updated = models.DateTimeField(auto_now=True)
 	build = models.PositiveIntegerField()
+
+	dbf_filename = "SCENARIO.xml"
+	dbf_columns = [
+		"ID", "NOTE_DESC", "PLAYERS", "PLAYER1_HERO_CARD_ID", "IS_TUTORIAL",
+		"IS_EXPERT", "IS_COOP", "ADVENTURE_ID", "WING_ID", "SORT_ORDER",
+		("MODE_ID", "mode"), "CLIENT_PLAYER2_HERO_CARD_ID", "NAME", "DESCRIPTION",
+		"OPPONENT_NAME", "COMPLETED_DESCRIPTION", "PLAYER1_DECK_ID",
+	]
 
 	def __str__(self):
 		return self.name or self.note_desc
