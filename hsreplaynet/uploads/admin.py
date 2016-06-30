@@ -21,3 +21,4 @@ class UploadEventAdmin(admin.ModelAdmin):
 	list_filter = ("type", "status", "tainted")
 	raw_id_fields = ("token", "game")
 	readonly_fields = ("created", )
+	search_fields = ("shortid", )
