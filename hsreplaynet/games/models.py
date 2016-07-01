@@ -297,7 +297,7 @@ class GameReplay(models.Model):
 	def delete(self, using=None):
 		# We must cleanup the S3 object ourselves (It is not handled by django-storages)
 		if default_storage.exists(self.replay_xml.name):
-			self.replay_xml.delete()
+			self.replay_xml.delete(save=False)
 
 		return super(GameReplay, self).delete(using)
 

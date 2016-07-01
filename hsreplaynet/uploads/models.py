@@ -78,7 +78,7 @@ class UploadEvent(models.Model):
 	def delete(self, using=None):
 		# We must cleanup the S3 object ourselves (It is not handled by django-storages)
 		if default_storage.exists(self.file.name):
-			self.file.delete()
+			self.file.delete(save=False)
 
 		return super(UploadEvent, self).delete(using)
 
