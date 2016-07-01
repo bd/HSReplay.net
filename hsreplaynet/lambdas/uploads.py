@@ -18,9 +18,7 @@ time_logger = logging.getLogger("TIMING")
 logger.setLevel(logging.INFO)
 
 
-@instrumentation.requires_db_lifecycle_management
-@instrumentation.sentry_aware_handler
-@instrumentation.influx_function_invocation_gauge
+@instrumentation.lambda_handler
 def create_power_log_upload_event_handler(event, context):
 	"""
 	A handler for creating UploadEvents via Lambda.
@@ -105,9 +103,7 @@ def create_power_log_upload_event_handler(event, context):
 				}))
 
 
-@instrumentation.requires_db_lifecycle_management
-@instrumentation.sentry_aware_handler
-@instrumentation.influx_function_invocation_gauge
+@instrumentation.lambda_handler
 def process_upload_event_handler(event, context):
 	"""
 	This handler is triggered by SNS whenever someone

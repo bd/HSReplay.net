@@ -19,20 +19,23 @@ def error_handler(e):
 		logger.exception(e)
 
 
-def sentry_aware_handler(func):
-	"""
-	A wrapper which should be used around all handlers in the
-	lambdas module to ensure sentry reporting.
+def lambda_handler(func):
+	"""Indicates the decorated function is a AWS Lambda handler.
+
+	The following standard lifecycle services are provided:
+		- Sentry reporting for all Exceptions that propagate
+		- Capturing a standard set of metrics for Influx
+		- Making sure all connections to the DB are closed
 	"""
 	@wraps(func)
 	def wrapper(*args, **kwargs):
 		if len(args) != 2:
-			msg = "@sentry_aware_handler must wrap functions with two arguments. E.g. handler(event, context)"
+			msg = "@lambda_handler must wrap functions with two arguments. E.g. handler(event, context)"
 			raise ValueError(msg)
 
 		context = args[1]
 		if not hasattr(context, "log_group_name"):
-			msg = "@sentry_aware_handler has been used with a function whose second argument is not a context object."
+			msg = "@lambda_handler has been used with a function whose second argument is not a context object."
 			raise ValueError(msg)
 
 		if sentry:
@@ -44,8 +47,11 @@ def sentry_aware_handler(func):
 			})
 
 		try:
-			logger.info("*** Inside @sentry_aware_handler")
-			return func(*args, **kwargs)
+
+			measurement = func.__name__
+			with influx_gauge(measurement):
+				return func(*args, **kwargs)
+
 		except Exception as e:
 			logger.exception("Got an exception: %r", e)
 			if sentry:
@@ -54,20 +60,12 @@ def sentry_aware_handler(func):
 			else:
 				logger.info("Sentry is not available.")
 			raise
-
-	return wrapper
-
-
-def requires_db_lifecycle_management(func):
-	@wraps(func)
-	def wrapper(*args, **kwargs):
-		try:
-			return func(*args, **kwargs)
 		finally:
 			from django.db import connection
 			connection.close()
 
 	return wrapper
+
 
 
 try:
@@ -89,16 +87,6 @@ except ImportError as e:
 	logger.info("Influx is not installed, so will be disabled (%s)", e)
 	influx = None
 
-
-def influx_function_invocation_gauge(func):
-	@wraps(func)
-	def wrapper(*args, **kwargs):
-		timestamp = now()
-		measurement = func.__name__
-		with influx_gauge(measurement, timestamp=timestamp):
-			return func(*args, **kwargs)
-
-	return wrapper
 
 
 @contextmanager

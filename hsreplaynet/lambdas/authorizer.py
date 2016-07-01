@@ -6,8 +6,8 @@ from hsreplaynet.utils import instrumentation
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-@instrumentation.requires_db_lifecycle_management
-@instrumentation.sentry_aware_handler
+
+@instrumentation.lambda_handler
 def lambda_handler(event, context):
 	logger.info("*** Event Data ***")
 	for k, v in event.items():
