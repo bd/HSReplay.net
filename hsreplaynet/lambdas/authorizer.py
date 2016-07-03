@@ -8,7 +8,7 @@ logger.setLevel(logging.INFO)
 
 
 @instrumentation.lambda_handler
-def lambda_handler(event, context):
+def api_gateway_authorizer(event, context):
 	logger.info("*** Event Data ***")
 	for k, v in event.items():
 		logger.info("%s: %s" % (k, v))

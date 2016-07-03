@@ -21,7 +21,7 @@ os.environ.setdefault("IS_RUNNING_AS_LAMBDA", "True")
 django.setup()
 
 # Make sure django.setup() has already been invoked to import handlers
-from hsreplaynet.lambdas.authorizer import lambda_handler as token_authorizer
+from hsreplaynet.lambdas.authorizer import api_gateway_authorizer as token_authorizer
 from hsreplaynet.lambdas.uploads import create_power_log_upload_event_handler
 from hsreplaynet.lambdas.uploads import process_upload_event_handler
 
