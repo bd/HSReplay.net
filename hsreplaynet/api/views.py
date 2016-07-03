@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.status import HTTP_201_CREATED
 from hsreplaynet.accounts.models import AccountClaim
+from hsreplaynet.games.models import GameReplay
 from hsreplaynet.uploads.models import UploadEvent
 from . import serializers
 from .authentication import AuthTokenAuthentication, RequireAuthToken
@@ -48,6 +49,12 @@ class UploadEventViewSet(WriteOnlyOnceViewSet):
 	permission_classes = (RequireAuthToken, APIKeyPermission)
 	queryset = UploadEvent.objects.all()
 	serializer_class = serializers.UploadEventSerializer
+
+
+class GameReplayViewSet(RetrieveModelMixin, GenericViewSet):
+	queryset = GameReplay.objects.all()
+	serializer_class = serializers.GameReplaySerializer
+	lookup_field = "shortid"
 
 
 class CreateStatsSnapshotView(CreateAPIView):

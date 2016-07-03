@@ -6,6 +6,7 @@ from . import views
 router = DefaultRouter()
 router.register(r"agents", views.APIKeyViewSet)
 router.register(r"tokens", views.AuthTokenViewSet)
+router.register(r"games", views.GameReplayViewSet)
 router.register(r"uploads", views.UploadEventViewSet)
 
 urlpatterns = [

@@ -1,6 +1,7 @@
 import json
 from django.core.serializers.json import DjangoJSONEncoder
 from rest_framework import serializers
+from hsreplaynet.games.models import GameReplay, GlobalGame, GlobalGamePlayer
 from hsreplaynet.stats import models as stats_models
 from hsreplaynet.uploads.models import UploadEvent
 from hsreplaynet.utils import get_client_ip
@@ -142,3 +143,36 @@ class UploadEventSerializer(serializers.Serializer):
 		ret.save()
 
 		return ret
+
+
+class GlobalGamePlayerSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = GlobalGamePlayer
+		fields = (
+			"name", "player_id", "account_hi", "account_lo", "is_ai", "is_first",
+			"hero_id", "hero_premium", "final_state",
+		)
+
+
+class GlobalGameSerializer(serializers.ModelSerializer):
+	players = GlobalGamePlayerSerializer(many=True, read_only=True)
+
+	class Meta:
+		model = GlobalGame
+		fields = (
+			"hearthstone_build", "match_start_timestamp", "match_end_timestamp",
+			"game_type", "ladder_season", "scenario_id", "players"
+		)
+
+
+class GameReplaySerializer(serializers.ModelSerializer):
+	user = UserSerializer(read_only=True)
+	global_game = GlobalGameSerializer(read_only=True)
+
+	class Meta:
+		model = GameReplay
+		fields = (
+			"shortid", "user", "global_game", "is_spectated_game", "friendly_player_id",
+			"replay_xml", "won", "disconnected", "reconnecting"
+		)
+		lookup_field = "shortid"
