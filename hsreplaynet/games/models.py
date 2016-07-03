@@ -51,8 +51,8 @@ class GlobalGame(models.Model):
 	game_server_address = models.GenericIPAddressField(null=True, blank=True)
 	game_server_port = models.IntegerField(null=True, blank=True)
 
-	hearthstone_build = models.CharField("Hearthstone Build Number",
-		max_length=50, blank=True, null=True,
+	hearthstone_build = models.PositiveIntegerField(
+		null=True, blank=True,
 		help_text="Patch number at the time the game was played."
 	)
 
