@@ -10,9 +10,7 @@ import logging
 from logging.handlers import SysLogHandler
 import os
 import django
-
-logging.getLogger("boto").setLevel(logging.WARN)
-
+import uuid
 # This block properly bootstraps Django for running inside the AWS Lambda Runtime.
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "hsreplaynet.settings")
 os.environ.setdefault("IS_RUNNING_AS_LAMBDA", "True")
@@ -20,23 +18,22 @@ django.setup()
 from django.conf import settings
 
 
-class ContextFilter(logging.Filter):
+class AWSRequestAwareFormatter(logging.Formatter):
 
-  def filter(self, record):
-    record.aws_request_id = os.environ.get("AWS_REQUEST_ID", "Unknown")
-    return True
-
+	def format(self, record):
+		record.__dict__['aws_request_id'] = uuid.uuid4()
+		return super(AWSRequestAwareFormatter, self).format(record)
 
 # Add papertrail logger
 paper_trail_handler = SysLogHandler(address=(settings.PAPERTRAIL_HOSTNAME, settings.PAPERTRAIL_PORT))
-formatter = logging.Formatter('%(asctime)s %(aws_request_id)s - %(funcName)s: %(message)s', datefmt='%b %d %H:%M:%S')
+formatter = AWSRequestAwareFormatter('%(asctime)s %(aws_request_id)s - %(funcName)s: %(message)s', datefmt='%b %d %H:%M:%S')
 paper_trail_handler.setFormatter(formatter)
 
 lambdas_logger = logging.getLogger('hsreplaynet')
-lambdas_logger.addFilter(ContextFilter())
 lambdas_logger.addHandler(paper_trail_handler)
 lambdas_logger.setLevel(logging.DEBUG)
 
+logging.getLogger("boto").setLevel(logging.WARN)
 
 # Make sure django.setup() has already been invoked to import handlers
 from hsreplaynet.lambdas.authorizer import api_gateway_authorizer as token_authorizer
