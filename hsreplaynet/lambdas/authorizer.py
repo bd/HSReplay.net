@@ -1,5 +1,7 @@
 import logging
 import re
+from django.conf import settings
+from django.utils.timezone import now
 from hsreplaynet.api.models import AuthToken
 from hsreplaynet.utils import instrumentation
 
@@ -9,44 +11,49 @@ logger.setLevel(logging.INFO)
 
 @instrumentation.lambda_handler
 def api_gateway_authorizer(event, context):
-	logger.info("*** Event Data ***")
-	for k, v in event.items():
-		logger.info("%s: %s" % (k, v))
+	handler_start = now()
+	with instrumentation.influx_timer("api_gateway_authorizer_duration_ms",
+		timestamp=handler_start,
+		is_running_as_lambda=settings.IS_RUNNING_AS_LAMBDA):
 
-	logger.info('Client token: ' + event['authorizationToken'])
-	logger.info('Method ARN: ' + event['methodArn'])
-	token_str = event['authorizationToken']
-	logger.info("Authorization Header: %s" % token_str)
+		logger.info("*** Event Data ***")
+		for k, v in event.items():
+			logger.info("%s: %s" % (k, v))
 
-	if 'Token' in token_str:
-		auth_algo, token = token_str.split()
-	else:
-		token = token_str
+		logger.info('Client token: ' + event['authorizationToken'])
+		logger.info('Method ARN: ' + event['methodArn'])
+		token_str = event['authorizationToken']
+		logger.info("Authorization Header: %s" % token_str)
 
-	tmp = event["methodArn"].split(":")
-	apiGatewayArnTmp = tmp[5].split("/")
-	awsAccountId = tmp[4]
+		if 'Token' in token_str:
+			auth_algo, token = token_str.split()
+		else:
+			token = token_str
 
-	principalId = "user"
-	policy = AuthPolicy(principalId, awsAccountId)
-	policy.restApiId = apiGatewayArnTmp[0]
-	policy.region = tmp[3]
-	policy.stage = apiGatewayArnTmp[1]
+		tmp = event["methodArn"].split(":")
+		apiGatewayArnTmp = tmp[5].split("/")
+		awsAccountId = tmp[4]
 
-	try:
-		token = AuthToken.objects.get(key=token)
-		policy.allowAllMethods()
-		logger.info("Authentication successful.")
-	except AuthToken.DoesNotExist as e:
-		logger.exception(e)
-		policy.denyAllMethods()
-		logger.info("Authentication denied.")
-	except Exception as e:
-		logger.exception(e)
-		logger.info("Authentication denied.")
-		raise Exception("Unauthorized token %r" % (token))
+		principalId = "user"
+		policy = AuthPolicy(principalId, awsAccountId)
+		policy.restApiId = apiGatewayArnTmp[0]
+		policy.region = tmp[3]
+		policy.stage = apiGatewayArnTmp[1]
 
-	return policy.build()
+		try:
+			token = AuthToken.objects.get(key=token)
+			policy.allowAllMethods()
+			logger.info("Authentication successful.")
+		except AuthToken.DoesNotExist as e:
+			logger.exception(e)
+			policy.denyAllMethods()
+			logger.info("Authentication denied.")
+		except Exception as e:
+			logger.exception(e)
+			logger.info("Authentication denied.")
+			raise Exception("Unauthorized token %r" % (token))
+
+		return policy.build()
 
 
 class HttpVerb:
