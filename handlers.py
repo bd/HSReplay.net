@@ -20,11 +20,20 @@ django.setup()
 from django.conf import settings
 
 
+class ContextFilter(logging.Filter):
+
+  def filter(self, record):
+    record.aws_request_id = os.environ.get("AWS_REQUEST_ID", "Unknown")
+    return True
+
+
 # Add papertrail logger
 paper_trail_handler = SysLogHandler(address=(settings.PAPERTRAIL_HOSTNAME, settings.PAPERTRAIL_PORT))
-formatter = logging.Formatter('%(asctime)s %(levelname)s - %(funcName)s: %(message)s', datefmt='%b %d %H:%M:%S')
+formatter = logging.Formatter('%(asctime)s %(aws_request_id)s - %(funcName)s: %(message)s', datefmt='%b %d %H:%M:%S')
 paper_trail_handler.setFormatter(formatter)
-lambdas_logger = logging.getLogger('hsreplaynet.lambdas')
+
+lambdas_logger = logging.getLogger('hsreplaynet')
+lambdas_logger.addFilter(ContextFilter())
 lambdas_logger.addHandler(paper_trail_handler)
 lambdas_logger.setLevel(logging.DEBUG)
 
