@@ -118,7 +118,7 @@ class GlobalGame(models.Model):
 
 class GlobalGamePlayer(models.Model):
 	id = models.BigAutoField(primary_key=True)
-	game = models.ForeignKey(GlobalGame, related_name="players")
+	game = models.ForeignKey(GlobalGame, related_name="players", on_delete=models.CASCADE)
 
 	name = models.CharField("Player name",
 		blank=True, max_length=64,

@@ -29,6 +29,17 @@ class Command(BaseCommand):
 
 				if upload.game:
 					self.stdout.write("Deleting %r" % (upload.game))
+
+					self.stdout.write("First checking the Global Game...")
+					global_game = upload.game.global_game
+					if global_game.replays.count() == 1:
+						self.stdout.write("Nothing else references this Global Game. It will be deleted.")
+						# The only replay associated with this global game is the one we are about to delete.
+						# Thus, we also delete the global game to avoid leaving artifacts behind in the DB.
+						global_game.delete()
+					else:
+						self.stdout.write("Other replays use this global game. It will not be deleted.")
+
 					upload.game.delete()
 				elif upload.status == UploadEventStatus.SUCCESS:
 					msg = "WARNING: status=SUCCESS but no replay attached on %r" % (upload)
