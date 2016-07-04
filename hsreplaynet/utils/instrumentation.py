@@ -1,4 +1,4 @@
-import time
+import time, os
 from contextlib import contextmanager
 from functools import wraps
 from django.conf import settings
@@ -38,6 +38,7 @@ def lambda_handler(func):
 			msg = "@lambda_handler has been used with a function whose second argument is not a context object."
 			raise ValueError(msg)
 
+		os.environ.setdefault("AWS_FUNCTION_NAME", getattr(context, "function_name"))
 		if sentry:
 			# Provide additional metadata to sentry in case the exception gets trapped and reported within the function.
 			sentry.user_context({
