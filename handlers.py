@@ -7,18 +7,27 @@ They should provide mediation between the AWS Lambda interface and
 standard Django requests.
 """
 import logging
+from logging.handlers import SysLogHandler
 import os
 import django
 
-
 logging.getLogger("boto").setLevel(logging.WARN)
-logger = logging.getLogger(__file__)
-logger.setLevel(logging.INFO)
 
 # This block properly bootstraps Django for running inside the AWS Lambda Runtime.
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "hsreplaynet.settings")
 os.environ.setdefault("IS_RUNNING_AS_LAMBDA", "True")
 django.setup()
+
+from django.conf import settings
+
+# Add papertrail logger
+paper_trail_handler = SysLogHandler(address=(settings.PAPERTRAIL_HOSTNAME, settings.PAPERTRAIL_PORT))
+formatter = logging.Formatter('%(asctime)s LAMBDA YOUR_APP: %(message)s', datefmt='%b %d %H:%M:%S')
+paper_trail_handler.setFormatter(formatter)
+root_logger = logging.getLogger()
+root_logger.addHandler(paper_trail_handler)
+root_logger.setLevel(logging.DEBUG)
+root_logger.info("PaperTrail Handler Configured")
 
 # Make sure django.setup() has already been invoked to import handlers
 from hsreplaynet.lambdas.authorizer import api_gateway_authorizer as token_authorizer
