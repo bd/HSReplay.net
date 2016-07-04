@@ -5,12 +5,10 @@ from django.utils.timezone import now
 from hsreplaynet.api.models import AuthToken
 from hsreplaynet.utils import instrumentation
 
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-
 
 @instrumentation.lambda_handler
 def api_gateway_authorizer(event, context):
+	logger = logging.getLogger('hsreplaynet.lambdas.api_gateway_authorizer')
 	handler_start = now()
 	with instrumentation.influx_timer("api_gateway_authorizer_duration_ms",
 		timestamp=handler_start,

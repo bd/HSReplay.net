@@ -12,17 +12,12 @@ from hsreplaynet.uploads.processing import queue_upload_event_for_processing
 from hsreplaynet.utils import instrumentation
 
 
-logging.getLogger("boto").setLevel(logging.WARN)
-logger = logging.getLogger(__file__)
-time_logger = logging.getLogger("TIMING")
-logger.setLevel(logging.INFO)
-
-
 @instrumentation.lambda_handler
 def create_power_log_upload_event_handler(event, context):
 	"""
 	A handler for creating UploadEvents via Lambda.
 	"""
+	logger = logging.getLogger('hsreplaynet.lambdas.create_power_log_upload_event_handler')
 	handler_start = now()
 	with instrumentation.influx_timer("create_power_log_upload_event_handler_duration_ms",
 		timestamp=handler_start,
@@ -109,7 +104,7 @@ def process_upload_event_handler(event, context):
 	This handler is triggered by SNS whenever someone
 	publishes a message to the SNS_PROCESS_UPLOAD_EVENT_TOPIC.
 	"""
-
+	logger = logging.getLogger('hsreplaynet.lambdas.process_upload_event_handler')
 	handler_start = now()
 	with instrumentation.influx_timer("process_upload_event_handler_duration_ms",
 		timestamp=handler_start,

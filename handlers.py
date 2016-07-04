@@ -20,20 +20,13 @@ django.setup()
 from django.conf import settings
 
 
-class ContextFilter(logging.Filter):
-
-	def filter(self, record):
-		record.function_name = os.environ.get("AWS_FUNCTION_NAME", "Unknown")
-		return True
-
 # Add papertrail logger
 paper_trail_handler = SysLogHandler(address=(settings.PAPERTRAIL_HOSTNAME, settings.PAPERTRAIL_PORT))
-formatter = logging.Formatter('%(asctime)s %(function_name)s: %(message)s', datefmt='%b %d %H:%M:%S')
+formatter = logging.Formatter('%(asctime)s %(levelname)s - %(funcName)s: %(message)s', datefmt='%b %d %H:%M:%S')
 paper_trail_handler.setFormatter(formatter)
-root_logger = logging.getLogger()
-root_logger.addFilter(ContextFilter())
-root_logger.addHandler(paper_trail_handler)
-root_logger.setLevel(logging.DEBUG)
+lambdas_logger = logging.getLogger('hsreplaynet.lambdas')
+lambdas_logger.addHandler(paper_trail_handler)
+lambdas_logger.setLevel(logging.DEBUG)
 
 
 # Make sure django.setup() has already been invoked to import handlers
