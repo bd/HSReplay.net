@@ -21,7 +21,7 @@ class IntEnumValidator:
 
 class IntEnumSelectWidget(Select):
 	def render_options(self, selected_choices):
-		selected_choices = [int(k) for k in selected_choices]
+		selected_choices = [int(k) for k in selected_choices if k]
 		return super(IntEnumSelectWidget, self).render_options(selected_choices)
 
 
