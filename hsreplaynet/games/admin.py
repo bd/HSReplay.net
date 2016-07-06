@@ -5,7 +5,7 @@ from hsreplaynet.utils.admin import admin_urlify as urlify, set_user
 from .models import GameReplay, GlobalGame, GlobalGamePlayer
 
 
-class GlobalGamePlayerInline(admin.TabularInline):
+class GlobalGamePlayerInline(admin.StackedInline):
 	model = GlobalGamePlayer
 	raw_id_fields = ("user", "deck_list")
 	max_num = 2
