@@ -5,7 +5,8 @@ from django.db import models
 
 class AuthToken(models.Model):
 	key = models.UUIDField("Key", primary_key=True)
-	user = models.ForeignKey(settings.AUTH_USER_MODEL,
+	user = models.ForeignKey(
+		settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
 		related_name="auth_tokens", null=True, blank=True
 	)
 	created = models.DateTimeField("Created", auto_now_add=True)

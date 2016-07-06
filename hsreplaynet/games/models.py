@@ -6,7 +6,6 @@ from django.db import models
 from django.utils.timezone import now
 from hearthstone.enums import BnetGameType, PlayState
 from hsreplaynet.cards.models import Card, Deck
-from hsreplaynet.uploads.models import UploadEventStatus
 from hsreplaynet.utils.fields import IntEnumField, PlayerIDField, ShortUUIDField
 
 
@@ -118,12 +117,14 @@ class GlobalGame(models.Model):
 
 class GlobalGamePlayer(models.Model):
 	id = models.BigAutoField(primary_key=True)
-	game = models.ForeignKey(GlobalGame, related_name="players", on_delete=models.CASCADE)
+	game = models.ForeignKey(GlobalGame, on_delete=models.CASCADE, related_name="players")
 
-	name = models.CharField("Player name",
-		blank=True, max_length=64,
+	name = models.CharField(
+		"Player name", blank=True, max_length=64,
 	)
-	user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
+	user = models.ForeignKey(
+		settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
+	)
 
 	player_id = PlayerIDField(null=True, blank=True)
 	account_hi = models.BigIntegerField("Account Hi",
@@ -142,7 +143,7 @@ class GlobalGamePlayer(models.Model):
 		help_text="Whether the player is the first player",
 	)
 
-	hero = models.ForeignKey(Card)
+	hero = models.ForeignKey(Card, on_delete=models.PROTECT)
 	hero_premium = models.BooleanField("Hero Premium",
 		default=False,
 		help_text="Whether the player's initial hero is golden."
@@ -152,7 +153,8 @@ class GlobalGamePlayer(models.Model):
 		enum=PlayState, default=PlayState.INVALID,
 	)
 
-	deck_list = models.ForeignKey(Deck,
+	deck_list = models.ForeignKey(
+		Deck, on_delete=models.PROTECT,
 		help_text="As much as is known of the player's starting deck list."
 	)
 
@@ -221,10 +223,15 @@ class GameReplay(models.Model):
 
 	id = models.BigAutoField(primary_key=True)
 	shortid = ShortUUIDField("Short ID")
-	upload_token = models.ForeignKey("api.AuthToken", null=True, blank=True, related_name="replays")
-	user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True)
-	global_game = models.ForeignKey(GlobalGame,
-		related_name="replays",
+	upload_token = models.ForeignKey(
+		"api.AuthToken", on_delete=models.SET_NULL,
+		null=True, blank=True, related_name="replays"
+	)
+	user = models.ForeignKey(
+		settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+	)
+	global_game = models.ForeignKey(
+		GlobalGame, on_delete=models.CASCADE, related_name="replays",
 		help_text="References the single global game that this replay shows."
 	)
 
@@ -320,7 +327,9 @@ class PendingReplayOwnership(models.Model):
 	the AuthKey gains a real user.
 	"""
 	replay = models.OneToOneField(GameReplay)
-	token = models.ForeignKey("api.AuthToken", related_name="replay_claims")
+	token = models.ForeignKey(
+		"api.AuthToken", on_delete=models.CASCADE, related_name="replay_claims"
+	)
 
 	class Meta:
 		unique_together = ("replay", "token")

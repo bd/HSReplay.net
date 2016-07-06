@@ -12,7 +12,7 @@ class StatsMeta(models.Model):
 class PlayerStats(models.Model):
 	id = models.BigAutoField(primary_key=True)
 	snapshot_time = models.DateTimeField()
-	meta = models.ForeignKey(StatsMeta)
+	meta = models.ForeignKey(StatsMeta, on_delete=models.CASCADE)
 
 	gold_progress = models.PositiveIntegerField()
 	gold_balance = models.PositiveIntegerField()
@@ -21,7 +21,7 @@ class PlayerStats(models.Model):
 class ArenaDraftStats(models.Model):
 	id = models.BigAutoField(primary_key=True)
 	snapshot_time = models.DateTimeField()
-	meta = models.ForeignKey(StatsMeta)
+	meta = models.ForeignKey(StatsMeta, on_delete=models.CASCADE)
 
 	wins = models.PositiveIntegerField()
 	losses = models.PositiveIntegerField()
@@ -31,7 +31,7 @@ class ArenaDraftStats(models.Model):
 class BrawlSeasonStats(models.Model):
 	id = models.BigAutoField(primary_key=True)
 	snapshot_time = models.DateTimeField()
-	meta = models.ForeignKey(StatsMeta)
+	meta = models.ForeignKey(StatsMeta, on_delete=models.CASCADE)
 
 	season = models.IntegerField()
 	brawl = models.IntegerField()  # scenario id
@@ -43,7 +43,7 @@ class BrawlSeasonStats(models.Model):
 class RankedSeasonStats(models.Model):
 	id = models.BigAutoField(primary_key=True)
 	snapshot_time = models.DateTimeField()
-	meta = models.ForeignKey(StatsMeta)
+	meta = models.ForeignKey(StatsMeta, on_delete=models.CASCADE)
 
 	wild = models.BooleanField()
 	season = models.IntegerField()
