@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.db.models import Count
+from hsreplaynet.uploads.models import UploadEvent
 from hsreplaynet.utils.admin import admin_urlify as urlify, set_user
 from .models import GameReplay, GlobalGame, GlobalGamePlayer
 
@@ -8,6 +9,13 @@ class GlobalGamePlayerInline(admin.TabularInline):
 	model = GlobalGamePlayer
 	raw_id_fields = ("user", "deck_list")
 	max_num = 2
+	show_change_link = True
+
+
+class UploadEventInline(admin.StackedInline):
+	model = UploadEvent
+	extra = 0
+	raw_id_fields = ("token", )
 	show_change_link = True
 
 
@@ -25,6 +33,7 @@ class GameReplayAdmin(admin.ModelAdmin):
 	raw_id_fields = (
 		"upload_token", "user", "global_game",
 	)
+	inlines = (UploadEventInline, )
 
 
 class ReplaySidesFilter(admin.SimpleListFilter):
