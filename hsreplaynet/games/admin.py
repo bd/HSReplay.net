@@ -19,6 +19,13 @@ class UploadEventInline(admin.StackedInline):
 	show_change_link = True
 
 
+class GameReplayInline(admin.StackedInline):
+	model = GameReplay
+	extra = 0
+	raw_id_fields = ("upload_token", "user")
+	show_change_link = True
+
+
 @admin.register(GameReplay)
 class GameReplayAdmin(admin.ModelAdmin):
 	actions = (set_user, )
@@ -67,7 +74,7 @@ class GlobalGameAdmin(admin.ModelAdmin):
 	list_filter = (
 		"game_type", "ladder_season", "brawl_season", "hearthstone_build", ReplaySidesFilter
 	)
-	inlines = (GlobalGamePlayerInline, )
+	inlines = (GlobalGamePlayerInline, GameReplayInline)
 
 
 @admin.register(GlobalGamePlayer)
