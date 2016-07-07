@@ -125,25 +125,6 @@ except ImportError as e:
 	influx = None
 
 
-
-@contextmanager
-def influx_gauge(measure, timestamp=None, **kwargs):
-	"""
-	Gauges measure the count of inflight uploads.
-	Additional kwargs are passed to InfluxDB as tags.
-	"""
-	exception_raised = False
-	influx_metric(measure, fields={"count": 1}, timestamp=timestamp, **kwargs)
-	try:
-		yield
-	except Exception:
-		exception_raised = True
-		raise
-	finally:
-		kwargs["exception_thrown"] = exception_raised
-		influx_metric(measure, fields={"count": -1}, timestamp=timestamp, **kwargs)
-
-
 def influx_write_payload(payload):
 	try:
 		influx.write_points(payload)
