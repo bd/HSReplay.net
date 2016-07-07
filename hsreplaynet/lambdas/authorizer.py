@@ -9,49 +9,45 @@ from hsreplaynet.utils import instrumentation
 @instrumentation.lambda_handler
 def api_gateway_authorizer(event, context):
 	logger = logging.getLogger('hsreplaynet.lambdas.api_gateway_authorizer')
-	handler_start = now()
-	with instrumentation.influx_timer("api_gateway_authorizer_duration_ms",
-		timestamp=handler_start,
-		is_running_as_lambda=settings.IS_RUNNING_AS_LAMBDA):
 
-		logger.info("*** Event Data ***")
-		for k, v in event.items():
-			logger.info("%s: %s" % (k, v))
+	logger.info("*** Event Data ***")
+	for k, v in event.items():
+		logger.info("%s: %s" % (k, v))
 
-		logger.info('Client token: ' + event['authorizationToken'])
-		logger.info('Method ARN: ' + event['methodArn'])
-		token_str = event['authorizationToken']
-		logger.info("Authorization Header: %s" % token_str)
+	logger.info('Client token: ' + event['authorizationToken'])
+	logger.info('Method ARN: ' + event['methodArn'])
+	token_str = event['authorizationToken']
+	logger.info("Authorization Header: %s" % token_str)
 
-		if 'Token' in token_str:
-			auth_algo, token = token_str.split()
-		else:
-			token = token_str
+	if 'Token' in token_str:
+		auth_algo, token = token_str.split()
+	else:
+		token = token_str
 
-		tmp = event["methodArn"].split(":")
-		apiGatewayArnTmp = tmp[5].split("/")
-		awsAccountId = tmp[4]
+	tmp = event["methodArn"].split(":")
+	apiGatewayArnTmp = tmp[5].split("/")
+	awsAccountId = tmp[4]
 
-		principalId = "user"
-		policy = AuthPolicy(principalId, awsAccountId)
-		policy.restApiId = apiGatewayArnTmp[0]
-		policy.region = tmp[3]
-		policy.stage = apiGatewayArnTmp[1]
+	principalId = "user"
+	policy = AuthPolicy(principalId, awsAccountId)
+	policy.restApiId = apiGatewayArnTmp[0]
+	policy.region = tmp[3]
+	policy.stage = apiGatewayArnTmp[1]
 
-		try:
-			token = AuthToken.objects.get(key=token)
-			policy.allowAllMethods()
-			logger.info("Authentication successful.")
-		except AuthToken.DoesNotExist as e:
-			logger.exception(e)
-			policy.denyAllMethods()
-			logger.info("Authentication denied.")
-		except Exception as e:
-			logger.exception(e)
-			logger.info("Authentication denied.")
-			raise Exception("Unauthorized token %r" % (token))
+	try:
+		token = AuthToken.objects.get(key=token)
+		policy.allowAllMethods()
+		logger.info("Authentication successful.")
+	except AuthToken.DoesNotExist as e:
+		logger.exception(e)
+		policy.denyAllMethods()
+		logger.info("Authentication denied.")
+	except Exception as e:
+		logger.exception(e)
+		logger.info("Authentication denied.")
+		raise Exception("Unauthorized token %r" % (token))
 
-		return policy.build()
+	return policy.build()
 
 
 class HttpVerb:
