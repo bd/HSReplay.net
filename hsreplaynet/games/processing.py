@@ -31,7 +31,9 @@ def eligible_for_unification(meta):
 
 
 def find_or_create_global_game(game_tree, meta):
-	build = meta["hearthstone_build"] or meta["stats"]["meta"]["hearthstone_build"]
+	build = meta["hearthstone_build"]
+	if build is None and "stats" in meta:
+		build = meta["stats"]["meta"]["hearthstone_build"]
 	game_id = meta.get("game_id")
 	game_type = meta.get("game_type", BnetGameType.BGT_UNKNOWN)
 	start_time = game_tree.start_time
