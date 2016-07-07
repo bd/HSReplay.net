@@ -68,14 +68,16 @@ def lambda_handler(func):
 			msg = "@lambda_handler has been used with a function whose second argument is not a context object."
 			raise ValueError(msg)
 
-		os.environ["TRACING_REQUEST_ID"] = get_tracing_id(event, context)
+		tracing_id = get_tracing_id(event, context)
+		os.environ["TRACING_REQUEST_ID"] = tracing_id
 		if sentry:
 			# Provide additional metadata to sentry in case the exception
 			# gets trapped and reported within the function.
 			sentry.user_context({
 				"aws_log_group_name": getattr(context, "log_group_name"),
 				"aws_log_stream_name": getattr(context, "log_stream_name"),
-				"aws_function_name": getattr(context, "function_name")
+				"aws_function_name": getattr(context, "function_name"),
+				"tracing_id": tracing_id
 			})
 
 		try:
