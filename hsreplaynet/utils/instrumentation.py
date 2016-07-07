@@ -1,4 +1,6 @@
-import time, os
+import json
+import os
+import time
 from contextlib import contextmanager
 from functools import wraps
 from django.conf import settings
@@ -19,6 +21,33 @@ def error_handler(e):
 		logger.exception(e)
 
 
+def get_tracing_id(event, context):
+	"""
+	Returns the Authorization token as a unique identifier.
+	Used in the Lambda logging system to trace sessions.
+	"""
+	if "Records" in event:
+		# We are in the processing lambda
+		message = json.loads(event["Records"][0]["Sns"]["Message"])
+		return message["TRACING_REQUEST_ID"]
+
+	auth_header = None
+
+	if "authorizationToken" in event:
+		# We are in the Authorization Lambda
+		auth_header = event["authorizationToken"]
+
+	elif "headers" in event:
+		# We are in the create upload event Lambda
+		auth_header = event["headers"]["Authorization"]
+
+	if auth_header:
+		# The auth header is in the format 'Token <id>'
+		return auth_header.split()[1]
+
+	return "unknown-id"
+
+
 def lambda_handler(func):
 	"""Indicates the decorated function is a AWS Lambda handler.
 
@@ -33,14 +62,16 @@ def lambda_handler(func):
 			msg = "@lambda_handler must wrap functions with two arguments. E.g. handler(event, context)"
 			raise ValueError(msg)
 
+		event = args[0]
 		context = args[1]
 		if not hasattr(context, "log_group_name"):
 			msg = "@lambda_handler has been used with a function whose second argument is not a context object."
 			raise ValueError(msg)
 
-		os.environ.setdefault("AWS_REQUEST_ID", getattr(context, "aws_request_id"))
+		os.environ["TRACING_REQUEST_ID"] = get_tracing_id(event, context)
 		if sentry:
-			# Provide additional metadata to sentry in case the exception gets trapped and reported within the function.
+			# Provide additional metadata to sentry in case the exception
+			# gets trapped and reported within the function.
 			sentry.user_context({
 				"aws_log_group_name": getattr(context, "log_group_name"),
 				"aws_log_stream_name": getattr(context, "log_stream_name"),

@@ -6,10 +6,13 @@ http://boto3.readthedocs.io/en/latest/reference/services/sns.html#SNS.Client.pub
 """
 import json
 import logging
+import os
 import boto3
 from django.conf import settings
 from django.utils.timezone import now
+from hsreplaynet.uploads.models import UploadEvent
 from hsreplaynet.utils.instrumentation import error_handler, influx_metric
+from .models import UploadEvent
 
 
 logger = logging.getLogger(__file__)
@@ -33,7 +36,18 @@ def queue_upload_event_for_processing(upload_event_id):
 		logger.info("UploadEvent %s will be submitted to SNS." % (upload_event_id))
 
 		topic_arn = settings.SNS_PROCESS_UPLOAD_EVENT_TOPIC
-		message = {"upload_event_id": upload_event_id}
+
+		if "TRACING_REQUEST_ID" in os.environ:
+			tracing_id = os.environ["TRACING_REQUEST_ID"]
+		else:
+			# If this was re-queued manually the tracing ID may not be set yet.
+			event = UploadEvent.objects.get(id=upload_event_id)
+			tracing_id = str(event.token.key)
+
+		message = {
+			"upload_event_id": upload_event_id,
+			"TRACING_REQUEST_ID": tracing_id,
+		}
 
 		logger.info("The TopicARN is %s" % topic_arn)
 		success = True
@@ -64,8 +78,6 @@ def queue_upload_event_for_processing(upload_event_id):
 				}
 			)
 	else:
-		from .models import UploadEvent
-
 		logger.info("Processing UploadEvent %r locally", upload_event_id)
 		upload = UploadEvent.objects.get(id=upload_event_id)
 		upload.process()
