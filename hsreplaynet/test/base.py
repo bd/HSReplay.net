@@ -108,12 +108,14 @@ class TestDataConsumerMixin:
 		fixture = {}
 		fixture["raw_log"] = self.read_raw_log_file("Power.log")
 		utc = pytz.timezone("UTC")
-		fixture["upload_date"] = datetime.combine(date.today(),
+		fixture["upload_date"] = datetime.combine(
+			date.today(),
 			time(hour=2, minute=59, second=14, microsecond=608862, tzinfo=utc)
 		)
 
 		fixture["match_start"] = fixture["upload_date"]
-		fixture["match_end_timestamp"] = datetime.combine(date.today(),
+		fixture["match_end"] = datetime.combine(
+			date.today(),
 			time(hour=3, minute=0, second=50, microsecond=723960, tzinfo=utc)
 		)
 

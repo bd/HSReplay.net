@@ -159,8 +159,8 @@ class GlobalGameSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = GlobalGame
 		fields = (
-			"build", "match_start", "match_end_timestamp",
-			"game_type", "ladder_season", "scenario_id", "players"
+			"build", "match_start", "match_end", "game_type",
+			"ladder_season", "scenario_id", "players"
 		)
 
 

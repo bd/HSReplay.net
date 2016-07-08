@@ -59,7 +59,7 @@ class GlobalGame(models.Model):
 		help_text="Must be a timezone aware datetime."
 	)
 
-	match_end_timestamp = models.DateTimeField("Match End Timestamp",
+	match_end = models.DateTimeField("Match End Timestamp",
 		help_text="Must be a timezone aware datetime."
 	)
 
@@ -100,7 +100,7 @@ class GlobalGame(models.Model):
 
 	@property
 	def duration(self):
-		return self.match_end_timestamp - self.match_start
+		return self.match_end - self.match_start
 
 	@property
 	def is_tavern_brawl(self):

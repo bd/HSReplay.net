@@ -68,7 +68,7 @@ def find_or_create_global_game(game_tree, meta):
 		game_type=game_type,
 		build=build,
 		match_start=start_time,
-		match_end_timestamp=end_time,
+		match_end=end_time,
 		ladder_season=ladder_season,
 		scenario_id=meta.get("scenario_id"),
 		num_entities=len(game_tree.game.entities),
