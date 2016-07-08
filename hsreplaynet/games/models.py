@@ -50,9 +50,9 @@ class GlobalGame(models.Model):
 	game_server_address = models.GenericIPAddressField(null=True, blank=True)
 	game_server_port = models.IntegerField(null=True, blank=True)
 
-	hearthstone_build = models.PositiveIntegerField(
+	build = models.PositiveIntegerField(
 		null=True, blank=True,
-		help_text="Patch number at the time the game was played."
+		help_text="Hearthstone build number the game was played on."
 	)
 
 	match_start_timestamp = models.DateTimeField("Match Start Timestamp",

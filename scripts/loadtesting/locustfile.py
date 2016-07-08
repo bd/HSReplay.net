@@ -96,7 +96,7 @@ class UploadBehavior(TaskSet):
 		kwargs = {
 			"data": {
 				"match_start_timestamp": "2016-05-10T17:10:06.4923855+02:00",
-				"hearthstone_build": 12574,
+				"build": 12574,
 			},
 			"headers": {
 				"Authorization": "Token %s" % (self.token),

@@ -110,7 +110,7 @@ class UploadEventSerializer(serializers.Serializer):
 
 	file = serializers.FileField(write_only=True)
 	game_type = serializers.IntegerField(default=0, write_only=True)
-	hearthstone_build = serializers.IntegerField(write_only=True)
+	build = serializers.IntegerField(write_only=True)
 	match_start_timestamp = serializers.DateTimeField(write_only=True)
 	friendly_player = serializers.IntegerField(required=False, min_value=1, max_value=2, write_only=True)
 
@@ -159,7 +159,7 @@ class GlobalGameSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = GlobalGame
 		fields = (
-			"hearthstone_build", "match_start_timestamp", "match_end_timestamp",
+			"build", "match_start_timestamp", "match_end_timestamp",
 			"game_type", "ladder_season", "scenario_id", "players"
 		)
 

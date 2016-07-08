@@ -31,7 +31,7 @@
 		{% with replay.global_game as gg %}
 		<p>
 			<ul>
-				<li>Patch {{ gg.hearthstone_build }}</li>
+				<li>Patch {{ gg.build }}</li>
 				<li>{{ gg.num_turns }} turns, {{ gg.num_entities }} entities</li>
 				<li>
 					{{ gg.game_type.name }}
@@ -70,7 +70,7 @@
 			replay_xml_url: "{{ replay.replay_xml.url|safe }}",
 		});
 		Raven.setTagsContext({
-			hearthstone_build: "{{ replay.global_game.hearthstone_build }}",
+			build: "{{ replay.global_game.build }}",
 		});
 		{% if user.is_authenticated %}
 			Raven.setUserContext({

@@ -13,7 +13,7 @@ class Command(BaseCommand):
 		for file in options["file"]:
 			print("Uploading %r" % (file))
 			metadata = {
-				"hearthstone_build": 0,
+				"build": 0,
 				"match_start_timestamp": now().isoformat(),
 			}
 

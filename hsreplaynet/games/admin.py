@@ -72,7 +72,7 @@ class GlobalGameAdmin(admin.ModelAdmin):
 		"brawl_season", "scenario_id", "num_turns", "num_entities",
 	)
 	list_filter = (
-		"game_type", "ladder_season", "brawl_season", "hearthstone_build", ReplaySidesFilter
+		"game_type", "ladder_season", "brawl_season", "build", ReplaySidesFilter
 	)
 	inlines = (GlobalGamePlayerInline, GameReplayInline)
 

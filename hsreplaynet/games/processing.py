@@ -31,9 +31,9 @@ def eligible_for_unification(meta):
 
 
 def find_or_create_global_game(game_tree, meta):
-	build = meta["hearthstone_build"]
+	build = meta["build"]
 	if build is None and "stats" in meta:
-		build = meta["stats"]["meta"]["hearthstone_build"]
+		build = meta["stats"]["meta"]["build"]
 	game_id = meta.get("game_id")
 	game_type = meta.get("game_type", BnetGameType.BGT_UNKNOWN)
 	start_time = game_tree.start_time
@@ -47,7 +47,7 @@ def find_or_create_global_game(game_tree, meta):
 	# Check if we have enough metadata to deduplicate the game
 	if eligible_for_unification(meta):
 		matches = GlobalGame.objects.filter(
-			hearthstone_build=build,
+			build=build,
 			game_type=game_type,
 			game_server_game_id=game_id,
 			game_server_address=meta.get("server_ip"),
@@ -66,7 +66,7 @@ def find_or_create_global_game(game_tree, meta):
 		game_server_address=meta.get("server_ip"),
 		game_server_port=meta.get("server_port"),
 		game_type=game_type,
-		hearthstone_build=build,
+		build=build,
 		match_start_timestamp=start_time,
 		match_end_timestamp=end_time,
 		ladder_season=ladder_season,
@@ -144,7 +144,7 @@ def do_process_upload_event(upload_event):
 		user = None
 
 	# Create the HSReplay document
-	hsreplay_doc = HSReplayDocument.from_parser(parser, build=global_game.hearthstone_build)
+	hsreplay_doc = HSReplayDocument.from_parser(parser, build=global_game.build)
 	game_xml = hsreplay_doc.games[0]
 	game_xml.game_type = global_game.game_type
 	game_xml.id = global_game.game_server_game_id

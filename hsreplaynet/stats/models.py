@@ -3,7 +3,7 @@ from django.db import models
 
 class StatsMeta(models.Model):
 	id = models.BigAutoField(primary_key=True)
-	hearthstone_build = models.PositiveIntegerField()
+	build = models.PositiveIntegerField()
 	platform = models.PositiveIntegerField(default=1)
 	battlenet_id = models.BigIntegerField()
 	region = models.CharField(max_length=4)
