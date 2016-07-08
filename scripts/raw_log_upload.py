@@ -19,7 +19,7 @@ UPLOAD_TOKEN = upload_tokens[4]
 HOST = "https://upload.hsreplay.net/api/v1/replay/upload/raw"
 QUERY_PARAMS = {
 	# "player_1_rank" : 18
-	# "match_start_timestamp" : "2016-05-10T17:10:06.4923855+02:00"
+	# "match_start" : "2016-05-10T17:10:06.4923855+02:00"
 }
 HEADERS = {
 	"x-hsreplay-api-key": API_KEY,

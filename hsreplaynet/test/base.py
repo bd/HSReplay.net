@@ -112,7 +112,7 @@ class TestDataConsumerMixin:
 			time(hour=2, minute=59, second=14, microsecond=608862, tzinfo=utc)
 		)
 
-		fixture["match_start_timestamp"] = fixture["upload_date"]
+		fixture["match_start"] = fixture["upload_date"]
 		fixture["match_end_timestamp"] = datetime.combine(date.today(),
 			time(hour=3, minute=0, second=50, microsecond=723960, tzinfo=utc)
 		)

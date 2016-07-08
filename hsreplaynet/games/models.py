@@ -55,7 +55,7 @@ class GlobalGame(models.Model):
 		help_text="Hearthstone build number the game was played on."
 	)
 
-	match_start_timestamp = models.DateTimeField("Match Start Timestamp",
+	match_start = models.DateTimeField("Match Start Timestamp",
 		help_text="Must be a timezone aware datetime."
 	)
 
@@ -93,14 +93,14 @@ class GlobalGame(models.Model):
 	num_entities = models.IntegerField()
 
 	class Meta:
-		ordering = ("-match_start_timestamp", )
+		ordering = ("-match_start", )
 
 	def __str__(self):
 		return " vs ".join(str(p) for p in self.players.all())
 
 	@property
 	def duration(self):
-		return self.match_end_timestamp - self.match_start_timestamp
+		return self.match_end_timestamp - self.match_start
 
 	@property
 	def is_tavern_brawl(self):

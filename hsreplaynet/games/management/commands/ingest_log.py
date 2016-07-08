@@ -14,7 +14,7 @@ class Command(BaseCommand):
 			print("Uploading %r" % (file))
 			metadata = {
 				"build": 0,
-				"match_start_timestamp": now().isoformat(),
+				"match_start": now().isoformat(),
 			}
 
 			event = UploadEvent(

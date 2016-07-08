@@ -95,7 +95,7 @@ class UploadBehavior(TaskSet):
 	def post_replay(self, name, data):
 		kwargs = {
 			"data": {
-				"match_start_timestamp": "2016-05-10T17:10:06.4923855+02:00",
+				"match_start": "2016-05-10T17:10:06.4923855+02:00",
 				"build": 12574,
 			},
 			"headers": {

@@ -52,7 +52,7 @@ def find_or_create_global_game(game_tree, meta):
 			game_server_game_id=game_id,
 			game_server_address=meta.get("server_ip"),
 			game_server_port=meta.get("server_port"),
-			match_start_timestamp__range=deduplication_time_range(start_time),
+			match_start__range=deduplication_time_range(start_time),
 		)
 
 		if matches:
@@ -67,7 +67,7 @@ def find_or_create_global_game(game_tree, meta):
 		game_server_port=meta.get("server_port"),
 		game_type=game_type,
 		build=build,
-		match_start_timestamp=start_time,
+		match_start=start_time,
 		match_end_timestamp=end_time,
 		ladder_season=ladder_season,
 		scenario_id=meta.get("scenario_id"),
@@ -112,14 +112,14 @@ def do_process_upload_event(upload_event):
 		raise NotImplementedError("Reprocessing not implemented yet")
 
 	meta = json.loads(upload_event.metadata)
-	match_start_timestamp = dateutil_parse(meta["match_start_timestamp"])
+	match_start = dateutil_parse(meta["match_start"])
 
 	upload_event.file.open(mode="rb")
 	log = StringIO(upload_event.file.read().decode("utf-8"))
 	upload_event.file.close()
 
 	try:
-		parser = parse_log(log, processor="GameState", date=match_start_timestamp)
+		parser = parse_log(log, processor="GameState", date=match_start)
 	except Exception as e:
 		raise ParsingError(str(e))  # from e
 
