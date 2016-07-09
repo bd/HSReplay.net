@@ -10,6 +10,31 @@ from hsreplaynet.uploads.processing import queue_upload_event_for_processing
 from hsreplaynet.utils import instrumentation
 
 
+def create_fake_api_request(event, body, headers):
+	"""
+	Emulates an API request from the API gateway's data.
+	"""
+	file = tempfile.NamedTemporaryFile(mode="r+b", suffix=".log")
+	file.write(body)
+	file.flush()
+	file.seek(0)
+
+	data = event["query"]
+	data["file"] = file
+	data["type"] = int(UploadEventType.POWER_LOG)
+
+	extra = {
+		"HTTP_X_FORWARDED_FOR": event["source_ip"],
+		"HTTP_AUTHORIZATION": headers["Authorization"],
+		"HTTP_X_API_KEY": headers["X-Api-Key"],
+	}
+
+	factory = APIRequestFactory()
+	request = factory.post(event["path"], data, **extra)
+	SessionMiddleware().process_request(request)
+	return request
+
+
 @instrumentation.lambda_handler
 def create_power_log_upload_event_handler(event, context):
 	"""
@@ -17,77 +42,47 @@ def create_power_log_upload_event_handler(event, context):
 	"""
 	logger = logging.getLogger('hsreplaynet.lambdas.create_power_log_upload_event_handler')
 
+	body = event.pop("body")
+	headers = event.pop("headers")
+	event_data = ", ".join("%s=%r" % (k, v) for k, v in event.items())
+	logger.info("Event Data (excluding body): %s", event_data)
+	logger.info("Headers: %r", headers)
+
+	body = b64decode(body)
+	instrumentation.influx_metric("raw_power_log_upload_num_bytes", {"size": len(body)})
+
+	request = create_fake_api_request(event, body, headers)
+	view = UploadEventViewSet.as_view({"post": "create"})
+
 	try:
-		event_data = ", ".join("%s=%r" % (k, v) for k, v in event.items() if k != "body")
-		logger.info("Event Data (excluding body): %s", event_data)
-
-		body = b64decode(event.get("body"))
-		instrumentation.influx_metric("raw_power_log_upload_num_bytes", {"size": len(body)})
-
-		power_log_file = tempfile.NamedTemporaryFile(mode="r+b", suffix=".log")
-		power_log_file.write(body)
-		power_log_file.flush()
-		power_log_file.seek(0)
-
-		path = event.get("path")
-
-		headers = event.get("headers")
-		headers["HTTP_X_FORWARDED_FOR"] = event.get("source_ip")
-		headers["HTTP_AUTHORIZATION"] = headers["Authorization"]
-		headers["HTTP_X_API_KEY"] = headers.get("X-Api-Key")
-
-		query_params = event.get("query")
-		query_params["file"] = power_log_file
-		query_params["type"] = int(UploadEventType.POWER_LOG)
-
-		factory = APIRequestFactory()
-		request = factory.post(path, query_params, **headers)
-		middleware = SessionMiddleware()
-		middleware.process_request(request)
-
-		view = UploadEventViewSet.as_view({"post": "create"})
 		response = view(request)
 		response.render()
 		logger.info("Response (code=%r): %s" % (response.status_code, response.content))
 
 	except Exception as e:
 		logger.exception(e)
-		instrumentation.error_handler(e)
 		raise Exception(json.dumps({
 			"result_type": "SERVER_ERROR",
+			"body": str(e),
 		}))
 
-	else:
-		if response.status_code == 201:
-			# Extract the upload_event from the response, and queue it for downstream processing.
-			try:
-				upload_event_id = response.data["id"]
-				queue_upload_event_for_processing(upload_event_id)
-			except Exception as e:
-				logger.exception(e)
-				instrumentation.error_handler(e)
-				raise Exception(json.dumps({
-					"result_type": "SERVER_ERROR",
-				}))
+	if response.status_code != 201:
+		result = {
+			"result_type": "VALIDATION_ERROR",
+			"status_code": response.status_code,
+			"body": response.content,
+		}
+		raise Exception(json.dumps(result))
 
-			return {
-				"result_type": "SUCCESS",
-				"body": response.content,
-			}
+	# Extract the upload_event from the response and queue it for processing
+	upload_event_id = response.data["id"]
+	logger.info("Created upload event %r, queuing for processing", upload_event_id)
+	queue_upload_event_for_processing(upload_event_id)
 
-		elif str(response.status_code).startswith("4"):
-			raise Exception(json.dumps({
-				"result_type": "VALIDATION_ERROR",
-				"body": response.content
-			}))
-
-		else:
-			# We should never reach this block
-			raise Exception(json.dumps({
-				"result_type": "SERVER_ERROR",
-				"response_code": response.status_code,
-				"response_content": response.content,
-			}))
+	return {
+		"result_type": "SUCCESS",
+		"body": response.content,
+	}
 
 
 @instrumentation.lambda_handler
