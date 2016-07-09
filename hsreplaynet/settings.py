@@ -208,7 +208,9 @@ REST_FRAMEWORK = {
 
 # Custom site settings
 
-HDT_DOWNLOAD_URL = "https://hsdecktracker.net"
+# HDT_DOWNLOAD_URL = "https://hsdecktracker.net"
+# Swap when we're in public beta
+HDT_DOWNLOAD_URL = "https://hsreplay.net/pages/beta/"
 
 
 try:
