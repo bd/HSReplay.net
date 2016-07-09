@@ -3,6 +3,7 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from django.contrib.flatpages.views import flatpage
 from django.views.generic import TemplateView
+from .games.views import ReplayDetailView
 
 
 urlpatterns = [
@@ -18,6 +19,9 @@ urlpatterns = [
 	url(r"^games/", include("hsreplaynet.games.urls")),
 	url(r"^pages/", include("django.contrib.flatpages.urls")),
 	url(r"^uploads/", include("hsreplaynet.uploads.urls")),
+
+	# Direct link to replays
+	url(r"^replay/(?P<id>\w+)$", ReplayDetailView.as_view(), name="games_replay_view"),
 ]
 
 
