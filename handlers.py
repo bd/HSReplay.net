@@ -19,16 +19,15 @@ from django.conf import settings
 
 class TracingIdAwareFormatter(logging.Formatter):
 	def format(self, record):
-		ret = super(TracingIdAwareFormatter, self).format(record)
-		# If we are running locally we use our own request ID
-		id = os.environ.get("TRACING_REQUEST_ID", "unknown-request-id")
-		return "[%s] %s" % (id, ret)
+		# Allow usage of the 'token' fmt variable by setting it on the record
+		record.token = os.environ.get("TRACING_REQUEST_ID", "unknown-token")
+		return super(TracingIdAwareFormatter, self).format(record)
 
 
 # Add papertrail logger
 _handler = SysLogHandler(address=(settings.PAPERTRAIL_HOSTNAME, settings.PAPERTRAIL_PORT))
 formatter = TracingIdAwareFormatter(
-	"%(asctime)s %(funcName)s: %(message)s",
+	"%(asctime)s %(funcName)s [%(token)s]: %(message)s",
 	datefmt="%b %d %H:%M:%S"
 )
 _handler.setFormatter(formatter)
