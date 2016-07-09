@@ -6,16 +6,14 @@ from hsreplaynet.utils import instrumentation
 
 @instrumentation.lambda_handler
 def api_gateway_authorizer(event, context):
-	logger = logging.getLogger("hsreplaynet.lambdas.api_gateway_authorizer")
+	logger = logging.getLogger("hsreplaynet.lambdas.authorizer")
 
-	event_data = ", ".join("%s=%r" % (k, v) for k, v in event.items())
-	logger.info("Event Data: %s", event_data)
+	logger.info("methodArn=%r", event["methodArn"])
 
-	token_str = event["authorizationToken"]
-
-	if not token_str.startswith("Token "):
-		raise Exception("Invalid token: %r" % (token_str))
-	token = token_str.split()[1]
+	token = event["authorizationToken"]
+	if not token.startswith("Token "):
+		raise Exception("Invalid token: %r" % (token))
+	token = token.split()[1]
 
 	tmp = event["methodArn"].split(":")
 	apiGatewayArnTmp = tmp[5].split("/")
@@ -30,15 +28,13 @@ def api_gateway_authorizer(event, context):
 	try:
 		token = AuthToken.objects.get(key=token)
 		policy.allowAllMethods()
-		logger.info("Authentication successful.")
 	except AuthToken.DoesNotExist as e:
 		logger.exception(e)
 		policy.denyAllMethods()
-		logger.info("Authentication denied.")
+		logger.info("Authentication failed.")
 	except Exception as e:
 		logger.exception(e)
-		logger.info("Authentication denied.")
-		raise Exception("Unauthorized token %r" % (token))
+		raise Exception("Invalid token %r" % (token))
 
 	return policy.build()
 
@@ -187,10 +183,10 @@ class AuthPolicy(object):
 			raise NameError('No statements defined for the policy')
 
 		policy = {
-			'principalId' : self.principalId,
-			'policyDocument' : {
-				'Version' : self.version,
-				'Statement' : []
+			"principalId": self.principalId,
+			"policyDocument": {
+				"Version": self.version,
+				"Statement": []
 			}
 		}
 

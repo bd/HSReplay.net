@@ -29,7 +29,7 @@ def get_tracing_id(event, context):
 	if "Records" in event:
 		# We are in the processing lambda
 		message = json.loads(event["Records"][0]["Sns"]["Message"])
-		return message["TRACING_REQUEST_ID"]
+		return message["token"]
 
 	auth_header = None
 

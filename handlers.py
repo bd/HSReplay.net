@@ -27,12 +27,12 @@ class TracingIdAwareFormatter(logging.Formatter):
 # Add papertrail logger
 _handler = SysLogHandler(address=(settings.PAPERTRAIL_HOSTNAME, settings.PAPERTRAIL_PORT))
 formatter = TracingIdAwareFormatter(
-	"%(asctime)s %(funcName)s [%(token)s]: %(message)s",
+	"%(asctime)s %(funcName)s: %(token)s: %(message)s",
 	datefmt="%b %d %H:%M:%S"
 )
 _handler.setFormatter(formatter)
 
-lambdas_logger = logging.getLogger('hsreplaynet')
+lambdas_logger = logging.getLogger("hsreplaynet")
 lambdas_logger.addHandler(_handler)
 lambdas_logger.setLevel(logging.DEBUG)
 

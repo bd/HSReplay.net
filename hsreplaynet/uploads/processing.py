@@ -12,7 +12,6 @@ from django.conf import settings
 from django.utils.timezone import now
 from hsreplaynet.uploads.models import UploadEvent
 from hsreplaynet.utils.instrumentation import error_handler, influx_metric
-from .models import UploadEvent
 
 
 logger = logging.getLogger(__file__)
@@ -33,27 +32,23 @@ def queue_upload_event_for_processing(upload_event_id):
 	processed again if an error was detected downstream that has now been fixed.
 	"""
 	if settings.IS_RUNNING_LIVE or settings.IS_RUNNING_AS_LAMBDA:
-		logger.info("UploadEvent %s will be submitted to SNS." % (upload_event_id))
-
-		topic_arn = settings.SNS_PROCESS_UPLOAD_EVENT_TOPIC
-
 		if "TRACING_REQUEST_ID" in os.environ:
-			tracing_id = os.environ["TRACING_REQUEST_ID"]
+			token = os.environ["TRACING_REQUEST_ID"]
 		else:
 			# If this was re-queued manually the tracing ID may not be set yet.
 			event = UploadEvent.objects.get(id=upload_event_id)
-			tracing_id = str(event.token.key)
+			token = str(event.token.key)
 
 		message = {
-			"upload_event_id": upload_event_id,
-			"TRACING_REQUEST_ID": tracing_id,
+			"id": upload_event_id,
+			"token": token,
 		}
 
-		logger.info("The TopicARN is %s" % topic_arn)
 		success = True
 		try:
+			logger.info("Submitting %r to SNS", message)
 			response = sns_client().publish(
-				TopicArn=topic_arn,
+				TopicArn=settings.SNS_PROCESS_UPLOAD_EVENT_TOPIC,
 				Message=json.dumps({"default": json.dumps(message)}),
 				MessageStructure="json"
 			)
@@ -62,11 +57,6 @@ def queue_upload_event_for_processing(upload_event_id):
 			logger.error("Exception raised.")
 			error_handler(e)
 			success = False
-		else:
-			message_id = response["MessageId"]
-			logger.info("The submitted message ID is: %s" % message_id)
-			return message_id
-
 		finally:
 			influx_metric(
 				"queue_upload_event_for_processing",
