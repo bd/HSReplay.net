@@ -1,18 +1,13 @@
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponseRedirect
-from django.utils.decorators import method_decorator
 from django.views.generic import View
 from hsreplaynet.utils import get_uuid_object_or_404
 from .models import AccountClaim
 
 
-class ClaimAccountView(View):
-	@method_decorator(login_required)
-	def dispatch(self, *args, **kwargs):
-		return super().dispatch(*args, **kwargs)
-
+class ClaimAccountView(LoginRequiredMixin, View):
 	def get(self, request, id):
 		claim = get_uuid_object_or_404(AccountClaim, id=id)
 

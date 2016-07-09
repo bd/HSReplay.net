@@ -1,15 +1,10 @@
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, render
-from django.utils.decorators import method_decorator
 from django.views.generic import View
 from .models import GameReplay
 
 
-class MyReplaysView(View):
-	@method_decorator(login_required)
-	def dispatch(self, *args, **kwargs):
-		return super().dispatch(*args, **kwargs)
-
+class MyReplaysView(LoginRequiredMixin, View):
 	def get(self, request):
 		replays = GameReplay.objects.filter(user=request.user)
 		context = {"replays": replays}
