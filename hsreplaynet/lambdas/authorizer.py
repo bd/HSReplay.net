@@ -1,28 +1,21 @@
 import logging
 import re
-from django.conf import settings
-from django.utils.timezone import now
 from hsreplaynet.api.models import AuthToken
 from hsreplaynet.utils import instrumentation
 
 
 @instrumentation.lambda_handler
 def api_gateway_authorizer(event, context):
-	logger = logging.getLogger('hsreplaynet.lambdas.api_gateway_authorizer')
+	logger = logging.getLogger("hsreplaynet.lambdas.api_gateway_authorizer")
 
-	logger.info("*** Event Data ***")
-	for k, v in event.items():
-		logger.info("%s: %s" % (k, v))
+	event_data = ", ".join("%s=%r" % (k, v) for k, v in event.items())
+	logger.info("Event Data: %s", event_data)
 
-	logger.info('Client token: ' + event['authorizationToken'])
-	logger.info('Method ARN: ' + event['methodArn'])
-	token_str = event['authorizationToken']
-	logger.info("Authorization Header: %s" % token_str)
+	token_str = event["authorizationToken"]
 
-	if 'Token' in token_str:
-		auth_algo, token = token_str.split()
-	else:
-		token = token_str
+	if not token_str.startswith("Token "):
+		raise Exception("Invalid token: %r" % (token_str))
+	token = token_str.split()[1]
 
 	tmp = event["methodArn"].split(":")
 	apiGatewayArnTmp = tmp[5].split("/")
