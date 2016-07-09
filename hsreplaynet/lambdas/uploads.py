@@ -2,9 +2,7 @@ import json
 import logging
 import tempfile
 from base64 import b64decode
-from django.conf import settings
 from django.contrib.sessions.middleware import SessionMiddleware
-from django.utils.timezone import now
 from rest_framework.test import APIRequestFactory
 from hsreplaynet.api.views import UploadEventViewSet
 from hsreplaynet.uploads.models import UploadEvent, UploadEventType
@@ -20,10 +18,8 @@ def create_power_log_upload_event_handler(event, context):
 	logger = logging.getLogger('hsreplaynet.lambdas.create_power_log_upload_event_handler')
 
 	try:
-		logger.info("*** Event Data (excluding the body content) ***")
-		for k, v in event.items():
-			if k != "body":
-				logger.info("%s: %s" % (k, v))
+		event_data = ", ".join("%s=%r" % (k, v) for k, v in event.items() if k != "body")
+		logger.info("Event Data (excluding body): %s", event_data)
 
 		body = b64decode(event.get("body"))
 		instrumentation.influx_metric("raw_power_log_upload_num_bytes", {"size": len(body)})
@@ -100,20 +96,20 @@ def process_upload_event_handler(event, context):
 	This handler is triggered by SNS whenever someone
 	publishes a message to the SNS_PROCESS_UPLOAD_EVENT_TOPIC.
 	"""
-	logger = logging.getLogger('hsreplaynet.lambdas.process_upload_event_handler')
+	logger = logging.getLogger("hsreplaynet.lambdas.process_upload_event_handler")
 
-	logger.info("Received event: " + json.dumps(event, indent=2))
-	message = json.loads(event['Records'][0]['Sns']['Message'])
-	logger.info("From SNS: " + str(message))
-	upload_event_id = message["upload_event_id"]
-	logger.info("Upload Event ID: %s" % upload_event_id)
+	event_data = ", ".join("%s=%r" % (k, v) for k, v in event.items())
+	logger.info("Event Data: %s", event_data)
+	message = json.loads(event["Records"][0]["Sns"]["Message"])
+	logger.info("SNS message: %r", message)
 
-	try:
-		game_upload = UploadEvent.objects.get(id=upload_event_id)
-	except UploadEvent.DoesNotExist as e:
-		instrumentation.error_handler(e)
-	else:
-		# TODO: Invoke downstream processing here.
-		logger.info("UploadEvent's initial status is: %s" % str(game_upload.status))
-		game_upload.process()
-		logger.info("UploadEvent's status after processing is: %s" % str(game_upload.status))
+	if "upload_event_id" not in message:
+		raise RuntimeError("Missing upload_event_id in %r" % (message))
+
+	# This should never raise DoesNotExist.
+	# If it does, the previous lambda made a terrible mistake.
+	upload = UploadEvent.objects.get(id=message["upload_event_id"])
+
+	logger.info("Processing %r (status=%r)", upload, upload.status)
+	upload.process()
+	logger.info("Finished processing %r (status=%r)", upload, upload.status)
