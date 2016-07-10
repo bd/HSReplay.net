@@ -107,6 +107,13 @@ def process_upload_event(upload_event):
 	return replay
 
 
+def get_player_names(player):
+	if not player.is_ai and " " in player.name:
+		return "", player.name
+	else:
+		return player.name, ""
+
+
 def do_process_upload_event(upload_event):
 	if upload_event.game:
 		raise NotImplementedError("Reprocessing not implemented yet")
@@ -180,10 +187,13 @@ def do_process_upload_event(upload_event):
 		player_xml.cardback = player_meta_obj.get("cardback")
 		player_xml.deck = player_meta_obj.get("deck")
 
+		name, real_name = get_player_names(player)
+
 		game_player = GlobalGamePlayer(
 			game=global_game,
 			player_id=player.player_id,
-			name=player.name,
+			name=name,
+			real_name=real_name,
 			account_hi=player.account_hi,
 			account_lo=player.account_lo,
 			is_ai=player.is_ai,
