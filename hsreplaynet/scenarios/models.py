@@ -21,7 +21,6 @@ class Adventure(models.Model):
 	updated = models.DateTimeField(auto_now=True)
 	build = models.PositiveIntegerField()
 
-	dbf_filename = "ADVENTURE.xml"
 	dbf_columns = ["ID", "NOTE_DESC", "NAME", "SORT_ORDER", "LEAVING_SOON"]
 
 	def __str__(self):
@@ -43,7 +42,6 @@ class Wing(models.Model):
 	updated = models.DateTimeField(auto_now=True)
 	build = models.PositiveIntegerField()
 
-	dbf_filename = "WING.xml"
 	dbf_columns = [
 		"ID", "NOTE_DESC", "ADVENTURE_ID", "SORT_ORDER", "RELEASE", "REQUIRED_EVENT",
 		"OWNERSHIP_PREREQ_WING_ID", "NAME", "COMING_SOON_LABEL", "REQUIRES_LABEL",
@@ -76,7 +74,6 @@ class Scenario(models.Model):
 	updated = models.DateTimeField(auto_now=True)
 	build = models.PositiveIntegerField()
 
-	dbf_filename = "SCENARIO.xml"
 	dbf_columns = [
 		"ID", "NOTE_DESC", "PLAYERS", "PLAYER1_HERO_CARD_ID", "IS_TUTORIAL",
 		"IS_EXPERT", "IS_COOP", "ADVENTURE_ID", "WING_ID", "SORT_ORDER",

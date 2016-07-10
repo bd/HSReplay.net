@@ -1,5 +1,6 @@
 import os
 from argparse import ArgumentTypeError
+from collections import OrderedDict
 from django.core.management.base import BaseCommand
 from hearthstone.dbf import Dbf
 from ...models import Adventure, Scenario, Wing
@@ -13,8 +14,14 @@ def build_range(value):
 
 
 class Command(BaseCommand):
+	tables = OrderedDict([
+		("ADVENTURE", Adventure),
+		("WING", Wing),
+		("SCENARIO", Scenario),
+	])
+
 	def add_arguments(self, parser):
-		parser.add_argument("folder", nargs=1)
+		parser.add_argument("path", nargs=1)
 		parser.add_argument("--build", type=build_range, required=True)
 		parser.add_argument("--force", action="store_true")
 		parser.add_argument("--locale", default="enUS")
@@ -34,7 +41,14 @@ class Command(BaseCommand):
 
 		return values
 
-	def load_dbf(self, cls, dbf):
+	def load_dbf(self, filename):
+		self.stdout.write("Parsing %s" % (filename))
+		dbf = Dbf.load(filename)
+		if dbf.name not in self.tables:
+			self.stderr.write("No handler for %r (%r)" % (filename, dbf.name))
+			return
+
+		cls = self.tables[dbf.name]
 		for record in dbf.records:
 			values = self.get_values(record, cls.dbf_columns)
 			try:
@@ -51,15 +65,18 @@ class Command(BaseCommand):
 				else:
 					self.stdout.write("Skipping %r (up to date)" % (instance))
 
+	def load_dbf_folder(self, path):
+		for dbf_name in self.tables:
+			filename = os.path.join(path, dbf_name + ".xml")
+			self.load_dbf(filename)
+
 	def handle(self, *args, **options):
-		dbf_folder = options["folder"][0]
+		path = options["path"][0]
 		self.build = options["build"]
 		self.force = options["force"]
 		self.locale = options["locale"]
 
-		classes = (Adventure, Wing, Scenario)
-		for cls in classes:
-			filename = os.path.join(dbf_folder, cls.dbf_filename)
-			self.stdout.write("Parsing %s\n" % (filename))
-			dbf = Dbf.load(filename)
-			self.load_dbf(cls, dbf)
+		if os.path.isdir(path):
+			self.load_dbf_folder(path)
+		else:
+			self.load_dbf(path)
