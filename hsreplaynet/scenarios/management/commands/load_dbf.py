@@ -34,6 +34,8 @@ class Command(BaseCommand):
 			else:
 				field = column.lower()
 			value = record[column]
+			if field.endswith("_id") and value == 0:
+				value = None
 			if value is not None:
 				if isinstance(value, dict):
 					value = value[self.locale]

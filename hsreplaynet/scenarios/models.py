@@ -63,7 +63,7 @@ class Scenario(models.Model):
 	wing = models.ForeignKey(Wing, models.SET_NULL, null=True, blank=True)
 	sort_order = models.PositiveIntegerField(default=0)
 	mode = IntEnumField(enum=AdventureMode, default=0)
-	client_player2_hero_card_id = models.IntegerField()
+	client_player2_hero_card_id = models.IntegerField(null=True)
 	name = models.CharField(max_length=64)
 	description = models.TextField()
 	opponent_name = models.CharField(max_length=64)
