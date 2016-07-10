@@ -197,7 +197,6 @@ def do_process_upload_event(upload_event):
 			is_first=player.tags.get(GameTag.FIRST_PLAYER, False),
 			final_state=final_state,
 			deck_list=deck,
-			duplicated=unified,
 		)
 
 		# XXX move the following to replay save()

@@ -119,9 +119,8 @@ class GlobalGamePlayer(models.Model):
 	id = models.BigAutoField(primary_key=True)
 	game = models.ForeignKey(GlobalGame, on_delete=models.CASCADE, related_name="players")
 
-	name = models.CharField(
-		"Player name", blank=True, max_length=64,
-	)
+	name = models.CharField("Player name", blank=True, max_length=64)
+	real_name = models.CharField("Real name", blank=True, max_length=64)
 	user = models.ForeignKey(
 		settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
 	)
@@ -158,11 +157,6 @@ class GlobalGamePlayer(models.Model):
 		help_text="As much as is known of the player's starting deck list."
 	)
 
-	duplicated = models.BooleanField("Duplicated",
-		default=False,
-		help_text="Set to true if the player was created from a deduplicated upload."
-	)
-
 	# Game type metadata
 
 	rank = models.SmallIntegerField("Rank",
@@ -185,7 +179,7 @@ class GlobalGamePlayer(models.Model):
 	)
 
 	def __str__(self):
-		return self.name
+		return self.name or self.real_name
 
 	@property
 	def won(self):
