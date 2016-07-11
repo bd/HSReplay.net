@@ -1,7 +1,8 @@
 from enum import IntEnum
 from django.core.urlresolvers import reverse
-from django.utils.timezone import now
 from django.db import models
+from django.dispatch.dispatcher import receiver
+from django.utils.timezone import now
 from django.core.files.storage import default_storage
 from hsreplaynet.utils.fields import IntEnumField, ShortUUIDField
 
@@ -84,14 +85,14 @@ class UploadEvent(models.Model):
 	def get_absolute_url(self):
 		return reverse("upload_detail", kwargs={"shortid": self.shortid})
 
-	def delete(self, using=None):
-		# We must cleanup the S3 object ourselves (It is not handled by django-storages)
-		if default_storage.exists(self.file.name):
-			self.file.delete(save=False)
-
-		return super(UploadEvent, self).delete(using)
-
 	def process(self):
 		from hsreplaynet.games.processing import process_upload_event
 
 		process_upload_event(self)
+
+
+@receiver(models.signals.post_delete, sender=UploadEvent)
+def cleanup_uploaded_log_file(sender, instance, **kwargs):
+	file = instance.file
+	if file.name and default_storage.exists(file.name):
+		file.delete(save=False)

@@ -4,6 +4,7 @@ from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.core.urlresolvers import reverse
 from django.db import models
+from django.dispatch.dispatcher import receiver
 from django.utils.timezone import now
 from hearthstone.enums import BnetGameType, PlayState
 from hsreplaynet.cards.models import Card, Deck
@@ -293,13 +294,6 @@ class GameReplay(models.Model):
 	def get_absolute_url(self):
 		return reverse("games_replay_view", kwargs={"id": self.shortid})
 
-	def delete(self, using=None):
-		# We must cleanup the S3 object ourselves (It is not handled by django-storages)
-		if default_storage.exists(self.replay_xml.name):
-			self.replay_xml.delete(save=False)
-
-		return super(GameReplay, self).delete(using)
-
 	def update_final_states(self):
 		"""
 		Updates the replay's `won` and `disconnected` attributes
@@ -371,3 +365,10 @@ class PendingReplayOwnership(models.Model):
 
 	class Meta:
 		unique_together = ("replay", "token")
+
+
+@receiver(models.signals.post_delete, sender=GameReplay)
+def cleanup_hsreplay_file(sender, instance, **kwargs):
+	file = instance.replay_xml
+	if file.name and default_storage.exists(file.name):
+		file.delete(save=False)
