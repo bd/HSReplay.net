@@ -338,6 +338,9 @@ class GameReplay(models.Model):
 
 		xml_str = hsreplay_doc.to_xml()
 		self.hsreplay_version = hsreplay_doc.version
+		# Clean up existing replays first
+		if self.replay_xml.name and default_storage.exists(self.replay_xml.name):
+			self.replay_xml.delete(save=False)
 		xml_file = ContentFile(xml_str)
 		self.replay_xml.save("hsreplay.xml", xml_file, save=False)
 
