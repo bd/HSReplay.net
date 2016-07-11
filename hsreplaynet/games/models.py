@@ -1,5 +1,6 @@
 from math import ceil
 from django.conf import settings
+from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.core.urlresolvers import reverse
 from django.db import models
@@ -298,6 +299,49 @@ class GameReplay(models.Model):
 			self.replay_xml.delete(save=False)
 
 		return super(GameReplay, self).delete(using)
+
+	def update_final_states(self):
+		"""
+		Updates the replay's `won` and `disconnected` attributes
+		based on the final_state of its players.
+		"""
+		# Record whether the user won/lost the game
+		player = self.global_game.players.get(player_id=self.friendly_player_id)
+		if player.final_state in (PlayState.PLAYING, PlayState.INVALID):
+			# This means we disconnected during the game
+			self.disconnected = True
+		elif player.final_state in (PlayState.WINNING, PlayState.WON):
+			self.won = True
+		else:
+			# Anything else is a concede/loss/tie
+			self.won = False
+
+	def save_hsreplay_xml(self, parser, meta):
+		from hsreplay.document import HSReplayDocument
+
+		global_game = self.global_game
+		hsreplay_doc = HSReplayDocument.from_parser(parser, build=global_game.build)
+		game_xml = hsreplay_doc.games[0]
+		game_xml.game_type = global_game.game_type
+		game_xml.id = global_game.game_server_game_id
+		if self.reconnecting:
+			game_xml.reconnecting = True
+
+		game_tree = parser.games[0]
+		for player in game_tree.game.players:
+			player_meta = meta.get("player%i" % (player.player_id), {})
+			player_xml = game_xml.players[player.player_id - 1]
+			player_xml.rank = player_meta.get("rank")
+			player_xml.legendRank = player_meta.get("legend_rank")
+			player_xml.cardback = player_meta.get("cardback")
+			player_xml.deck = player_meta.get("deck")
+
+		xml_str = hsreplay_doc.to_xml()
+		self.hsreplay_version = hsreplay_doc.version
+		xml_file = ContentFile(xml_str)
+		self.replay_xml.save("hsreplay.xml", xml_file, save=False)
+
+		return xml_file
 
 	@property
 	def css_classes(self):

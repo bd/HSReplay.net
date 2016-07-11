@@ -1,17 +1,19 @@
 import json
+import logging
 import traceback
 from io import StringIO
 from dateutil.parser import parse as dateutil_parse
 from django.core.exceptions import ValidationError
-from django.core.files.base import ContentFile
-from hearthstone.enums import BnetGameType, GameTag, PlayState
-from hsreplay.document import HSReplayDocument
+from hearthstone.enums import GameTag
 from hsreplay.dumper import parse_log
-from hsreplaynet.utils import deduplication_time_range, guess_ladder_season
 from hsreplaynet.cards.models import Deck
+from hsreplaynet.utils import deduplication_time_range, guess_ladder_season
+from hsreplaynet.utils.instrumentation import influx_metric
 from hsreplaynet.uploads.models import UploadEventStatus
-from hsreplaynet.utils import instrumentation
 from .models import GameReplay, GlobalGame, GlobalGamePlayer, PendingReplayOwnership
+
+
+logger = logging.getLogger(__file__)
 
 
 class ProcessingError(Exception):
@@ -27,7 +29,7 @@ class UnsupportedReplay(ProcessingError):
 
 
 def eligible_for_unification(meta):
-	return False
+	return all([meta.get("game_id"), meta.get("client_id")])
 
 
 def find_or_create_global_game(game_tree, meta):
@@ -35,7 +37,7 @@ def find_or_create_global_game(game_tree, meta):
 	if build is None and "stats" in meta:
 		build = meta["stats"]["meta"]["build"]
 	game_id = meta.get("game_id")
-	game_type = meta.get("game_type", BnetGameType.BGT_UNKNOWN)
+	game_type = meta.get("game_type", 0)
 	start_time = game_tree.start_time
 	end_time = game_tree.end_time
 	if "stats" in meta and "ranked_season_stats" in meta["stats"]:
@@ -78,6 +80,33 @@ def find_or_create_global_game(game_tree, meta):
 	return global_game, False
 
 
+def find_or_create_replay(global_game, meta, unified):
+	client_id = meta.get("client_id")
+	if unified:
+		# Look for duplicate uploads
+		replays = global_game.replays.filter(
+			friendly_player_id=meta["friendly_player"],
+			game_server_client_id=client_id,
+		)
+		if len(replays) > 1:
+			raise RuntimeError("Found multiple client_id=%r for %r" % (client_id, global_game))
+		elif replays:
+			replay = replays.first()
+			logger.info("Duplicate upload detected: %r", replay)
+			return replay, True
+
+	replay = GameReplay(
+		global_game=global_game,
+		friendly_player_id=meta["friendly_player"],
+		game_server_client_id=client_id,
+		game_server_spectate_key=meta.get("spectate_key"),
+		is_spectated_game=meta.get("spectator_mode", False),
+		reconnecting=meta.get("reconnecting", False),
+	)
+
+	return replay, False
+
+
 def process_upload_event(upload_event):
 	"""
 	Wrapper around do_process_upload_event() to set the event's
@@ -107,20 +136,8 @@ def process_upload_event(upload_event):
 	return replay
 
 
-def get_player_names(player):
-	if not player.is_ai and " " in player.name:
-		return "", player.name
-	else:
-		return player.name, ""
-
-
-def do_process_upload_event(upload_event):
-	if upload_event.game:
-		raise NotImplementedError("Reprocessing not implemented yet")
-
-	meta = json.loads(upload_event.metadata)
+def parse_upload_event(upload_event, meta):
 	match_start = dateutil_parse(meta["match_start"])
-
 	upload_event.file.open(mode="rb")
 	log = StringIO(upload_event.file.read().decode("utf-8"))
 	upload_event.file.close()
@@ -130,62 +147,46 @@ def do_process_upload_event(upload_event):
 	except Exception as e:
 		raise ParsingError(str(e))  # from e
 
+	return parser
+
+
+def validate_parser(parser, meta):
+	# Validate upload
 	if len(parser.games) != 1:
 		raise ValidationError("Expected exactly 1 game, got %i" % (len(parser.games)))
 	game_tree = parser.games[0]
+
 	# If a player's name is None, this is an unsupported replay.
 	for player in game_tree.game.players:
 		if player.name is None:
 			raise UnsupportedReplay("Could not extract player information from the log.")
 
-	friendly_player_id = meta.get("friendly_player") or game_tree.guess_friendly_player()
-	if not friendly_player_id:
-		raise ValidationError("Friendly player ID not present at upload and could not guess it.")
+	if not meta.get("friendly_player"):
+		id = game_tree.guess_friendly_player()
+		if not id:
+			raise ValidationError("Friendly player ID not present at upload and could not guess it.")
+		meta["friendly_player"] = id
 
-	global_game, unified = find_or_create_global_game(game_tree, meta)
+	return game_tree
 
-	if upload_event.token:
-		user = upload_event.token.user
+
+def get_player_names(player):
+	if not player.is_ai and " " in player.name:
+		return "", player.name
 	else:
-		# No token was attached to the request (maybe a manual one?)
-		user = None
+		return player.name, ""
 
-	# Create the HSReplay document
-	hsreplay_doc = HSReplayDocument.from_parser(parser, build=global_game.build)
-	game_xml = hsreplay_doc.games[0]
-	game_xml.game_type = global_game.game_type
-	game_xml.id = global_game.game_server_game_id
-	reconnecting = meta.get("reconnecting", False)
-	if reconnecting:
-		game_xml.reconnecting = True
 
-	# The replay object in the db
-	replay = GameReplay(
-		friendly_player_id=friendly_player_id,
-		game_server_client_id=meta.get("client_id"),
-		game_server_spectate_key=meta.get("spectate_key"),
-		global_game=global_game,
-		hsreplay_version=hsreplay_doc.version,
-		is_spectated_game=meta.get("spectator_mode", False),
-		reconnecting=reconnecting,
-		user=user,
-	)
-
+def create_global_players(global_game, game_tree, meta):
 	# Fill the player metadata and objects
 	for player in game_tree.game.players:
-		player_meta_obj = meta.get("player%i" % (player.player_id), {})
+		player_meta = meta.get("player%i" % (player.player_id), {})
 		hero = list(player.heroes)[0]
-		decklist = player_meta_obj.get("deck")
+		decklist = player_meta.get("deck")
 		if not decklist:
 			decklist = [c.card_id for c in player.initial_deck if c.card_id]
 		deck, _ = Deck.objects.get_or_create_from_id_list(decklist)
 		final_state = player.tags.get(GameTag.PLAYSTATE, 0)
-
-		player_xml = game_xml.players[player.player_id - 1]
-		player_xml.rank = player_meta_obj.get("rank")
-		player_xml.legendRank = player_meta_obj.get("legend_rank")
-		player_xml.cardback = player_meta_obj.get("cardback")
-		player_xml.deck = player_meta_obj.get("deck")
 
 		name, real_name = get_player_names(player)
 
@@ -199,38 +200,49 @@ def do_process_upload_event(upload_event):
 			is_ai=player.is_ai,
 			hero_id=hero.card_id,
 			hero_premium=hero.tags.get(GameTag.PREMIUM, False),
-			rank=player_meta_obj.get("rank"),
-			legend_rank=player_meta_obj.get("legend_rank"),
-			stars=player_meta_obj.get("stars"),
-			wins=player_meta_obj.get("wins"),
-			losses=player_meta_obj.get("losses"),
+			rank=player_meta.get("rank"),
+			legend_rank=player_meta.get("legend_rank"),
+			stars=player_meta.get("stars"),
+			wins=player_meta.get("wins"),
+			losses=player_meta.get("losses"),
 			is_first=player.tags.get(GameTag.FIRST_PLAYER, False),
 			final_state=final_state,
 			deck_list=deck,
 		)
 
-		# XXX move the following to replay save()
-		if player.player_id == friendly_player_id:
-			# Record whether the uploader won/lost that game
-			if final_state in (PlayState.PLAYING, PlayState.INVALID):
-				# This means we disconnected during the game
-				replay.disconnected = True
-			elif final_state in (PlayState.WINNING, PlayState.WON):
-				replay.won = True
-			else:
-				# Anything else is a concede/loss/tie
-				replay.won = False
-
 		game_player.save()
 
-	# Save to XML
-	xml_str = hsreplay_doc.to_xml()
-	xml_file = ContentFile(xml_str)
-	instrumentation.influx_metric("replay_xml_num_bytes", {"size": xml_file.size})
-	replay.replay_xml.save("hsreplay.xml", xml_file, save=False)
 
+def update_global_players(global_game, game_tree, meta):
+	logger.info("Unified upload. Updating players not implemented yet.")
+
+
+def do_process_upload_event(upload_event):
+	meta = json.loads(upload_event.metadata)
+	parser = parse_upload_event(upload_event, meta)
+	game_tree = validate_parser(parser, meta)
+	global_game, unified = find_or_create_global_game(game_tree, meta)
+	if upload_event.game:
+		replay, duplicate = upload_event.game, True
+	else:
+		replay, duplicate = find_or_create_replay(global_game, meta, unified)
+
+	if unified or duplicate:
+		update_global_players(global_game, game_tree, meta)
+	else:
+		create_global_players(global_game, game_tree, meta)
+
+	user = upload_event.token.user if upload_event.token else None
+	if user and not replay.user:
+		replay.user = user
+
+	# Create and save hsreplay.xml file
+	file = replay.save_hsreplay_xml(parser, meta)
+	influx_metric("replay_xml_num_bytes", {"size": file.size})
+	replay.update_final_states()
 	replay.save()
 
+	# Manual uploads (admin/command line) don't have tokens attached
 	if user is None and upload_event.token is not None:
 		# If the auth token has not yet been claimed, create
 		# a pending claim for the replay for when it will be.
