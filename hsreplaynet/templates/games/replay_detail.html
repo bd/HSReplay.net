@@ -96,6 +96,7 @@
 				console.warn(message);
 			}
 		});
+		Raven && Raven.setRelease(Joust.release());
 		Joust.viewer("joust-container")
 			.metadata(JoustExtra.metadata)
 			.assets("{% joust_static 'assets/' %}")
