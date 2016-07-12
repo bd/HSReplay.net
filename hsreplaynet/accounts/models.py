@@ -2,6 +2,8 @@ import uuid
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from hsreplaynet.games.models import Visibility
+from hsreplaynet.utils.fields import IntEnumField
 
 
 class AccountClaim(models.Model):
@@ -24,3 +26,9 @@ class AccountClaim(models.Model):
 class User(AbstractUser):
 	id = models.BigAutoField(primary_key=True)
 	username = models.CharField(max_length=150, unique=True)
+
+	# Profile fields
+	default_replay_visibility = IntEnumField(
+		"Default replay visibility",
+		enum=Visibility, default=Visibility.Public
+	)
