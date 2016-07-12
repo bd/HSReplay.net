@@ -1,3 +1,4 @@
+from enum import IntEnum
 from math import ceil
 from django.conf import settings
 from django.core.files.base import ContentFile
@@ -188,6 +189,11 @@ class GlobalGamePlayer(models.Model):
 		return self.final_state in (PlayState.WINNING, PlayState.WON)
 
 
+class Visibility(IntEnum):
+	Public = 1
+	Unlisted = 2
+
+
 class GameReplay(models.Model):
 	"""
 	Represents a replay as captured from the point of view of a single
@@ -268,6 +274,8 @@ class GameReplay(models.Model):
 		default=False,
 		help_text="Whether the player is reconnecting to an existing game",
 	)
+
+	visibility = IntEnumField(enum=Visibility, default=Visibility.Public)
 
 	def __str__(self):
 		return str(self.global_game)
