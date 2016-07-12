@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.db.models import Count
 from hsreplaynet.uploads.models import UploadEvent
 from hsreplaynet.utils.admin import admin_urlify as urlify, set_user
-from .models import GameReplay, GlobalGame, GlobalGamePlayer
+from .models import GameReplay, GlobalGame, GlobalGamePlayer, PendingReplayOwnership
 
 
 class GlobalGamePlayerInline(admin.StackedInline):
@@ -26,6 +26,11 @@ class GameReplayInline(admin.StackedInline):
 	show_change_link = True
 
 
+class PendingReplayOwnershipInline(admin.TabularInline):
+	model = PendingReplayOwnership
+	raw_id_fields = ("token", )
+
+
 @admin.register(GameReplay)
 class GameReplayAdmin(admin.ModelAdmin):
 	actions = (set_user, )
@@ -40,7 +45,7 @@ class GameReplayAdmin(admin.ModelAdmin):
 	raw_id_fields = (
 		"upload_token", "user", "global_game",
 	)
-	inlines = (UploadEventInline, )
+	inlines = (UploadEventInline, PendingReplayOwnershipInline)
 
 
 class ReplaySidesFilter(admin.SimpleListFilter):

@@ -367,7 +367,7 @@ class PendingReplayOwnership(models.Model):
 	A model associating an AuthKey with a GameReplay, until
 	the AuthKey gains a real user.
 	"""
-	replay = models.OneToOneField(GameReplay)
+	replay = models.OneToOneField(GameReplay, related_name="ownership_claim")
 	token = models.ForeignKey(
 		"api.AuthToken", on_delete=models.CASCADE, related_name="replay_claims"
 	)
