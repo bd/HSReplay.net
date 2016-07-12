@@ -91,18 +91,18 @@
 			hearthstonejson: "{% setting 'HEARTHSTONEJSON_URL' %}",
 			logger: function (message, extra) {
 				{% if dsn %}
-					Raven && Raven.captureMessage(message, {level: "warning", extra: extra});
+					Raven.captureMessage(message, {level: "warning", extra: extra});
 				{% endif %}
 				console.warn(message);
 			}
 		});
-		Raven && Raven.setRelease(Joust.release());
+		{% if dsn %}Raven.setRelease(Joust.release());{% endif %}
 		Joust.viewer("joust-container")
 			.metadata(JoustExtra.metadata)
 			.assets("{% joust_static 'assets/' %}")
 			.cardArt("{% joust_static 'card-art/' %}")
 			.logger(function(error) {
-				{% if dsn %}Raven && Raven.captureException(error);{% endif %}
+				{% if dsn %}Raven.captureException(error);{% endif %}
 				var message = error.message ? error.message : error;
 				console.error(message);
 			})
@@ -177,7 +177,7 @@
 	};
 
 	{% if dsn %}
-		if (Raven && Raven.wrap) {
+		if (Raven.wrap) {
 			j = Raven.wrap(j);
 		}
 	{% endif %}
