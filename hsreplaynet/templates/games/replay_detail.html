@@ -63,7 +63,7 @@
 {% setting "JOUST_RAVEN_DSN_PUBLIC" as dsn %}
 {% influx_db "joust" as influx %}
 {% if dsn %}
-	<script src="https://cdn.ravenjs.com/3.1.1/raven.min.js"></script>
+	<script src="https://cdn.ravenjs.com/3.2.1/raven.min.js" integrity="sha384-2QcVFMszQztv0f86/rCOPeCZfrHzwGUCpX07J6zefzEtrLNm0n0U4DwzbuhXlDMo" crossorigin="anonymous"></script>
 	<script type="text/javascript">
 		Raven.config("{{ dsn }}").install();
 		Raven.setExtraContext({
@@ -80,8 +80,8 @@
 		{% endif %}
 	</script>
 {% endif %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.2.0/react.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.2.0/react-dom.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.2.1/react.min.js" integrity="sha384-ICzDcvbNpMy31akJ8WzksHoK9tl1iRIUPRCaBRN+sn/k40TNGjs9IvgPN0SekkDT" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.2.1/react-dom.min.js" integrity="sha384-1dLXeik7kFcDPXbz3rX9dibLTGh/D8dpAOL5X2Ml09pH8wpQlpL+JOgOnzAMCO4T" crossorigin="anonymous"></script>
 <script src="{% static 'web/joust-extra.js' %}"></script>
 <script src="{% joust_static 'joust.js' %}"></script>
 <script type="text/javascript">
