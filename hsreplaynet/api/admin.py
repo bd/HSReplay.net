@@ -1,6 +1,16 @@
 from django.contrib import admin
+from hsreplaynet.uploads.models import UploadEvent
 from hsreplaynet.utils.admin import set_user
 from .models import APIKey, AuthToken
+
+
+class UploadEventInline(admin.TabularInline):
+	model = UploadEvent
+	fields = ("game", "created", "file", "upload_ip", "status", "api_key")
+	readonly_fields = fields[1:]
+	raw_id_fields = ("game", )
+	extra = 0
+	show_change_link = True
 
 
 @admin.register(AuthToken)
@@ -9,6 +19,7 @@ class AuthTokenAdmin(admin.ModelAdmin):
 	date_hierarchy = "created"
 	list_display = ("__str__", "user", "created")
 	raw_id_fields = ("user", )
+	inlines = (UploadEventInline, )
 
 
 class AuthTokenInline(admin.TabularInline):
