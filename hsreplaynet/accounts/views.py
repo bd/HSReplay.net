@@ -10,17 +10,9 @@ from .models import AccountClaim
 class ClaimAccountView(LoginRequiredMixin, View):
 	def get(self, request, id):
 		claim = get_uuid_object_or_404(AccountClaim, id=id)
-
 		claim.token.user = request.user
 		claim.token.save()
-
-		# Claim all of the token's replays and delete the claim
-		replay_claims = claim.token.replay_claims.all()
-		for replay_claim in replay_claims:
-			replay_claim.replay.user = request.user
-			replay_claim.replay.save()
-		replay_claims.delete()
-
+		# Replays are claimed in AuthToken post_save signal (games.models)
 		claim.delete()
 		msg = "You have claimed your account. Yay!"
 		# XXX: using WARNING as a hack to ignore login/logout messages for now

@@ -8,6 +8,7 @@ from django.db import models
 from django.dispatch.dispatcher import receiver
 from django.utils.timezone import now
 from hearthstone.enums import BnetGameType, PlayState
+from hsreplaynet.api.models import AuthToken
 from hsreplaynet.cards.models import Card, Deck
 from hsreplaynet.utils.fields import IntEnumField, PlayerIDField, ShortUUIDField
 
@@ -226,8 +227,7 @@ class GameReplay(models.Model):
 	id = models.BigAutoField(primary_key=True)
 	shortid = ShortUUIDField("Short ID")
 	upload_token = models.ForeignKey(
-		"api.AuthToken", on_delete=models.SET_NULL,
-		null=True, blank=True, related_name="replays"
+		AuthToken, on_delete=models.SET_NULL, null=True, blank=True, related_name="replays"
 	)
 	user = models.ForeignKey(
 		settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
@@ -369,7 +369,7 @@ class PendingReplayOwnership(models.Model):
 	"""
 	replay = models.OneToOneField(GameReplay, related_name="ownership_claim")
 	token = models.ForeignKey(
-		"api.AuthToken", on_delete=models.CASCADE, related_name="replay_claims"
+		AuthToken, on_delete=models.CASCADE, related_name="replay_claims"
 	)
 
 	class Meta:
@@ -381,3 +381,17 @@ def cleanup_hsreplay_file(sender, instance, **kwargs):
 	file = instance.replay_xml
 	if file.name and default_storage.exists(file.name):
 		file.delete(save=False)
+
+
+@receiver(models.signals.post_save, sender=AuthToken)
+def claim_token_replays(sender, instance, **kwargs):
+	"""
+	Whenever AuthToken.user is set, process all the PendingReplayOwnerships.
+	"""
+	if instance.user:
+		# Claim all of the token's replays and delete them
+		claims = instance.replay_claims.all()
+		for claim in claims:
+			claim.replay.user = instance.user
+			claim.replay.save()
+		claims.delete()
