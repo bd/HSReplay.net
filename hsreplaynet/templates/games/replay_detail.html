@@ -133,6 +133,7 @@
 			.fromUrl($("#joust-container").data("replayurl"));
 
 			{% if influx %}
+				var asyncInflux = true;
 				var consumeInflux = function () {
 					try {
 						if (!joustEvents.length) {
@@ -146,7 +147,7 @@
 							"&u={{ influx.USER }}" +
 							"&p={{ influx.PASSWORD }}" +
 							"&precision=s"
-						oReq.open("POST", url, true);
+						oReq.open("POST", url, asyncInflux);
 						var blob = new Blob([
 							joustEvents.map(function (event) {
 								var tags = [];
@@ -172,7 +173,13 @@
 					}
 				};
 				window.setInterval(consumeInflux, 30 * 1000);
-				$(window).on("beforeunload", consumeInflux);
+				$(window).on("beforeunload", function() {
+					if(/Firefox\/\d+/.test(navigator.userAgent)) {
+						// send final request synchronous in Firefox
+						asyncInflux = false;
+					}
+					consumeInflux();
+				});
 			{% endif %}
 	};
 
