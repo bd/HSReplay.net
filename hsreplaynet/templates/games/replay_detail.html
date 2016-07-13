@@ -166,7 +166,12 @@
 							}
 						);
 						oReq.send(blob);
-						joustEvents = [];
+						{% comment %} Influx will usually respond with 204 No Content.
+						Firefox expects some response though, leading to "no element found" errors
+						See bug: https://bugzilla.mozilla.org/show_bug.cgi?id=884693 {% endcomment %}
+						oReq.addEventListener("load", function () {
+							joustEvents = [];
+						});
 					}
 					catch(e) {
 						console.warn("Failed to reach Influx", e.message ? ": " + e.message : "");
