@@ -227,14 +227,3 @@ class Include(models.Model):
 
 	class Meta:
 		unique_together = ("deck", "card")
-
-
-class CardCollectionAuditLog(models.Model):
-	job_date = models.DateField()
-
-	# Load Cards
-	card_collection_start = models.DateTimeField()
-	card_collection_end = models.DateTimeField(null=True, blank=True)
-	num_new_cards_loaded = models.IntegerField(default=0)
-	card_collection_succeeded = models.BooleanField(default=False)
-	exception_text = models.TextField()

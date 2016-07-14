@@ -1,26 +1,19 @@
-from datetime import date
 from django.core.management.base import BaseCommand
-from django.utils.timezone import now
-from ...loader import CardXMLLoader
-from ...models import CardCollectionAuditLog
+from hearthstone import cardxml
+from ...models import Card
 
 
 class Command(BaseCommand):
 	def handle(self, *args, **options):
-		audit_log = CardCollectionAuditLog()
-		audit_log.job_date = date.today()
-		audit_log.card_collection_start = now()
-		audit_log.save()
+		db, _ = cardxml.load()
+		created = 0
 
-		try:
-			loader = CardXMLLoader()
-			result = loader.load()
-			audit_log.num_new_cards_loaded = result.created
-			audit_log.card_collection_succeeded = True
-			audit_log.card_collection_end = now()
-			audit_log.save()
-		except Exception as e:
-			audit_log.card_collection_succeeded = False
-			audit_log.exception_text = str(e)
-			audit_log.card_collection_end = now()
-			audit_log.save()
+		self.stdout.write("%i cards available" % (len(db)))
+
+		for card in db.values():
+			obj, created = Card.objects.get_or_create_from_cardxml(card)
+			if created:
+				self.stdout.write("New card: %r (%s)" % (obj, obj.id))
+				created += 1
+
+		self.stdout.write("%i new cards" % (created))
