@@ -100,9 +100,6 @@ class Card(models.Model):
 
 	craftable = models.BooleanField(default=False)
 
-	image = models.URLField(null=True, blank=True)
-	image_gold = models.URLField(null=True, blank=True)
-
 	class Meta:
 		db_table = "card"
 
