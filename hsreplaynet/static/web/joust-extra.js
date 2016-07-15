@@ -34,7 +34,7 @@ var JoustExtra = {
 			this._fetchMetadata("latest", function (result) {
 				this.flags.cards.fetched_latest = true;
 				parse(result);
-			});
+			}.bind(this));
 		}.bind(this);
 
 		if (buildNumber) {
