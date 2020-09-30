@@ -1,7 +1,7 @@
 # [HSReplay.net](https://hsreplay.net)
 
 A website to upload and share your Hearthstone games.
-
+Preparations hearthstone game.
 
 ## Technology overview
 
