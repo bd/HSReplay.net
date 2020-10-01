@@ -1,6 +1,6 @@
 # [HSReplay.net](https://hsreplay.net)
 
-A website to upload and share your Hearthstone games.
+A website to upload and share your Hearthstone an amazing games.
 
 
 ## Technology overview
@@ -36,7 +36,7 @@ Replays are processed on [Amazon Lambda](https://aws.amazon.com/lambda/details/)
 using the Python 2.7 runtime.
 
 
-## Installation
+## File Installation
 
 Install development dependencies with `pip install -r requirements/dev.txt`.
 
