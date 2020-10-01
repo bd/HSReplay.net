@@ -1,4 +1,4 @@
-# [HSReplay.net](https://hsreplay.net)
+# [HSReplay.net](https://hsreplay.net) - share your success in game
 
 A website to upload and share your Hearthstone games.
 
