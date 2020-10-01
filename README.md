@@ -1,6 +1,6 @@
 # [HSReplay.net](https://hsreplay.net)
 
-A website to upload and share your Hearthstone games.
+A website to upload and share your Hearthstone games.HSReplay is a community-run website owned and hosted by HearthSim. It is an analysis website notable for the replay feature, allowing players to watch their games back, and the tracking of meta decks. They also offer deck tracker software called Hearthstone Deck Tracker.
 
 
 ## Technology overview
