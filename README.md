@@ -56,3 +56,4 @@ The API is available at `/api/v1/` and is browsable using the DRF interface.
 ## License
 
 Copyright © HearthSim - All Rights Reserved
+For more check about us :)
